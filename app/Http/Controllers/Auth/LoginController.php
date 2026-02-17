@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Support\Facades\Auth;
 use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -47,49 +48,64 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'number_employee' => 'required',
-            'password' => 'required',
-        ]);
-
-        $user = User::where('number_employee', $request->number_employee)->first();
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'Wrong employee ID or password',
-                'status' => 'error'
+        try {
+            $request->validate([
+                'number_employee' => 'required',
+                'password' => 'required',
             ]);
-        }
 
-        // Resigned user check
-        if(in_array($user->emp_status, ['3','4','5','6','7','8','9'])){
-            if ($user->resign_date && $user->resign_date <= now()->toDateString()) {
+            $user = User::where('number_employee', $request->number_employee)->first();
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Wrong employee ID or password',
+                    'status' => 'error'
+                ]);
+            }
+
+            // Resigned user check
+            if(in_array($user->emp_status, ['3','4','5','6','7','8','9'])){
+                if ($user->resign_date && $user->resign_date <= now()->toDateString()) {
+                    return response()->json([
+                        'message' => 'Your account is not active. Please contact support',
+                        'status' => 'error'
+                    ]);
+                }
+            }
+
+            // Role check
+            if (empty($user->role_id)) {
+                return response()->json([
+                    'message' => "You don't have permission to view this page",
+                    'status' => 'error'
+                ]);
+            }
+
+            // Status check
+            if ($user->status !== 'Active') {
                 return response()->json([
                     'message' => 'Your account is not active. Please contact support',
                     'status' => 'error'
                 ]);
             }
-        }
 
-        // Role check
-        if (empty($user->role_id)) {
-            return response()->json([
-                'message' => "You don't have permission to view this page",
-                'status' => 'error'
-            ]);
-        }
+            // First-time password logic
+            if ($user->p_status == 0) {
+                if (!Hash::check($request->password, $user->password)) {
+                    return response()->json([
+                        'message' => 'Wrong employee ID or password',
+                        'status' => 'error'
+                    ]);
+                }
 
-        // Status check
-        if ($user->status !== 'Active') {
-            return response()->json([
-                'message' => 'Your account is not active. Please contact support',
-                'status' => 'error'
-            ]);
-        }
+                return response()->json([
+                    'message' => 'Login successfully',
+                    'status' => 'success',
+                    'role' => null
+                ]);
+            }
 
-        // First-time password logic
-        if ($user->p_status == 0) {
-            if (!Hash::check($request->password, $user->password)) {
+            // Normal login
+            if (!Auth::attempt($request->only('number_employee', 'password'))) {
                 return response()->json([
                     'message' => 'Wrong employee ID or password',
                     'status' => 'error'
@@ -99,30 +115,15 @@ class LoginController extends Controller
             return response()->json([
                 'message' => 'Login successfully',
                 'status' => 'success',
-                'role' => null
+                'role' => Auth::user()->RolePermission
             ]);
-        }
 
-        // Normal login
-        if (!Auth::attempt($request->only('number_employee', 'password'))) {
+        } catch (\Exception $e) {
+            Log::error('Login error', ['error' => $e->getMessage()]);
             return response()->json([
-                'message' => 'Wrong employee ID or password',
+                'message' => 'Login failed. Please try again',
                 'status' => 'error'
-            ]);
-        }
-            
-        if (Auth::attempt(['number_employee' => $request->number_employee, 'password' => $request->password])) {
-            if (Auth::user()->status == 'Active') {
-                Toastr::success('Login successfully.', 'Success');
-                return redirect('admin/dashboad');
-            } else {
-                Auth::logout();
-                Toastr::error('Your account is not active. Please contact support.', 'Error');
-                return redirect('login');
-            }
-        }else {
-            Toastr::error('Wrong Email Or Password', 'Error');
-            return redirect('login');
+            ], 500);
         }
     }
     public function logout()

@@ -9,19 +9,29 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
         <!-- Call App Mode on ios devices -->
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
         <!-- Remove Tap Highlight on Windows Phone IE -->
         <meta name="msapplication-tap-highlight" content="no">
+       
+        <link rel="shortcut icon" type="image/x-icon" href="{{ asset('/admin/img/logo/favicon.ico') }}">
+
         <!-- base css -->
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/vendors.bundle.css')}}">
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/app.bundle.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/notifications/sweetalert2/sweetalert2.bundle.css')}}">
         <!-- Place favicon.ico in the root directory -->
-        <link rel="apple-touch-icon" sizes="180x180" href="{{asset('/admins/img/favicon/logo.png')}}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{{asset('/admins/img/favicon/logo.png')}}">
-        {{-- <link rel="mask-icon" href="{{asset('admins/img/favicon/safari-pinned-tab.svg')}}" color="#5bbad5"> --}}
+        <link rel="apple-touch-icon" sizes="180x180" href="{{asset('/admins/img/favicon.ico')}}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{asset('/admins/img/favicon.ico')}}">
+        <link rel="mask-icon" href="{{asset('admins/img/favicon/safari-pinned-tab.svg')}}" color="#5bbad5">
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/datagrid/datatables/datatables.bundle.css')}}">
+        <link rel="stylesheet" href="{{asset('admins/css/notifications/toastr/toastr.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('/admins/css/formplugins/select2/select2.bundle.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/formplugins/summernote/summernote.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/statistics/c3/c3.css')}}">
+        <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.css')}}">
     </head>
-    <body class="mod-bg-1 ">
+    <body class="mod-bg-1">
         <!-- DOC: script to save and load page settings -->
         <script>
             /**
@@ -107,23 +117,30 @@
                         </div>
                         
                         <ul id="js-nav-menu" class="nav-menu">
-                            <li class="active open">
-                                <li class="active">
-                                    <a href="{{url('admin/dashboad')}}" title="Support Form Dashboard" data-filter-tags="application intel support form dashboard">
-                                        <i class="fal fa-tachometer-alt"></i>
-                                        <span class="nav-link-text" data-i18n="nav.application_intel_marketing_dashboard">Dashboard</span>
-                                    </a>
-                                </li>
+                            {{-- Dashboard --}}
+                            <li class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
+                                <a href="{{ url('admin/dashboard') }}" title="Dashboard">
+                                    <i class="fal fa-tachometer-alt"></i>
+                                    <span class="nav-link-text">Dashboard</span>
+                                </a>
                             </li>
-                            <li>
-                                <a href="#" title="Theme Reports" data-filter-tags="theme reports">
+
+                            {{-- Loan Reports --}}
+                            <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
+                                <a href="javascript:void(0)" title="Loan Reports">
                                     <i class="fal fa-chart-pie"></i>
-                                    <span class="nav-link-text" data-i18n="nav.theme_report">MKT Reports</span>
+                                    <span class="nav-link-text">Loan Reports</span>
                                 </a>
                                 <ul>
-                                    <li>
-                                        <a href="{{url('admin/dashboad')}}" title="General" data-filter-tags="theme reports general">
-                                            <span class="nav-link-text" data-i18n="nav.theme_reports_general">General</span>
+                                    <li class="{{ Request::is('admin/report/loan/detail') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/report/loan/detail') }}">
+                                            <span class="nav-link-text">Loan Detail</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="{{ Request::is('admin/report/co-performance') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/report/co-performance') }}">
+                                            <span class="nav-link-text">CO Performance</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -169,14 +186,6 @@
                                 <i class="ni ni-menu"></i>
                             </a>
                         </div>
-                        {{-- <div class="search">
-                            <form class="app-forms hidden-xs-down" role="search" action="page_search.html" autocomplete="off">
-                                <input type="text" id="search-field" placeholder="Search for anything" class="form-control" tabindex="1">
-                                <a href="#" onclick="return false;" class="btn-danger btn-search-close js-waves-off d-none" data-action="toggle" data-class="mobile-search-on">
-                                    <i class="fal fa-times"></i>
-                                </a>
-                            </form>
-                        </div> --}}
                         <div class="ml-auto d-flex">
                             <!-- activate app search icon (mobile) -->
                             <div class="hidden-sm-up">
@@ -244,12 +253,11 @@
                     <!-- BEGIN Page Content -->
                     <!-- the #js-page-content id is needed for some plugins to initialize -->
                     <main id="js-page-content" role="main" class="page-content">
-                        <ol class="breadcrumb page-breadcrumb">
-                            {{-- <li class="breadcrumb-item"><a href="javascript:void(0);">SupportForm</a></li> --}}
+                        {{-- <ol class="breadcrumb page-breadcrumb">
                             <li class="breadcrumb-item">Application Intel</li>
                             <li class="breadcrumb-item active">Dashboard</li>
                             <li class="position-absolute pos-top pos-right d-none d-sm-block"><span class="js-get-date"></span></li>
-                        </ol>
+                        </ol> --}}
                         @yield('content')
                     </main>
                     <!-- this overlay is activated only when mobile menu is triggered -->
@@ -336,12 +344,7 @@
             <a href="#" class="menu-item btn" data-toggle="tooltip" data-placement="left" title="Scroll Top">
                 <i class="fal fa-arrow-up"></i>
             </a>
-            {{-- <a class="dropdown-item" href="{{ route('logout') }}"
-                onclick="event.preventDefault();
-                                document.getElementById('logout-form').submit();">
-                {{ __('Logout') }}
-            </a> --}}
-
+        
             <a href="{{ route('logout') }}" class="menu-item btn" data-toggle="tooltip" data-placement="left" title="Logout"
                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <i class="fal fa-sign-out"></i>
@@ -352,9 +355,6 @@
             <a href="#" class="menu-item btn" data-action="app-print" data-toggle="tooltip" data-placement="left" title="Print page">
                 <i class="fal fa-print"></i>
             </a>
-            {{-- <a href="#" class="menu-item btn" data-action="app-voice" data-toggle="tooltip" data-placement="left" title="Voice command">
-                <i class="fal fa-microphone"></i>
-            </a> --}}
         </nav>
         <!-- END Quick Menu -->
        
@@ -612,15 +612,188 @@
         <!-- END Page Settings -->
         <script src="{{asset('admins/js/vendors.bundle.js')}}"></script>
         <script src="{{asset('admins/js/app.bundle.js')}}"></script>
+        <script src="{{asset('admins/js/notifications/sweetalert2/sweetalert2.bundle.js')}}"></script>
         <script type="text/javascript">
             /* Activate smart panels */
             $('#js-page-content').smartPanel();
         </script>
+
+
         <!-- The order of scripts is irrelevant. Please check out the plugin pages for more details about these plugins below: -->
         <script src="{{asset('admins/js/statistics/peity/peity.bundle.js')}}"></script>
         <script src="{{asset('admins/js/statistics/flot/flot.bundle.js')}}"></script>
         <script src="{{asset('admins/js/statistics/easypiechart/easypiechart.bundle.js')}}"></script>
         <script src="{{asset('admins/js/datagrid/datatables/datatables.bundle.js')}}"></script>
+        <script src="{{asset('admins/js/notifications/toastr/toastr.js')}}"></script>
+
+        <script src="{{asset('admins/js/formplugins/select2/select2.bundle.js')}}"></script>
+        <script src="{{asset('admins/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js')}}"></script>
+        <script src="{{asset('admins/js/datagrid/datatables/datatables.export.js')}}"></script>
+        <script src="{{asset('admins/js/dependency/moment/moment.js')}}"></script>
+        <script src="{{asset('admins/js/formplugins/summernote/summernote.js')}}"></script>
+        <script src="{{asset('admins/js/statistics/d3/d3.js')}}"></script>
+        <!-- c3 charts : MIT license -->
+        <script src="{{asset('admins/js/statistics/c3/c3.js')}}"></script>
+        <script src="{{asset('admins/js/statistics/demo-data/demo-c3.js')}}"></script>
+
+        <script src="{{asset('admins/js/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.js')}}"></script>
+        <script src="{{asset('admins/js/pusher/service-pusher.js')}}"></script>
+        
+        {!! Toastr::message() !!}
+
         @yield('script')
+
+        <script>
+            $(function() {
+                (function()
+                {   
+                    'use strict';
+                    window.addEventListener('load', function()
+                    {
+                        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                        var forms = document.getElementsByClassName('needs-validation');
+                        // Loop over them and prevent submission
+                        var validation = Array.prototype.filter.call(forms, function(form)
+                        {
+                            form.addEventListener('submit', function(event)
+                            {
+                                if (form.checkValidity() === false)
+                                {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                }
+                                form.classList.add('was-validated');
+                            }, false);
+                        });
+                    }, false);
+                    var controls = {
+                        leftArrow: '<i class="fal fa-angle-left" style="font-size: 1.25rem"></i>',
+                        rightArrow: '<i class="fal fa-angle-right" style="font-size: 1.25rem"></i>'
+                    }
+                    // minimum setup
+                    $('.datepicker').datepicker(
+                    {
+                        todayHighlight: true,
+                        orientation: "bottom left",
+                        templates: controls,
+                        format: "dd-mm-yyyy"
+                    });
+
+
+                    $('.select2').select2();
+
+                        $(".select2-placeholder-multiple").select2(
+                        {
+                            placeholder: "Select status"
+                        });
+                        $(".js-hide-search").select2(
+                        {
+                            minimumResultsForSearch: 1 / 0
+                        });
+                        $(".js-max-length").select2(
+                        {
+                            maximumSelectionLength: 2,
+                            placeholder: "Select maximum 2 items"
+                        });
+                        $(".select2-placeholder").select2(
+                        {
+                            placeholder: "Select a state",
+                            allowClear: true
+                        });
+
+                        $(".js-select2-icons").select2(
+                        {
+                            minimumResultsForSearch: 1 / 0,
+                            templateResult: icon,
+                            templateSelection: icon,
+                            escapeMarkup: function(elm)
+                            {
+                                return elm
+                            }
+                        });
+
+                        function icon(elm)
+                        {
+                            elm.element;
+                            return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                        }
+
+                        $(".js-data-example-ajax").select2(
+                        {
+                            ajax:
+                            {
+                                url: "https://api.github.com/search/repositories",
+                                dataType: 'json',
+                                delay: 250,
+                                data: function(params)
+                                {
+                                    return {
+                                        q: params.term, // search term
+                                        page: params.page
+                                    };
+                                },
+                                processResults: function(data, params)
+                                {
+                                    // parse the results into the format expected by Select2
+                                    // since we are using custom formatting functions we do not need to
+                                    // alter the remote JSON data, except to indicate that infinite
+                                    // scrolling can be used
+                                    params.page = params.page || 1;
+
+                                    return {
+                                        results: data.items,
+                                        pagination:
+                                        {
+                                            more: (params.page * 30) < data.total_count
+                                        }
+                                    };
+                                },
+                                cache: true
+                            },
+                            placeholder: 'Search for a repository',
+                            escapeMarkup: function(markup)
+                            {
+                                return markup;
+                            }, // let our custom formatter work
+                            minimumInputLength: 1,
+                            templateResult: formatRepo,
+                            templateSelection: formatRepoSelection
+                        });
+
+                        function formatRepo(repo)
+                        {
+                            if (repo.loading)
+                            {
+                                return repo.text;
+                            }
+
+                            var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                                "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                                "<div class='select2-result-repository__meta'>" +
+                                "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+
+                            if (repo.description)
+                            {
+                                markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                            }
+
+                            markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                                "<div class='select2-result-repository__forks mr-2'><i class='fal fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                                "<div class='select2-result-repository__stargazers mr-2'><i class='fal fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                                "<div class='select2-result-repository__watchers mr-2'><i class='fal fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                                "</div>" +
+                                "</div></div>";
+
+                            return markup;
+                        }
+
+                        function formatRepoSelection(repo)
+                        {
+                            return repo.full_name || repo.text;
+                        }
+                        
+                })();
+            })
+        </script>
     </body>
 </html>
