@@ -1,10 +1,9 @@
 @extends('layouts.admin')
 @section('content')
-    <ol class="breadcrumb page-breadcrumb">
+    {{-- <ol class="breadcrumb page-breadcrumb">
         <li class="">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</li>
-        {{-- <li class="breadcrumb-item active">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</li>
-        <li class="position-absolute pos-top pos-right d-none d-sm-block"><span class="js-get-date"></span></li> --}}
-    </ol>
+    </ol> --}}
+    <h3 class="breadcrumb page-breadcrumb">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</h3>
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-2">

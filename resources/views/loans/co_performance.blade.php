@@ -57,11 +57,28 @@
         .text-right {
             text-align: right !important;
         }
+         /** class scroll 3 bth-child */
+        thead th.stuck-scroll-3 {
+            background: #fff !important;
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 1 !important;
+        }
+        thead th.stuck-scroll-3:nth-child(3) {
+            left:  80px !important;
+        }
+        tbody td.stuck-scroll-3 {
+            background: #fff !important;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+        tbody td.stuck-scroll-3:nth-child(3) {
+            left: 84px;
+        }
     </style>
+    <h3 class="breadcrumb page-breadcrumb">CO Performance</h3>
 
-   <ol class="breadcrumb page-breadcrumb">
-        <li class="">CO Performance</li>
-    </ol>
     {!! Toastr::message() !!}
     <div class="card mb-2">
         <div class="card-body">
@@ -113,20 +130,20 @@
                                 <th>Currency</th>
                                 <th>#Borrowers</th>
                                 <th>#Loans</th>
-                                <th>DisbursedAmt.</th>
-                                <th>OustandingAmt.</th>
+                                <th>DisbursedAmt</th>
+                                <th>OustandingAmt</th>
                                 <th>LoanBalance</th>
                                 <th>#PARs</th>
-                                <th>PARAmt.</th>
+                                <th>PARAmt</th>
                                 <th>PARRate</th>
                                 <th>PDPrincipal</th>
                                 <th>PDInterest</th>
                                 <th>PDPenalty</th>
                                 <th>ArrearRate</th>
                                 <th>#Loans</th>
-                                <th>OustandingAmt.</th>
+                                <th>OustandingAmt</th>
                                 <th>#PARs</th>
-                                <th>PARAmt.</th>
+                                <th>PARAmt</th>
                                 <th>PARRate</th>
                             </tr>
                         </thead>
