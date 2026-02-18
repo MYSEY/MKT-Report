@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admins;
 
+use App\Exports\ExportCOPerformance;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class COPerformanceController extends Controller
 {
@@ -486,5 +489,23 @@ class COPerformanceController extends Controller
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
         $AssetClass = DB::connection('pgsql')->table('MKT_ASSET_CLASS')->select('ID', 'Description')->get();
         return view('loans.co_performance',compact('branch','AssetClass'));
+    }
+
+    public function coPerformanceDownload(Request $request){
+        try {
+            $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
+            // Convert to Carbon
+            $date = Carbon::parse($data->LastSystemDate);
+            // Add current time
+            $dateTime = $date->format('Y-m-d') . '-' . now()->format('H-i');
+            // File name
+            $fileName = "CO Performance {$dateTime}.xlsx";
+            return Excel::download(
+                new ExportCOPerformance($request),
+                $fileName
+            );
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 }
