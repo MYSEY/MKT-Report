@@ -3,7 +3,7 @@
     {{-- <ol class="breadcrumb page-breadcrumb">
         <li class="">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</li>
     </ol> --}}
-    <h3 class="breadcrumb page-breadcrumb">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</h3>
+    <h3 class="breadcrumb page-breadcrumb">Loan Detail Listing {{ $data->SystemDate ?? 'N/A' }}</h3>
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-2">
@@ -21,15 +21,15 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-6 col-md-6">
-                            <div style="display: flex" class="float-end">
+                        <div class="col-sm-8 col-md-8 col-lg-8 col-xl-8">
+                            <div class="float-right">
                                 <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" data-dismiss="modal" id="icon-search-download-reload">
-                                    <span class="btn-txt"><i class="fa fa-search"></i></span>
+                                    <span class="btn-txt"><i class="fal fa-search"></i></span>
                                     Search
                                     <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary btn_excel mr-1" id="icon-search-download-reload">
-                                    <span class="btn-text-excel"><i class="fa fa-arrow-circle-down"></i></span>
+                                    <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                     Excel
                                     <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                                 </button>
@@ -42,7 +42,7 @@
             <div id="panel-1" class="panel">
                 <div class="panel-hdr">
                     <h2>
-                        Ticket Report
+                        Loan Detail Listing
                     </h2>
                 </div>
                 <div class="panel-container show">
@@ -125,12 +125,11 @@
 @section('script')
     <script>
         $(function(){
-            dataTables();
             $(".btn_excel").on("click", function() {
                 let query = {
                     branch_id: $("#branch_id").val(),
                 };
-                var url = "{{URL::to('admin/report/loan/detail/download')}}?" + $.param(query)
+                let url = "{{ route('loan.detail.download') }}?" + $.param(query);
                 window.location = url;
             });
             $('.btn-search').on('click', function() {
@@ -144,6 +143,7 @@
                 $("#btn-text-loading").css('display', 'block');
                 window.location.replace("{{ URL('admin/report/loan/detail') }}");
             });
+            dataTables();
         });
 
         function dataTables() {
@@ -164,6 +164,9 @@
                 ajax: {
                     url: '{{ URL("admin/report/loan/detail") }}',
                     type: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();
                     },

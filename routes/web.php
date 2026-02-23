@@ -30,7 +30,7 @@ Route::group(['middleware'=>['auth:sanctum'], 'prefix'=>'admin'],function(){
 
     Route::prefix('report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
-        Route::get('loan/detail/download',[LoandDetailListingController::class,'download']);
+        Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);
     });

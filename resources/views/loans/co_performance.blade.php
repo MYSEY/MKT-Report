@@ -59,7 +59,7 @@
         }
          /** class scroll 3 bth-child */
         thead th.stuck-scroll-3 {
-            background: #fff !important;
+            background: #fff;
             position: sticky !important;
             left: 0 !important;
             z-index: 1 !important;
@@ -68,7 +68,7 @@
             left:  80px !important;
         }
         tbody td.stuck-scroll-3 {
-            background: #fff !important;
+            background: #fff;
             position: sticky;
             left: 0;
             z-index: 1;
@@ -77,8 +77,7 @@
             left: 84px;
         }
     </style>
-    <h3 class="breadcrumb page-breadcrumb">CO Performance</h3>
-
+    <h3 class="breadcrumb page-breadcrumb">CO Performance Report {{ $data->SystemDate ?? 'N/A' }}</h3>
     {!! Toastr::message() !!}
     <div class="card mb-2">
         <div class="card-body">
@@ -95,15 +94,15 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-6">
-                    <div style="display: flex" class="float-end">
+                <div class="col-sm-8 col-md-8">
+                    <div class="float-right">
                         <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" data-dismiss="modal" id="icon-search-download-reload">
-                            <span class="btn-txt"><i class="fa fa-search"></i></span>
+                            <span class="btn-txt"><i class="fal fa-search"></i></span>
                             Search
                             <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary btn_excel mr-1" id="icon-search-download-reload">
-                            <span class="btn-text-excel"><i class="fa fa-arrow-circle-down"></i></span>
+                            <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                             Excel
                             <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                         </button>
@@ -179,8 +178,7 @@
         $(function(){
             $(".btn_excel").on("click", function() {
                 let query = {
-                    branch_id: $("#branch_id").val(),
-                    asset_class: $("#asset_class").val(),
+                    branch_id: $("#branch_id").val()
                 };
                 var url = "{{URL::to('admin/report/co-performance/download')}}?" + $.param(query)
                 window.location = url;
@@ -189,7 +187,6 @@
             $('.btn-search').on('click', function() {
                 $('#loading-overlay').hide();
                 branch_id = $('#branch_id').val();
-                asset_class = $('#asset_class').val();
                 $('#tbl_co_performance').DataTable().ajax.reload(null, false);
             });
             $(".reset-btn").on("click", function() {

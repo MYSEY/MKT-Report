@@ -128,7 +128,7 @@
                             {{-- Loan Reports --}}
                             <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
                                 <a href="javascript:void(0)" title="Loan Reports">
-                                    <i class="fal fa-chart-pie"></i>
+                                    <i class="fal fa-calendar-check"></i>
                                     <span class="nav-link-text">Loan Reports</span>
                                 </a>
                                 <ul>

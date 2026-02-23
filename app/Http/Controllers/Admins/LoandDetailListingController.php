@@ -201,13 +201,13 @@ class LoandDetailListingController extends Controller
             ]);
         }
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
-        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
+        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
         return view('loans.loan_detail',compact('branch', 'data'));
     }
     public function download(Request $request){
-        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
+        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
         // Convert to Carbon
-        $date = Carbon::parse($data->LastSystemDate);
+        $date = Carbon::parse($data->SystemDate);
         // Add current time
         $dateTime = $date->format('Y-m-d') . '-' . now()->format('H-i');
         // File name
