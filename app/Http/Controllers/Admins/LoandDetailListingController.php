@@ -73,6 +73,7 @@ class LoandDetailListingController extends Controller
                     'LC.InterestRate',
                     'LC.AIRAS',
                     'LC.AIRCurrentAS',
+                    'LC.AccrIntPerDay',
                     'LC.TotalInterest',
                     'LC.ValueDate',
                     'LC.MaturityDate',
@@ -159,6 +160,9 @@ class LoandDetailListingController extends Controller
                 $query->when($request->branch_id, fn($q,$branch_id) =>
                     $q->where('LC.Branch', $branch_id)
                 );
+                $query->when($request->LCID, fn($q,$LCID) =>
+                    $q->where('LC.ID', 'ilike', "%{$LCID}%")
+                );
                 
                 $searchValue = request()->input('search.value');
                 if (!empty($searchValue)) {
@@ -184,8 +188,7 @@ class LoandDetailListingController extends Controller
             ->table('MKT_LOAN_CONTRACT as LC')
             ->when($request->filled('branch_id'), function ($q) use ($request) {
                 $q->where('LC.Branch', $request->branch_id);
-            })
-            ->count();
+            })->count();
 
             // Total rows (with search)
             $recordsFiltered = $query->count();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\HRConnection;
 use App\Models\User;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -54,7 +55,8 @@ class LoginController extends Controller
                 'password' => 'required',
             ]);
 
-            $user = User::where('number_employee', $request->number_employee)->first();
+            // $user = User::where('number_employee', $request->number_employee)->first();
+            $user = HRConnection::where('number_employee', $request->number_employee)->first();
             if (!$user) {
                 return response()->json([
                     'message' => 'Wrong employee ID or password',

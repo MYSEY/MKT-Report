@@ -68,7 +68,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 'LC.OutstandingAmountAS',
                 'LC.InterestRate',
                 'LC.AIRAS',
-                'LC.AIRCurrentAS',
+                'LC.IntIncEarned',
                 'LC.TotalInterest',
                 'LC.ValueDate',
                 'LC.MaturityDate',
@@ -85,10 +85,10 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 'LC.Amount',
                 'LC.OutstandingAmount',
                 'LC.EIRRate',
-                // 'LC.AccrInterest',
                 'LC.AccrCurrentInt',
                 'LC.AccrInterest',
-                'LC.IntIncEarned',
+                'LC.AIRCurrentAS',
+                'LC.AccrIntPerDay',
                 'LC.Sector as MACode',
                 'LC.LoanProduct',
                 'LC.Cycle',
@@ -164,6 +164,27 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $query->when($request->branch_id, fn($q,$branch_id) =>
             $q->where('LC.Branch', $branch_id)
         );
+        $query->when($request->LCID, fn($q,$LCID) =>
+            $q->where('LC.ID', 'ilike', "%{$LCID}%")
+        );
+
+        $searchValue = request()->input('search.value');
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('LC.Account', 'like', "%{$searchValue}%")
+                ->orWhere('LC.ID', 'like', "%{$searchValue}%")
+                ->orWhere('CUST.FirstNameEn', 'like', "%{$searchValue}%")
+                ->orWhere('CUST.LastNameEn', 'like', "%{$searchValue}%")
+                ->orWhere('LC.ContractCustomerID', 'like', "%{$searchValue}%")
+                ->orWhere('LC.ContractOfficerID', 'like', "%{$searchValue}%")
+                ->orWhere('PR.LocalDescription', 'like', "%{$searchValue}%")
+                ->orWhere('DS.LocalDescription', 'like', "%{$searchValue}%")
+                ->orWhere('CM.LocalDescription', 'like', "%{$searchValue}%")
+                ->orWhere('VL.LocalDescription', 'like', "%{$searchValue}%")
+                ->orWhere('Sct.Description', 'like', "%{$searchValue}%")
+                ->orWhere('LPr.Description', 'like', "%{$searchValue}%");
+            });
+        }
 
         // GET DATA
         $data = $query->get();
@@ -192,7 +213,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->OutstandingAmountAS,
                 $row->InterestRate,
                 $row->AIRAS,
-                $row->AIRCurrentAS,
+                $row->IntIncEarned,
                 $row->TotalInterest,
                 $this->formatDate($row->ValueDate),
                 $this->formatDate($row->MaturityDate),
@@ -208,7 +229,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->LoanPurpose,
                 $row->ContractOfficerID,
                 $row->IDType,
-                $row->IDNumber,
+                (int)$row->IDNumber,
                 $this->formatDate($row->LastPaymentDate),
                 $row->DueDay == null ? '0' : $row->DueDay,
                 $this->formatDate($row->OverdueDate),
@@ -221,14 +242,13 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->RestructuredCycle,
                 $row->AddressCode,
                 $row->CollateralID == null ? 'None' : $row->CollateralID,
-                $row->Mobile1. ' '. $row->Mobile2,
+                (int)($row->Mobile1. ' '. $row->Mobile2),
                 $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),
                 $row->Amount,
                 $row->OutstandingAmount,
                 $row->EIRRate,
-                $row->AccrCurrentInt == null ? '0' : $row->AccrCurrentInt,
-                // $row->AccrInterest,
-                $row->IntIncEarned,
+                $row->AccrIntPerDay == null ? '0' : $row->AccrIntPerDay,
+                $row->AIRAS,
                 $row->RegularCharge == null ? '0' : $row->RegularCharge,
                 $row->SubAmount == null ? '0' : $row->SubAmount,
                 $row->SubLoanPurpose,
@@ -249,6 +269,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
         return Date::dateTimeToExcel(
             Carbon::parse($date)
+            
         );
     }
   

@@ -1,15 +1,94 @@
 @extends('layouts.admin')
 @section('content')
-    {{-- <ol class="breadcrumb page-breadcrumb">
-        <li class="">Loan Detail Listing {{ $data->LastSystemDate ?? 'N/A' }}</li>
-    </ol> --}}
+<style>
+        .co-performance-wrapper {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e6e6e6;
+        }
+
+        .table-title {
+            font-size: 20px;
+            font-weight: bold;
+            padding-bottom: 12px;
+            color: #1a237e;
+        }
+
+        /* Table Header */
+        .table-header th {
+            background: #1a237e;
+            color: white;
+            text-align: center;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* Table Footer */
+        .table-footer td {
+            background: #efefef;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* Sticky columns */
+        .sticky-col-1 {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 7;
+        }
+
+        .sticky-col-2 {
+            position: sticky;
+            left: 110px;
+            background: white;
+            z-index: 7;
+        }
+
+        /* General Table Style */
+        .co-table th,
+        .co-table td {
+            vertical-align: middle !important;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .text-right {
+            text-align: right !important;
+        }
+         /** class scroll 3 bth-child */
+        thead th.stuck-scroll-3 {
+            background: #fff;
+            position: sticky !important;
+            left: 0 !important;
+            z-index: 1 !important;
+        }
+        thead th.stuck-scroll-3:nth-child(3) {
+            left:  80px !important;
+        }
+        tbody td.stuck-scroll-3 {
+            background: #fff;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }
+        tbody td.stuck-scroll-3:nth-child(3) {
+            left: 84px;
+        }
+    </style>
     <h3 class="breadcrumb page-breadcrumb">Loan Detail Listing {{ $data->SystemDate ?? 'N/A' }}</h3>
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-2">
                 <div class="card-body">
                     <div class="row filter-btn">
-                        <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                        <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                            <div class="form-group">
+                                <input type="text" name="LCID" id="LCID" class="form-control" placeholder="Loan Contract ID">
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
                             <div class="form-group">
                                 <select class="select2 form-control" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
                                     <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
@@ -21,7 +100,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-8 col-md-8 col-lg-8 col-xl-8">
+                        <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
                             <div class="float-right">
                                 <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" data-dismiss="modal" id="icon-search-download-reload">
                                     <span class="btn-txt"><i class="fal fa-search"></i></span>
@@ -157,7 +236,7 @@
                 processing: true,
                 serverSide: true,
                 scrollX: true,
-                scrollY: '500px',
+                scrollY: '350px',
                 scroller: false,
                 order: [[0, 'desc']],
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
@@ -168,6 +247,7 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: function (d) {
+                        d.LCID = $('#LCID').val();
                         d.branch_id = $('select[name="branch_id"]').val();
                     },
                 },
@@ -299,8 +379,8 @@
                         searchable: true,
                     },
                     { 
-                        data: 'AIRCurrentAS', 
-                        name: 'AIRCurrentAS',
+                        data: 'AIRAS', 
+                        name: 'AIRAS',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
@@ -312,8 +392,9 @@
                         }
                     },
                     { 
-                        data: 'AIRAS', 
-                        name: 'AIRAS',
+                        data: 'IntIncEarned', 
+                        name: 'IntIncEarned',
+                        // name: 'AIRAS',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
@@ -344,13 +425,11 @@
                         searchable: true,
                         render: function (data) {
                             if (!data) return '';
-
                             const date = new Date(data);
                             const mm = String(date.getMonth() + 1).padStart(2, '0');
                             const dd = String(date.getDate()).padStart(2, '0');
                             const yyyy = date.getFullYear();
-
-                            return mm + '/' + dd + '/' + yyyy;
+                            return dd + '-' + mm + '-' + yyyy;
                         }
                     },
                     { 
@@ -366,7 +445,8 @@
                             const dd = String(date.getDate()).padStart(2, '0');
                             const yyyy = date.getFullYear();
 
-                            return mm + '/' + dd + '/' + yyyy;
+                            return dd + '-' + mm + '-' + yyyy;
+
                         }
                     },
                     { 
@@ -463,7 +543,7 @@
                             const dd = String(date.getDate()).padStart(2, '0');
                             const yyyy = date.getFullYear();
 
-                            return mm + '/' + dd + '/' + yyyy;
+                            return dd + '-' + mm + '-' + yyyy;
                         }
                     },
                     { 
@@ -485,7 +565,7 @@
                             const dd = String(date.getDate()).padStart(2, '0');
                             const yyyy = date.getFullYear();
 
-                            return mm + '/' + dd + '/' + yyyy;
+                            return dd + '-' + mm + '-' + yyyy;
                         }
                     },
                     { 
@@ -624,8 +704,8 @@
                         }
                     },
                     { 
-                        data: 'IntIncEarned', 
-                        name: 'IntIncEarned',
+                        data: 'LoanProduct', 
+                        name: 'LoanProduct',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
