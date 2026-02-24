@@ -77,7 +77,12 @@
             left: 84px;
         }
     </style>
-    <h3 class="breadcrumb page-breadcrumb">Loan Detail Listing {{ $data->SystemDate ?? 'N/A' }}</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <h3 class="">Loan Detail Listing</h3>
+            <h5 class="">{{ $data->SystemDate ?? 'N/A' }}</h5>
+        </div>
+    </div>
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-2">

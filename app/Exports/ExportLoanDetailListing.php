@@ -212,7 +212,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->LoanBalanceAS,
                 $row->OutstandingAmountAS,
                 $row->InterestRate,
-                $row->AIRASAccrInterest,
+                $row->AccrInterest,
                 $row->IntIncEarned,
                 $row->TotalInterest,
                 $this->formatDate($row->ValueDate),
