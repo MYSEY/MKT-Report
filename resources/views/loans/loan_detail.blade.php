@@ -379,8 +379,8 @@
                         searchable: true,
                     },
                     { 
-                        data: 'AIRAS', 
-                        name: 'AIRAS',
+                        data: 'AccrInterest', 
+                        name: 'AccrInterest',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
@@ -691,8 +691,8 @@
                         searchable: true,
                     },
                     { 
-                        data: 'AccrInterest', 
-                        name: 'AccrInterest',
+                        data: 'AccrIntPerDay', 
+                        name: 'AccrIntPerDay',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
@@ -704,8 +704,8 @@
                         }
                     },
                     { 
-                        data: 'LoanProduct', 
-                        name: 'LoanProduct',
+                        data: 'AIRAS', 
+                        name: 'AIRAS',
                         orderable: true,
                         searchable: true,
                         render: function (data) {
