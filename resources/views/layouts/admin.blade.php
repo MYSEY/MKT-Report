@@ -13,7 +13,7 @@
         <!-- Remove Tap Highlight on Windows Phone IE -->
         <meta name="msapplication-tap-highlight" content="no">
        
-        <link rel="shortcut icon" type="image/x-icon" href="{{ asset('/admin/img/logo/favicon.ico') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ asset('/admins/img/favicon/logo.png') }}">
 
         <!-- base css -->
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/vendors.bundle.css')}}">
@@ -215,18 +215,22 @@
                                 </a>
                             </div>
                             <div>
-                                <a href="#" data-toggle="dropdown" title="drlantern@gotbootstrap.com" class="header-icon d-flex align-items-center justify-content-center ml-2">
-                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="Dr. Codex Lantern">
+                                <a href="#" data-toggle="dropdown" title="{{ Auth::user()->email }}" class="header-icon d-flex align-items-center justify-content-center ml-2">
+                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ Auth::user()->employee_name_en }}">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
                                     <div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
                                         <div class="d-flex flex-row align-items-center mt-1 mb-1 color-white">
                                             <span class="mr-2">
-                                                <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="Dr. Codex Lantern">
+                                                @if (Auth::user()->profile)
+                                                    <img src="{{asset('storage/users/profile/'.Auth::user()->profile)}}" class="profile-image rounded-circle" alt="{{Auth::user()->name}}" style="width: 60px;height: 60px;object-fit: cover;">
+                                                @else
+                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ Auth::user()->employee_name_en }}">
+                                                @endif
                                             </span>
                                             <div class="info-card-text">
-                                                <div class="fs-lg text-truncate text-truncate-lg">Dr. Codex Lantern</div>
-                                                <span class="text-truncate text-truncate-md opacity-80">drlantern@gotbootstrap.com</span>
+                                                <div class="fs-lg text-truncate text-truncate-lg">{{ Auth::user()->employee_name_en }}</div>
+                                                <span class="text-truncate text-truncate-md opacity-80">{{ Auth::user()->email }}</span>
                                             </div>
                                         </div>
                                     </div>
