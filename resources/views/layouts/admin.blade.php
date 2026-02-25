@@ -145,6 +145,21 @@
                                     </li>
                                 </ul>
                             </li>
+
+                            {{-- Setting --}}
+                            <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
+                                <a href="javascript:void(0)" title="Setting">
+                                    <i class="fal fa-cog"></i>
+                                    <span class="nav-link-text">Setting</span>
+                                </a>
+                                <ul>
+                                    <li class="{{ Request::is('admin/setting/category') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/setting/category') }}">
+                                            <span class="nav-link-text">Category</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
                         </ul>
                         <div class="filter-message js-filter-message bg-success-600"></div>
                     </nav>
@@ -227,19 +242,6 @@
                                         <span data-i18n="drpdwn.fullscreen">Fullscreen</span>
                                         <i class="float-right text-muted fw-n">F11</i>
                                     </a>
-                                    <a href="#" class="dropdown-item" data-action="app-print">
-                                        <span data-i18n="drpdwn.print">Print</span>
-                                        <i class="float-right text-muted fw-n">Ctrl + P</i>
-                                    </a>
-                                    <div class="dropdown-multilevel dropdown-multilevel-left">
-                                        <div class="dropdown-item">
-                                            Language
-                                        </div>
-                                        <div class="dropdown-menu">
-                                            <a href="#?lang=en" class="dropdown-item active" data-action="lang" data-lang="en">English (US)</a>
-                                            <a href="#?lang=kh" class="dropdown-item" data-action="lang" data-lang="kh">Khmer</a>
-                                        </div>
-                                    </div>
                                     <div class="dropdown-divider m-0"></div>
                                     <a class="dropdown-item fw-500 pt-3 pb-3" href="{{ route('logout') }}"
                                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

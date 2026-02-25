@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Admins\COPerformanceController;
 use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Admins\LoandDetailListingController;
@@ -27,7 +28,9 @@ Route::group(['middleware'=>['auth:sanctum'], 'prefix'=>'admin'],function(){
     // Route::get('loan/detail/listing',[LoandDetailListingController::class,'loanDetailListing']);
     // Route::get('loan/detail/listing/download',[LoandDetailListingController::class,'download']);
 
-
+    Route::prefix('setting')->group(function () {
+        Route::resource('category', CategoryController::class);
+    });
     Route::prefix('report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
