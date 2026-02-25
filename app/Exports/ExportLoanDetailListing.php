@@ -198,7 +198,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             $dataExcel[] = [
                 $row->ID,
                 $row->ContractCustomerID,
-                $row->LastNameEn . ' ' . $row->FirstNameEn,
+                trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? '')),
                 $row->Branch,
                 $row->Gender,
                 $row->Street,

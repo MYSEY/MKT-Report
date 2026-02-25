@@ -212,6 +212,7 @@
             $(".btn_excel").on("click", function() {
                 let query = {
                     branch_id: $("#branch_id").val(),
+                    LCID: $('#LCID').val()
                 };
                 let url = "{{ route('loan.detail.download') }}?" + $.param(query);
                 window.location = url;
