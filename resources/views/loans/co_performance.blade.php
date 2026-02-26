@@ -127,21 +127,21 @@
                                 <th>COID</th>
                                 <th>COName</th>
                                 <th>Currency</th>
-                                <th>#Borrowers</th>
-                                <th>#Loans</th>
+                                <th>Borrowers</th>
+                                <th>Loans</th>
                                 <th>DisbursedAmt</th>
                                 <th>OustandingAmt</th>
                                 <th>LoanBalance</th>
-                                <th>#PARs</th>
+                                <th>PARs</th>
                                 <th>PARAmt</th>
                                 <th>PARRate</th>
                                 <th>PDPrincipal</th>
                                 <th>PDInterest</th>
                                 <th>PDPenalty</th>
                                 <th>ArrearRate</th>
-                                <th>#Loans</th>
+                                <th>Loans</th>
                                 <th>OustandingAmt</th>
-                                <th>#PARs</th>
+                                <th>PARs</th>
                                 <th>PARAmt</th>
                                 <th>PARRate</th>
                             </tr>
