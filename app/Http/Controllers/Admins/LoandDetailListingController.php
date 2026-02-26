@@ -211,8 +211,9 @@ class LoandDetailListingController extends Controller
         $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
         // Convert to Carbon
         $date = Carbon::parse($data->SystemDate);
+        $currentTime = now()->setTimezone('Asia/Phnom_Penh');
         // Add current time
-        $dateTime = $date->format('Y-m-d') . '-' . now()->format('H-i');
+        $dateTime = $date->format('Y-m-d') . '-' . $currentTime->format('H-i');
         // File name
         $fileName = "Loan Detail Listing {$dateTime}.xlsx";
         return Excel::download(new ExportLoanDetailListing($request), $fileName);

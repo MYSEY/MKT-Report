@@ -494,11 +494,12 @@ class COPerformanceController extends Controller
 
     public function coPerformanceDownload(Request $request){
         try {
-            $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
+            $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
             // Convert to Carbon
-            $date = Carbon::parse($data->LastSystemDate);
+            $date = Carbon::parse($data->SystemDate);
             // Add current time
-            $dateTime = $date->format('Y-m-d') . '-' . now()->format('H-i');
+            $currentTime = now()->setTimezone('Asia/Phnom_Penh');
+            $dateTime = $date->format('Y-m-d') . '-' . $currentTime->format('H-i');
             // File name
             $fileName = "CO Performance {$dateTime}.xlsx";
             return Excel::download(

@@ -298,7 +298,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             "Commune",
             "District",
             "Province",
-            "Account #",
+            "Account",
             "Currency",
             "Disburse",
             "Loan Amount AS",
