@@ -489,7 +489,8 @@ class COPerformanceController extends Controller
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
         $AssetClass = DB::connection('pgsql')->table('MKT_ASSET_CLASS')->select('ID', 'Description')->get();
         $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
-        return view('loans.co_performance',compact('branch','AssetClass','data'));
+        $currency = DB::connection('pgsql')->table('MKT_CURRENCY')->select('ID')->where('ID', 'USD')->first();
+        return view('loans.co_performance',compact('branch','AssetClass','data','currency'));
     }
 
     public function coPerformanceDownload(Request $request){

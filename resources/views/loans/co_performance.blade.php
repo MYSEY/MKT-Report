@@ -77,7 +77,13 @@
             left: 84px;
         }
     </style>
-    <h3 class="breadcrumb page-breadcrumb">CO Performance Report {{ $data->SystemDate ?? 'N/A' }}</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <h3 class="">CO Performance Report</h3>
+            <h5 class=""><strong>As of:</strong> {{ $data->SystemDate ?? 'N/A' }}</h5>
+            <h6><strong>Currency:</strong> {{ $currency->ID ?? 'N/A' }}</h6>
+        </div>
+    </div>
     {!! Toastr::message() !!}
     <div class="card mb-2">
         <div class="card-body">
