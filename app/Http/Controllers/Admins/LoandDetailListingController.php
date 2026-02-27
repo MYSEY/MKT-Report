@@ -39,8 +39,8 @@ class LoandDetailListingController extends Controller
             $subQueryPD = DB::connection('pgsql')
             ->table('MKT_PD_DATE')
             ->where(function ($q) {
-                $q->where('OutIntAmountAS', '>', 0)
-                ->orWhere('OutPriAmountAS', '>', 0);
+                $q->where('OutIntAmountAS', '>', 0);
+                // ->orWhere('OutPriAmountAS', '>', 0);
             })
             ->select(
                 'ID',

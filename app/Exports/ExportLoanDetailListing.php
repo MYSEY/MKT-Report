@@ -31,8 +31,8 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $subQuery = DB::connection('pgsql')
             ->table('MKT_PD_DATE')
             ->where(function ($q) {
-                $q->where('OutIntAmountAS', '>', 0)
-                ->orWhere('OutPriAmountAS', '>', 0);
+                $q->where('OutIntAmountAS', '>', 0);
+                // ->orWhere('OutPriAmountAS', '>', 0);
             })
             ->select(
                 DB::raw('"ID"'),
@@ -96,6 +96,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 'LC.SubLoanPurpose',
                 'LC.PartneredWith',
                 'LC.RestructureType',
+                'CUST.ID as CustomerID',
                 'CUST.LastNameEn',
                 'CUST.FirstNameEn',
                 'CUST.Gender',
@@ -188,6 +189,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
         // GET DATA
         $data = $query->get();
+
         $this->totalRecord = count($data);
 
         // -------------------------
@@ -198,7 +200,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             $dataExcel[] = [
                 $row->ID,
                 $row->ContractCustomerID,
-                trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? '')),
+                trim(($row->LastNameEn ?? '').' '.($row->FirstNameEn ?? '')),
                 $row->Branch,
                 $row->Gender,
                 $row->Street,
@@ -213,7 +215,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->OutstandingAmountAS,
                 $row->InterestRate,
                 $row->AccrInterest,
-                $row->IntIncEarned,
+                number_format($row->IntIncEarned, 2),
                 $row->TotalInterest,
                 $this->formatDate($row->ValueDate),
                 $this->formatDate($row->MaturityDate),
@@ -229,20 +231,20 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->LoanPurpose,
                 $row->ContractOfficerID,
                 $row->IDType,
-                (int)$row->IDNumber,
+                $row->IDNumber,
                 $this->formatDate($row->LastPaymentDate),
                 $row->DueDay == null ? '0' : $row->DueDay,
                 $this->formatDate($row->OverdueDate),
                 $row->LoanType,
-                $row->LoanCharge == null ? '0' : $row->LoanCharge,
-                $row->ChargeEarned == null ? '0' : $row->ChargeEarned,
-                $row->ChargeUnearned == null ? '0' : $row->ChargeUnearned,
-                $row->ScheduleType == null ? '0' : $row->ScheduleType,
-                $row->CustomerOccupation,
+                round($row->LoanCharge ?? 0, 2),
+                round($row->ChargeEarned ?? 0, 2),
+                round($row->ChargeUnearned ?? 0, 2),
+                $row->ScheduleType == null || $row->ScheduleType == '0' ? 'None' : $row->ScheduleType,
+                trim($row->CustomerOccupation ?? ''),
                 $row->RestructuredCycle,
-                $row->AddressCode,
+                trim($row->AddressCode ?? ''),
                 $row->CollateralID == null ? 'None' : $row->CollateralID,
-                (int)($row->Mobile1. ' '. $row->Mobile2),
+                trim($row->Mobile1. ' '. $row->Mobile2),
                 $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),
                 $row->Amount,
                 $row->OutstandingAmount,

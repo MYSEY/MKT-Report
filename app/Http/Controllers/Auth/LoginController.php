@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Models\HRConnection;
 use App\Models\User;
@@ -9,6 +10,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -49,13 +51,30 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        try {
-            $request->validate([
-                'number_employee' => 'required',
-                'password' => 'required',
-            ]);
+        // try {
+            // $request->validate([
+            //     'UserName' => 'required',
+            //     'password' => 'required',
+            // ]);
 
             // $user = User::where('number_employee', $request->number_employee)->first();
+            // $user = DB::connection('pgsql')
+            //     ->table('MKT_USER')
+            //     ->select('ID', 'Password', 'LogInName')
+            //     ->whereRaw('"LogInName" = ?', [$request->UserName])
+            //     ->first();
+
+            // if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
+            //     return response()->json([
+            //         'message' => 'Username/Password is incorrect',
+            //         'status'  => 'error'
+            //     ]);
+            // }
+            // return response()->json([
+            //     'message' => 'Login successfully',
+            //     'status' => 'success',
+            // ]);
+            
             $user = HRConnection::where('number_employee', $request->number_employee)->first();
             if (!$user) {
                 return response()->json([
@@ -120,13 +139,13 @@ class LoginController extends Controller
                 'role' => Auth::user()->RolePermission
             ]);
 
-        } catch (\Exception $e) {
-            Log::error('Login error', ['error' => $e->getMessage()]);
-            return response()->json([
-                'message' => 'Login failed. Please try again',
-                'status' => 'error'
-            ], 500);
-        }
+        // } catch (\Exception $e) {
+        //     Log::error('Login error', ['error' => $e->getMessage()]);
+        //     return response()->json([
+        //         'message' => 'Login failed. Please try again',
+        //         'status' => 'error'
+        //     ], 500);
+        // }
     }
     public function logout()
     {
