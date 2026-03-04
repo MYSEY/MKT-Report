@@ -46,7 +46,7 @@
             <div class="card p-4 border-top-left-radius-0 border-top-right-radius-0">
                 <form id="loginForm">
                     <div class="form-group">
-                        <label class="form-label" for="number_employee">EmployeeID</label>
+                        <label class="form-label" for="number_employee">UserName</label>
                         <input type="text" name="number_employee" id="number_employee" class="form-control" required>
                         @error('number_employee')
                             <span class="invalid-feedback" role="alert">
@@ -97,18 +97,6 @@
                         }else{
                             toastr.error(data.message);
                         }
-                        // if (data.status == "error") {
-                        //     toastr.error(data.message);
-                        //     return false;
-                        // }
-
-                        // if (data.status == "success" && data.role == "Employee") {
-                        //     toastr.success(data.message);
-                        //     window.location.replace(dashboadEmployee); 
-                        // }else{
-                        //     toastr.success(data.message);
-                        //     window.location.replace(dashboadAdmin); 
-                        // }
                     },
                     error: function (xhr) {
                         console.log(xhr.responseText);
