@@ -52,10 +52,10 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         try {
-            $request->validate([
-                'number_employee' => 'required',
-                'password' => 'required',
-            ]);
+            // $request->validate([
+            //     'number_employee' => 'required',
+            //     'password' => 'required',
+            // ]);
 
             //User MKT
             $user = DB::connection('pgsql')
@@ -68,7 +68,7 @@ class LoginController extends Controller
                 'MKT_USER.LogInName',
                 'MKT_USER.DisplayName',
                 'MKT_ROLE.Description as RoleName'
-            )->where('Active', 1)->whereRaw('"MKT_USER"."LogInName" = ?', [$request->number_employee])->first();
+            )->where('Active', 'Yes')->whereRaw('"MKT_USER"."LogInName" = ?', [$request->number_employee])->first();
 
             if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
                 return response()->json([
