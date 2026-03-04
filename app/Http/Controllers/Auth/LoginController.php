@@ -58,86 +58,95 @@ class LoginController extends Controller
             // ]);
 
             // $user = User::where('number_employee', $request->number_employee)->first();
-            // $user = DB::connection('pgsql')
-            //     ->table('MKT_USER')
-            //     ->select('ID', 'Password', 'LogInName')
-            //     ->whereRaw('"LogInName" = ?', [$request->UserName])
-            //     ->first();
+            $user = DB::connection('pgsql')
+            ->table('MKT_USER')
+            ->leftJoin('MKT_ROLE', 'MKT_USER.Role', '=', 'MKT_ROLE.ID')
+            ->select(
+                'MKT_USER.ID',
+                'MKT_USER.Password',
+                'MKT_USER.LogInName',
+                'MKT_USER.DisplayName',
+                'MKT_ROLE.Description as RoleName'
+            )
+            ->whereRaw('"MKT_USER"."LogInName" = ?', [$request->number_employee])
+            ->first();
 
-            // if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
-            //     return response()->json([
-            //         'message' => 'Username/Password is incorrect',
-            //         'status'  => 'error'
-            //     ]);
-            // }
-            // return response()->json([
-            //     'message' => 'Login successfully',
-            //     'status' => 'success',
-            // ]);
-            
-            $user = HRConnection::where('number_employee', $request->number_employee)->first();
-            if (!$user) {
+            if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
                 return response()->json([
-                    'message' => 'Wrong employee ID or password',
-                    'status' => 'error'
+                    'message' => 'Username/Password is incorrect',
+                    'status'  => 'error'
                 ]);
             }
-
-            // Resigned user check
-            if(in_array($user->emp_status, ['3','4','5','6','7','8','9'])){
-                if ($user->resign_date && $user->resign_date <= now()->toDateString()) {
-                    return response()->json([
-                        'message' => 'Your account is not active. Please contact support',
-                        'status' => 'error'
-                    ]);
-                }
-            }
-
-            // Role check
-            if (empty($user->role_id)) {
-                return response()->json([
-                    'message' => "You don't have permission to view this page",
-                    'status' => 'error'
-                ]);
-            }
-
-            // Status check
-            if ($user->status !== 'Active') {
-                return response()->json([
-                    'message' => 'Your account is not active. Please contact support',
-                    'status' => 'error'
-                ]);
-            }
-
-            // First-time password logic
-            if ($user->p_status == 0) {
-                if (!Hash::check($request->password, $user->password)) {
-                    return response()->json([
-                        'message' => 'Wrong employee ID or password',
-                        'status' => 'error'
-                    ]);
-                }
-
-                return response()->json([
-                    'message' => 'Login successfully',
-                    'status' => 'success',
-                    'role' => null
-                ]);
-            }
-
-            // Normal login
-            if (!Auth::attempt($request->only('number_employee', 'password'))) {
-                return response()->json([
-                    'message' => 'Wrong employee ID or password',
-                    'status' => 'error'
-                ]);
-            }
-
+            session()->put('MKT_USER', [
+                'id'   => $user->ID,
+                'name' => $user->LogInName,
+                'displayName' => $user->DisplayName,
+                'roleName' => $user->RoleName
+            ]);
             return response()->json([
                 'message' => 'Login successfully',
                 'status' => 'success',
-                'role' => Auth::user()->RolePermission
             ]);
+
+            
+            
+            // $user = HRConnection::where('number_employee', $request->number_employee)->first();
+            // if (!$user) {
+            //     return response()->json([
+            //         'message' => 'Wrong employee ID or password',
+            //         'status' => 'error'
+            //     ]);
+            // }
+
+            // if(in_array($user->emp_status, ['3','4','5','6','7','8','9'])){
+            //     if ($user->resign_date && $user->resign_date <= now()->toDateString()) {
+            //         return response()->json([
+            //             'message' => 'Your account is not active. Please contact support',
+            //             'status' => 'error'
+            //         ]);
+            //     }
+            // }
+            // if (empty($user->role_id)) {
+            //     return response()->json([
+            //         'message' => "You don't have permission to view this page",
+            //         'status' => 'error'
+            //     ]);
+            // }
+
+            // if ($user->status !== 'Active') {
+            //     return response()->json([
+            //         'message' => 'Your account is not active. Please contact support',
+            //         'status' => 'error'
+            //     ]);
+            // }
+
+            // if ($user->p_status == 0) {
+            //     if (!Hash::check($request->password, $user->password)) {
+            //         return response()->json([
+            //             'message' => 'Wrong employee ID or password',
+            //             'status' => 'error'
+            //         ]);
+            //     }
+
+            //     return response()->json([
+            //         'message' => 'Login successfully',
+            //         'status' => 'success',
+            //         'role' => null
+            //     ]);
+            // }
+
+            // if (!Auth::attempt($request->only('number_employee', 'password'))) {
+            //     return response()->json([
+            //         'message' => 'Wrong employee ID or password',
+            //         'status' => 'error'
+            //     ]);
+            // }
+
+            // return response()->json([
+            //     'message' => 'Login successfully',
+            //     'status' => 'success',
+            //     'role' => Auth::user()->RolePermission
+            // ]);
 
         // } catch (\Exception $e) {
         //     Log::error('Login error', ['error' => $e->getMessage()]);

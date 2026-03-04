@@ -215,22 +215,22 @@
                                 </a>
                             </div>
                             <div>
-                                <a href="#" data-toggle="dropdown" title="{{ Auth::user()->email }}" class="header-icon d-flex align-items-center justify-content-center ml-2">
-                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ Auth::user()->employee_name_en }}">
+                                <a href="#" data-toggle="dropdown" title="{{ session('MKT_USER.email') }}" class="header-icon d-flex align-items-center justify-content-center ml-2">
+                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ session('MKT_USER.displayName') }}">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
                                     <div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
                                         <div class="d-flex flex-row align-items-center mt-1 mb-1 color-white">
                                             <span class="mr-2">
-                                                @if (Auth::user()->profile)
-                                                    <img src="{{asset('storage/users/profile/'.Auth::user()->profile)}}" class="profile-image rounded-circle" alt="{{Auth::user()->name}}" style="width: 60px;height: 60px;object-fit: cover;">
-                                                @else
-                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ Auth::user()->employee_name_en }}">
-                                                @endif
+                                                {{-- @if (session('mkt_user.profile'))
+                                                    <img src="{{asset('storage/users/profile/'.session('MKT_USER.profile'))}}" class="profile-image rounded-circle" alt="{{ session('MKT_USER.displayName') }}" style="width: 60px;height: 60px;object-fit: cover;">
+                                                @else --}}
+                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ session('MKT_USER.displayName') }}">
+                                                {{-- @endif --}}
                                             </span>
                                             <div class="info-card-text">
-                                                <div class="fs-lg text-truncate text-truncate-lg">{{ Auth::user()->employee_name_en }}</div>
-                                                <span class="text-truncate text-truncate-md opacity-80">{{ Auth::user()->email }}</span>
+                                                <div class="fs-lg text-truncate text-truncate-lg">{{ session('MKT_USER.displayName') }}</div>
+                                                <span class="text-truncate text-truncate-md opacity-80">{{ session('MKT_USER.roleName') }}</span>
                                             </div>
                                         </div>
                                     </div>

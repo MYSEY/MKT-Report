@@ -23,8 +23,12 @@ Route::get('/', [LoginController::class, 'index']);
 Route::post('/login', [LoginController::class, 'login']);
 
 Auth::routes();
-Route::group(['middleware'=>['auth:sanctum'], 'prefix'=>'admin'],function(){
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+Route::group([
+    // ['middleware'=>['auth:sanctum'], 'prefix'=>'admin']
+    'prefix' => 'admin',
+    'middleware' => ['mkt.auth']
+    ],function(){
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     // Route::get('loan/detail/listing',[LoandDetailListingController::class,'loanDetailListing']);
     // Route::get('loan/detail/listing/download',[LoandDetailListingController::class,'download']);
 

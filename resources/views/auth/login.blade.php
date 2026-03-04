@@ -90,15 +90,17 @@
                     dataType: "JSON",
                     success: function(response) {
                         let data = response;
-                        if (data.status == "success") {
+                        if (data.status === "success") {
                             toastr.success(data.message);
-                            window.location.replace("{{ url('admin/dashboard') }}");
-                            return false;
-                        }
-                        if (data.status == "error") {
+                            window.location.href = "{{ url('admin/dashboard') }}";
+                            return true;
+                        }else{
                             toastr.error(data.message);
-                            return false;
                         }
+                        // if (data.status == "error") {
+                        //     toastr.error(data.message);
+                        //     return false;
+                        // }
 
                         // if (data.status == "success" && data.role == "Employee") {
                         //     toastr.success(data.message);
@@ -107,6 +109,9 @@
                         //     toastr.success(data.message);
                         //     window.location.replace(dashboadAdmin); 
                         // }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
                     }
                 });
             });
