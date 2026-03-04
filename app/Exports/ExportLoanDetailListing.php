@@ -211,13 +211,13 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->Province,
                 $row->Account,
                 $row->Currency,
-                number_format($row->Disbursed, 2),
-                number_format($row->LoanBalanceAS, 2),
-                number_format($row->OutstandingAmountAS, 2),
-                number_format($row->InterestRate, 2),
-                number_format($row->AccrInterest, 2),
-                number_format($row->IntIncEarned, 2),
-                number_format($row->TotalInterest, 2),
+                (float) round($row->Disbursed, 2),
+                (float) round($row->LoanBalanceAS, 2),
+                (float) round($row->OutstandingAmountAS, 2),
+                (float) round($row->InterestRate, 2),
+                (float) round($row->AccrInterest, 2),
+                (float) round($row->IntIncEarned, 2),
+                (float) round($row->TotalInterest, 2),
                 $this->formatDate($row->ValueDate),
                 $this->formatDate($row->MaturityDate),
                 $row->LoanProduct . ' ' .$row->LoanProductDes,
@@ -238,23 +238,21 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $this->formatDate($row->OverdueDate),
                 $row->LoanType,
                 round($row->LoanCharge ?? 0, 2),
-                number_format($row->ChargeEarned ?? 0, 2),
-                number_format($row->ChargeUnearned ?? 0, 2),
+                (int) round($row->ChargeEarned ?? 0, 2),
+                (int) round($row->ChargeUnearned ?? 0, 2),
                 $row->ScheduleType == null || $row->ScheduleType == '0' ? 'None' : $row->ScheduleType,
-                // trim($row->CustomerOccupation ?? ''),
                 preg_replace('/\s+/', ' ', trim(($row->CustomerOccupation ?? ''))),
                 $row->RestructuredCycle,
-                // trim($row->AddressCode ?? ''),
                 preg_replace('/\s+/', ' ', trim(($row->AddressCode ?? ''))),
                 $row->CollateralID == null ? 'None' : $row->CollateralID,
                 $row->Mobile1. ' '. $row->Mobile2,
                 $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),
-                number_format($row->Amount, 2),
-                number_format($row->OutstandingAmount, 2),
-                number_format($row->EIRRate, 2),
-                number_format($row->AccrIntPerDay == null ? '0' : $row->AccrIntPerDay, 2),
-                number_format($row->AIRAS, 2),
-                number_format($row->RegularCharge, 2),
+                (int) round($row->Amount, 2),
+                (int) round($row->OutstandingAmount, 2),
+                (int) round($row->EIRRate, 2),
+                (int) round($row->AccrIntPerDay == null ? '0' : $row->AccrIntPerDay, 2),
+                (int) round($row->AIRAS, 2),
+                (int) round($row->RegularCharge, 2),
                 $row->SubAmount == null ? '0' : $row->SubAmount,
                 $row->SubLoanPurpose,
                 $row->PartneredWith,
@@ -265,6 +263,18 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $this->export_datas = $dataExcel;
     }
 
+    public function columnFormats(): array
+    {
+        return [
+            'M' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'N' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'O' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'P' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'Q' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'R' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'S' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+        ];
+    }
 
     private function formatDate($date)
     {
@@ -385,6 +395,12 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $sheet->getStyle("U2:U{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
                 $sheet->getStyle("AI2:AI{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
                 $sheet->getStyle("AK2:AK{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
+
+                // Adjust this range if your numeric columns move
+                $event->sheet->getStyle('M:S')->getNumberFormat()->setFormatCode('#,##0.00');
+
+                $event->sheet->getStyle('AN:AO')->getNumberFormat()->setFormatCode('#,##0.00');
+                $event->sheet->getStyle('AW:BB')->getNumberFormat()->setFormatCode('#,##0.00');
             },
         ];
     }
