@@ -200,13 +200,12 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             $dataExcel[] = [
                 $row->ID,
                 $row->ContractCustomerID,
-                // trim(($row->LastNameEn ?? '').' '.($row->FirstNameEn ?? '')),
                 preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))),
                 $row->Branch,
                 $row->Gender,
                 $row->Street,
                 $row->Village,
-                $row->Commune,
+                $this->khmerToEnglishNumber($row->Commune=='' ? 'None' : $row->Commune),
                 $row->District,
                 $row->Province,
                 $row->Account,
@@ -261,6 +260,12 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         }
 
         $this->export_datas = $dataExcel;
+    }
+    public function khmerToEnglishNumber($value)
+    {
+        $khmerNumbers = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        $englishNumbers = ['0','1','2','3','4','5','6','7','8','9'];
+        return str_replace($khmerNumbers, $englishNumbers, $value);
     }
 
     public function columnFormats(): array
