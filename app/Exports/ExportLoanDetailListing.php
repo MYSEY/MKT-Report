@@ -24,140 +24,121 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
     public function __construct($request)
     {
-
-        // -------------------------
-        // 1) SUBQUERY FIXED
-        // -------------------------
         $subQuery = DB::connection('pgsql')
-            ->table('MKT_PD_DATE')
-            ->where(function ($q) {
-                $q->where('OutIntAmountAS', '>', 0);
-                // ->orWhere('OutPriAmountAS', '>', 0);
-            })
-            ->select(
-                DB::raw('"ID"'),
-                // DB::raw('MAX(CAST("NumDayDue" AS INTEGER)) AS "DueDay"'),
-                DB::raw('COALESCE(MAX(CAST(NULLIF("NumDayDue", \'\') AS INTEGER)), 0) AS "DueDay"'),
-                DB::raw('MAX("DueDate") AS "DueDate"'),
-                DB::raw('MAX("OutIntAmountAS") AS "OutIntAmountAS"'),
-                DB::raw('MAX("OutPriAmountAS") AS "OutPriAmountAS"')
-            )
-        ->groupBy('ID');
+        ->table('MKT_PD_DATE')
+        ->where(function ($q) {
+            $q->where('OutIntAmountAS', '>', 0)
+            ->orWhere('OutPriAmountAS', '>', 0);
+        })
+        ->select(
+            'ID',
+            DB::raw('MAX(CAST("NumDayDue" AS INTEGER)) AS "DueDay"'),
+            DB::raw('MAX("DueDate") AS "DueDate"')
+        )->groupBy('ID');
 
         $subQueryACCENTR = DB::connection('pgsql')
         ->table('MKT_ACC_ENTRY')
         ->select(
-            'Reference',
+            'Account',
             DB::raw('MAX("TransactionDate") AS "LastPaymentDate"')
-        )
-        ->groupBy('Reference');
+        )->groupBy('Account');
 
-        // -------------------------
-        // 2) MAIN QUERY
-        // -------------------------
         $query = DB::connection('pgsql')
-            ->table('MKT_LOAN_CONTRACT as LC')
-            ->select([
-                'LC.ID',
-                'LC.ContractCustomerID',
-                'LC.Branch',
-                'LC.Account',
-                'LC.Currency',
-                'LC.Disbursed',
-                'LC.LoanBalanceAS',
-                'LC.OutstandingAmountAS',
-                'LC.InterestRate',
-                'LC.AccrIntPerDay',
-                'LC.IntIncEarned',
-                'LC.TotalInterest',
-                'LC.ValueDate',
-                'LC.MaturityDate',
-                'LC.Term',
-                'LC.DisbursedStat',
-                'LC.AssetClass',
-                'LC.MoreThanOneYear',
-                'LC.CBCSubSection',
-                'LC.LoanPurpose',
-                'LC.ContractOfficerID',
-                'LC.LoanType',
-                'LC.RestructuredCycle',
-                'LCol.Collateral as CollateralID',
-                'LC.Amount',
-                'LC.OutstandingAmount',
-                'LC.EIRRate',
-                'LC.AccrCurrentInt',
-                'LC.AccrInterest',
-                'LC.AIRCurrentAS',
-                'LC.AIRAS',
-                'LC.Sector as MACode',
-                'LC.LoanProduct',
-                'LC.Cycle',
-                'LC.SubAmount',
-                'LC.SubLoanPurpose',
-                'LC.PartneredWith',
-                'LC.RestructureType',
-                'CUST.ID as CustomerID',
-                'CUST.LastNameEn',
-                'CUST.FirstNameEn',
-                'CUST.Gender',
-                'CUST.IDType',
-                'CUST.IDNumber',
-                'CUST.Mobile1',
-                'CUST.Mobile2',
-                'CUST.CBCISSubSection as CBCISSubSectionCuSt',
-                'CUST.Village as AddressCode',
-                'CUST.Street',
-                'VL.LocalDescription as Village',
-                'CM.LocalDescription as Commune',
-                'DS.LocalDescription as District',
-                'PR.LocalDescription as Province',
-                'Sct.Description as MADes',
-                'LPr.Description as LoanProductDes',
-                'PD.DueDay',
-                'PD.DueDate as OverdueDate',
-                'LCh1.Charge AS LoanCharge101',
-                'LCh1.Charge AS LoanCharge',
-                'LCh1.ChargeEarned',
-                'LCh1.ChargeUnearned',
-                'LCh2.Charge AS LoanCharge102',
-                'LCh2.Charge as RegularCharge',
-                'POS.Description as CustomerOccupation',
-                'SD.RepMode as ScheduleType',
-                'ACC.Reference',
-                'ACC.LastPaymentDate',
-            ])
+        ->table('MKT_LOAN_CONTRACT as LC')
+        ->select([
+            'LC.ID',
+            'LC.ContractCustomerID',
+            'LC.Branch',
+            'LC.Account',
+            'LC.Currency',
+            'LC.Disbursed',
+            'LC.LoanBalanceAS',
+            'LC.OutstandingAmountAS',
+            'LC.InterestRate',
+            'LC.AccrIntPerDay',
+            'LC.IntIncEarned',
+            'LC.TotalInterest',
+            'LC.ValueDate',
+            'LC.MaturityDate',
+            'LC.Term',
+            'LC.DisbursedStat',
+            'LC.AssetClass',
+            'LC.MoreThanOneYear',
+            'LC.CBCSubSection',
+            'LC.LoanPurpose',
+            'LC.ContractOfficerID',
+            'LC.LoanType',
+            'LC.RestructuredCycle',
+            'LCol.Collateral as CollateralID',
+            'LC.Amount',
+            'LC.OutstandingAmount',
+            'LC.EIRRate',
+            'LC.AccrCurrentInt',
+            'LC.AccrInterest',
+            'LC.AIRCurrentAS',
+            'LC.AIRAS',
+            'LC.Sector as MACode',
+            'LC.LoanProduct',
+            'LC.Cycle',
+            'LC.SubAmount',
+            'LC.SubLoanPurpose',
+            'LC.PartneredWith',
+            'LC.RestructureType',
+            'CUST.ID as CustomerID',
+            'CUST.LastNameEn',
+            'CUST.FirstNameEn',
+            'CUST.Gender',
+            'CUST.IDType',
+            'CUST.IDNumber',
+            'CUST.Mobile1',
+            'CUST.Mobile2',
+            'CUST.CBCISSubSection as CBCISSubSectionCuSt',
+            'CUST.Village as AddressCode',
+            'CUST.Street',
+            'CUST.HouseNo',
+            'VL.LocalDescription as Village',
+            'CM.LocalDescription as Commune',
+            'DS.LocalDescription as District',
+            'PR.LocalDescription as Province',
+            'Sct.Description as MADes',
+            'LPr.Description as LoanProductDes',
+            'PD.DueDay',
+            'PD.DueDate as OverdueDate',
+            'LCh1.Charge AS LoanCharge',
+            'LCh1.ChargeEarned',
+            'LCh1.ChargeUnearned',
+            'LCh2.Charge as RegularCharge',
+            'POS.Description as CustomerOccupation',
+            'SD.RepMode as ScheduleType',
+            'ACC.Account',
+            'ACC.LastPaymentDate',
+        ])
 
-            // CUSTOMER AND REFERENCE TABLES
-            ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
-            ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
-            ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
-            ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
-            ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
-            ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
-            ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
-            ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
-            ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
-            ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID')
-
-            // -------------------------
-            // SUBQUERY JOIN FIXED
-            // -------------------------
-            ->leftJoinSub($subQuery, 'PD', function ($join) {
-                $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
-            })
-            
-            ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
-                $join->on('ACC.Reference', '=', 'LC.ID');
-            })
-            // LOAN CHARGES
-            ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
-                $q->on('LC.ID', '=', 'LCh1.ID')
-                ->where('LCh1.ChargeKey', '=', 101);
-            })
-            ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
-                $q->on('LC.ID', '=', 'LCh2.ID')
-                ->where('LCh2.ChargeKey', '=', 102);
-            });
+        // CUSTOMER AND REFERENCE TABLES
+        ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
+        ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
+        ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
+        ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
+        ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
+        ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
+        ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
+        ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
+        ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
+        ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID')
+        ->leftJoinSub($subQuery, 'PD', function ($join) {
+            $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
+        })
+        ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
+            $join->on('ACC.Account', '=', 'LC.Account');
+        })
+        ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
+            $q->on('LC.ID', '=', 'LCh1.ID')
+            ->where('LCh1.ChargeKey', '=', '101');
+        })
+        ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
+            $q->on('LC.ID', '=', 'LCh2.ID')
+            ->where('LCh2.ChargeKey', '=', '102');
+        });
 
         // -------------------------
         // FILTERS (if used)
@@ -189,9 +170,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
         // GET DATA
         $data = $query->get();
-
         $this->totalRecord = count($data);
-
         // -------------------------
         // EXPORT FORMAT
         // -------------------------
@@ -203,22 +182,22 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))),
                 $row->Branch,
                 $row->Gender,
-                $row->Street,
+                $row->HouseNo.' '.$row->Street,
                 $row->Village,
                 $row->Commune=='' ? 'None' : $row->Commune,
                 $row->District,
                 $row->Province,
                 $row->Account,
                 $row->Currency,
-                (float) round($row->Disbursed, 2),
-                (float) round($row->LoanBalanceAS, 2),
-                (float) round($row->OutstandingAmountAS, 2),
-                (float) round($row->InterestRate, 2),
-                (float) round($row->AIRAS, 2),
-                (float) round($row->IntIncEarned, 2),
-                (float) round($row->TotalInterest, 2),
-                $this->formatDate($row->ValueDate),
-                $this->formatDate($row->MaturityDate),
+                bcdiv($row->Disbursed,1,2),
+                bcdiv($row->LoanBalanceAS,1,2),
+                bcdiv($row->OutstandingAmountAS,1,2),
+                bcdiv($row->InterestRate,1,2),
+                bcdiv($row->AIRAS ,1,2),
+                bcdiv($row->IntIncEarned,1,2),
+                bcdiv($row->TotalInterest ,1,2),
+                $row->ValueDate ? \Carbon\Carbon::parse($row->ValueDate)->format('d-m-Y'): null,
+                $row->MaturityDate ? \Carbon\Carbon::parse($row->MaturityDate)->format('d-m-Y'): null,
                 $row->LoanProduct . ' ' .$row->LoanProductDes,
                 $row->Term,
                 $row->DisbursedStat,
@@ -232,13 +211,13 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->ContractOfficerID,
                 $row->IDType,
                 $row->IDNumber,
-                $this->formatDate($row->LastPaymentDate),
+                $row->LastPaymentDate ? \Carbon\Carbon::parse($row->LastPaymentDate)->format('d-m-Y'): null,
                 $row->DueDay == null ? '0' : $row->DueDay,
-                $this->formatDate($row->OverdueDate),
+                $row->OverdueDate ? \Carbon\Carbon::parse($row->OverdueDate)->format('d-m-Y'): null,
                 $row->LoanType,
-                round($row->LoanCharge ?? 0, 2),
-                (int) round($row->ChargeEarned ?? 0, 2),
-                (int) round($row->ChargeUnearned ?? 0, 2),
+                bcdiv($row->LoanCharge, 1, 2),
+                bcdiv($row->ChargeEarned ,1,2),
+                bcdiv($row->ChargeUnearned,1,2),
                 $row->ScheduleType == null || $row->ScheduleType == '0' ? 'None' : $row->ScheduleType,
                 preg_replace('/\s+/', ' ', trim(($row->CustomerOccupation ?? ''))),
                 $row->RestructuredCycle,
@@ -246,13 +225,13 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $row->CollateralID == null ? 'None' : $row->CollateralID,
                 $row->Mobile1. ' '. $row->Mobile2,
                 $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),
-                (int) round($row->Amount, 2),
-                (int) round($row->OutstandingAmount, 2),
-                (int) round($row->EIRRate, 2),
-                (int) round($row->AccrIntPerDay == null ? '0' : $row->AccrIntPerDay, 2),
-                (int) round($row->AIRCurrentAS, 2),
-                (int) round($row->RegularCharge, 2),
-                $row->SubAmount == null ? '0' : $row->SubAmount,
+                bcdiv($row->Amount ,1,2),
+                bcdiv($row->OutstandingAmount ,1,2),
+                bcdiv($row->EIRRate ,1,2),
+                bcdiv($row->AccrIntPerDay ,1,2),
+                bcdiv($row->AccrInterest ,1,2),
+                bcdiv($row->RegularCharge ,1,2),
+                bcdiv($row->SubAmount ,1,2),
                 $row->SubLoanPurpose,
                 $row->PartneredWith,
                 $row->RestructureType,
@@ -289,7 +268,6 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
         return Date::dateTimeToExcel(
             Carbon::parse($date)
-            
         );
     }
   
@@ -318,7 +296,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             "Commune",
             "District",
             "Province",
-            "Account",
+            "Account #",
             "Currency",
             "Disburse",
             "Loan Amount AS",

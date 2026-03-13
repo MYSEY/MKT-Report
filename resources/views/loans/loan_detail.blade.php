@@ -301,7 +301,7 @@
                         orderable: true,
                         searchable: true,
                         render: function (data, type, row) {
-                            return row.Street;
+                            return row.HouseNo +' '+row.Street;
                         }
                     },
                     { 
@@ -430,31 +430,31 @@
                         name: 'ValueDate',
                         orderable: true,
                         searchable: true,
-                        render: function (data) {
-                            if (!data) return '';
-                            const date = new Date(data);
-                            const mm = String(date.getMonth() + 1).padStart(2, '0');
-                            const dd = String(date.getDate()).padStart(2, '0');
-                            const yyyy = date.getFullYear();
-                            return dd + '-' + mm + '-' + yyyy;
-                        }
+                        // render: function (data) {
+                        //     if (!data) return '';
+                        //     const date = new Date(data);
+                        //     const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        //     const dd = String(date.getDate()).padStart(2, '0');
+                        //     const yyyy = date.getFullYear();
+                        //     return dd + '-' + mm + '-' + yyyy;
+                        // }
                     },
                     { 
                         data: 'MaturityDate', 
                         name: 'MaturityDate',
                         orderable: true,
                         searchable: true,
-                        render: function (data) {
-                            if (!data) return '';
+                        // render: function (data) {
+                        //     if (!data) return '';
 
-                            const date = new Date(data);
-                            const mm = String(date.getMonth() + 1).padStart(2, '0');
-                            const dd = String(date.getDate()).padStart(2, '0');
-                            const yyyy = date.getFullYear();
+                        //     const date = new Date(data);
+                        //     const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        //     const dd = String(date.getDate()).padStart(2, '0');
+                        //     const yyyy = date.getFullYear();
 
-                            return dd + '-' + mm + '-' + yyyy;
+                        //     return dd + '-' + mm + '-' + yyyy;
 
-                        }
+                        // }
                     },
                     { 
                         data: 'LoanProduct', 
@@ -542,16 +542,16 @@
                         name: 'LastPaymentDate',
                         orderable: true,
                         searchable: true,
-                        render: function (data) {
-                            if (!data) return '';
+                        // render: function (data) {
+                        //     if (!data) return '';
 
-                            const date = new Date(data);
-                            const mm = String(date.getMonth() + 1).padStart(2, '0');
-                            const dd = String(date.getDate()).padStart(2, '0');
-                            const yyyy = date.getFullYear();
+                        //     const date = new Date(data);
+                        //     const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        //     const dd = String(date.getDate()).padStart(2, '0');
+                        //     const yyyy = date.getFullYear();
 
-                            return dd + '-' + mm + '-' + yyyy;
-                        }
+                        //     return dd + '-' + mm + '-' + yyyy;
+                        // }
                     },
                     { 
                         data: 'DueDay', 
@@ -564,16 +564,16 @@
                         name: 'OverdueDate',
                         orderable: true,
                         searchable: true,
-                        render: function (data) {
-                            if (!data) return '';
+                        // render: function (data) {
+                        //     if (!data) return '';
 
-                            const date = new Date(data);
-                            const mm = String(date.getMonth() + 1).padStart(2, '0');
-                            const dd = String(date.getDate()).padStart(2, '0');
-                            const yyyy = date.getFullYear();
+                        //     const date = new Date(data);
+                        //     const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        //     const dd = String(date.getDate()).padStart(2, '0');
+                        //     const yyyy = date.getFullYear();
 
-                            return dd + '-' + mm + '-' + yyyy;
-                        }
+                        //     return dd + '-' + mm + '-' + yyyy;
+                        // }
                     },
                     { 
                         data: 'LoanType', 

@@ -12,51 +12,24 @@ use Maatwebsite\Excel\Facades\Excel;
 class LoandDetailListingController extends Controller
 {
     public function loanDetailListing(Request $request){
-        // $subQueryPD = DB::connection('pgsql')
-        //     ->table('MKT_PD_DATE')
-        //     ->where(function ($q) {
-        //         $q->where('OutIntAmountAS', '>', 0)
-        //         ->orWhere('OutPriAmountAS', '>', 0);
-        //     })
-        //     ->select(
-        //         'ID',
-        //         DB::raw('MAX(CAST("NumDayDue" AS INTEGER)) AS "DueDay"'),
-        //         DB::raw('MAX("DueDate") AS "DueDate"'),
-        //         DB::raw('MAX("OutIntAmountAS") AS "OutIntAmountAS"'),
-        //         DB::raw('MAX("OutPriAmountAS") AS "OutPriAmountAS"')
-        //     )
-        // ->groupBy('ID');
-        // $query = DB::connection('pgsql')
-        // ->table('MKT_LOAN_CONTRACT as LC')
-        // ->leftJoinSub($subQueryPD, 'PDD', function ($join) {
-        //     $join->whereRaw('"PDD"."ID" = \'PD\' || "LC"."ID"');
-        // })
-        // ->select('LC.*', 'PDD.*')->get();
-        // dd($query);
-
-
         if (request()->ajax()) {
             $subQueryPD = DB::connection('pgsql')
             ->table('MKT_PD_DATE')
             ->where(function ($q) {
-                $q->where('OutIntAmountAS', '>', 0);
-                // ->orWhere('OutPriAmountAS', '>', 0);
+                $q->where('OutIntAmountAS', '>', 0)
+                ->orWhere('OutPriAmountAS', '>', 0);
             })
             ->select(
                 'ID',
                 DB::raw('MAX(CAST("NumDayDue" AS INTEGER)) AS "DueDay"'),
-                DB::raw('MAX("DueDate") AS "DueDate"'),
-                DB::raw('MAX("OutIntAmountAS") AS "OutIntAmountAS"'),
-                DB::raw('MAX("OutPriAmountAS") AS "OutPriAmountAS"')
+                DB::raw('MAX("DueDate") AS "DueDate"')
             )->groupBy('ID');
-
            $subQueryACCENTR = DB::connection('pgsql')
             ->table('MKT_ACC_ENTRY')
             ->select(
-                'Reference',
+                'Account',
                 DB::raw('MAX("TransactionDate") AS "LastPaymentDate"')
-            )
-            ->groupBy('Reference');
+            )->groupBy('Account');
             
             // $query = DB::connection('pgsql')->table('MKT_CUSTOMER');
             $query = DB::connection('pgsql')
@@ -106,6 +79,7 @@ class LoandDetailListingController extends Controller
                     'CUST.IDNumber',
                     'CUST.Mobile1',
                     'CUST.Mobile2',
+                    'CUST.HouseNo',
                     'CUST.CBCISSubSection as CBCISSubSectionCuSt',
                     'CUST.Village as AddressCode',
                     'CUST.Street',
@@ -125,7 +99,7 @@ class LoandDetailListingController extends Controller
                     'LCh2.Charge as RegularCharge',
                     'POS.Description as CustomerOccupation',
                     'SD.RepMode as ScheduleType',
-                    'ACC.Reference',
+                    'ACC.Account',
                     'ACC.LastPaymentDate',
                 ])
                 ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
@@ -141,11 +115,9 @@ class LoandDetailListingController extends Controller
                 ->leftJoinSub($subQueryPD, 'PD', function ($join) {
                     $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
                 })
-
                 ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
-                    $join->on('ACC.Reference', '=', 'LC.ID');
+                    $join->on('ACC.Account', '=', 'LC.ID');
                 })
-                
                 ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
                     $q->on('LC.ID', '=', 'LCh1.ID')
                     ->where('LCh1.ChargeKey', '=', 101);

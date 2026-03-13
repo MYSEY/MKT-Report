@@ -40,6 +40,7 @@ Route::group([
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);
+        Route::get('test',[LoandDetailListingController::class,'test']);
     });
 
     // users
