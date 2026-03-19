@@ -45,4 +45,5 @@ Route::group([
 
     // users
     Route::get('/user', [UserController::class, 'index']);
+    Route::get('/menu', [UserController::class, 'menu']);
 });

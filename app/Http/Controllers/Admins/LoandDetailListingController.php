@@ -14,26 +14,43 @@ class LoandDetailListingController extends Controller
     public function loanDetailListing(Request $request){
         if (request()->ajax()) {
             $subQueryPD = DB::connection('pgsql')
-            ->table('MKT_PD_DATE')
-            ->where(function ($q) {
-                $q->where('OutIntAmountAS', '>', 0)
-                ->orWhere('OutPriAmountAS', '>', 0);
-            })
-            ->select(
-                'ID',
-                DB::raw('MAX(CAST("NumDayDue" AS INTEGER)) AS "DueDay"'),
-                DB::raw('MAX("DueDate") AS "DueDate"')
-            )->groupBy('ID');
-           $subQueryACCENTR = DB::connection('pgsql')
+            ->table(DB::raw('(
+                SELECT DISTINCT ON ("ID")
+                    "ID",
+                    CAST("NumDayDue" AS INTEGER) AS "DueDay",
+                    "DueDate"
+                FROM "MKT_PD_DATE"
+                WHERE "OutIntAmountAS" > 0 OR "OutPriAmountAS" > 0
+                ORDER BY "ID", CAST("NumDayDue" AS INTEGER) DESC
+            ) as PD'));
+            
+            $subQueryACCENTR = DB::connection('pgsql')
             ->table('MKT_ACC_ENTRY')
             ->select(
                 'Account',
-                DB::raw('MAX("TransactionDate") AS "LastPaymentDate"')
-            )->groupBy('Account');
+                // 'Reference',
+                DB::raw('MAX("Reference") AS "Reference"'),
+                DB::raw('MAX("TransactionDate") AS "LastPaymentDate"'),
+            )
+            ->where('Amount', '>', 0)
+            ->groupBy('Account');
             
-            // $query = DB::connection('pgsql')->table('MKT_CUSTOMER');
             $query = DB::connection('pgsql')
                 ->table('MKT_LOAN_CONTRACT as LC')
+                ->leftJoinSub($subQueryPD, 'PD', function ($join) {
+                    $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
+                })
+                ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
+                    $join->on('ACC.Account', '=', 'LC.Account');
+                })
+                ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
+                    $q->on('LC.ID', '=', 'LCh1.ID')
+                    ->where('LCh1.ChargeKey', '=', 101);
+                })
+                ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
+                    $q->on('LC.ID', '=', 'LCh2.ID')
+                    ->where('LCh2.ChargeKey', '=', 102);
+                })
                 ->select([
                     'LC.ID',
                     'LC.ContractCustomerID',
@@ -100,6 +117,7 @@ class LoandDetailListingController extends Controller
                     'POS.Description as CustomerOccupation',
                     'SD.RepMode as ScheduleType',
                     'ACC.Account',
+                    'ACC.Reference',
                     'ACC.LastPaymentDate',
                 ])
                 ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
@@ -111,21 +129,7 @@ class LoandDetailListingController extends Controller
                 ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
                 ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
                 ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
-                ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID')
-                ->leftJoinSub($subQueryPD, 'PD', function ($join) {
-                    $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
-                })
-                ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
-                    $join->on('ACC.Account', '=', 'LC.ID');
-                })
-                ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
-                    $q->on('LC.ID', '=', 'LCh1.ID')
-                    ->where('LCh1.ChargeKey', '=', 101);
-                })
-                ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
-                    $q->on('LC.ID', '=', 'LCh2.ID')
-                    ->where('LCh2.ChargeKey', '=', 102);
-                });
+                ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
                 // ->where('LC.OutstandingAmountAS', '>', 0)
                 // ->where('LC.Branch', '<>', '""');
 

@@ -153,9 +153,19 @@
                                     <span class="nav-link-text">Setting</span>
                                 </a>
                                 <ul>
+                                    <li class="{{ Request::is('admin/menu') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/menu') }}">
+                                            <span class="nav-link-text">Menu</span>
+                                        </a>
+                                    </li>
                                     <li class="{{ Request::is('admin/setting/category') ? 'active' : '' }}">
                                         <a href="{{ url('admin/setting/category') }}">
                                             <span class="nav-link-text">Category</span>
+                                        </a>
+                                    </li>
+                                    <li class="{{ Request::is('admin/user') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/user') }}">
+                                            <span class="nav-link-text">Users</span>
                                         </a>
                                     </li>
                                 </ul>

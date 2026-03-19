@@ -52,11 +52,6 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         try {
-            // $request->validate([
-            //     'number_employee' => 'required',
-            //     'password' => 'required',
-            // ]);
-
             //User MKT
             $user = DB::connection('pgsql')
             ->table('MKT_USER')
@@ -69,23 +64,30 @@ class LoginController extends Controller
                 'MKT_USER.DisplayName',
                 'MKT_ROLE.Description as RoleName'
             )->where('Active', 'Yes')->whereRaw('"MKT_USER"."LogInName" = ?', [$request->number_employee])->first();
-
-            if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
+            if ($user) {
+                if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
+                    return response()->json([
+                        'message' => 'Username/Password is incorrect',
+                        'status'  => 'error'
+                    ]);
+                }
+                // Auth::loginUsingId($user->ID);
+                session()->put('MKT_USER', [
+                    'id'   => $user->ID,
+                    'name' => $user->LogInName,
+                    'displayName' => $user->DisplayName,
+                    'roleName' => $user->RoleName
+                ]);
                 return response()->json([
-                    'message' => 'Username/Password is incorrect',
-                    'status'  => 'error'
+                    'message' => 'Login successfully',
+                    'status' => 'success',
+                ]); 
+            }else{
+                return response()->json([
+                    'message'=> 'Your account is not active',
+                    'status'=> 'error'
                 ]);
             }
-            session()->put('MKT_USER', [
-                'id'   => $user->ID,
-                'name' => $user->LogInName,
-                'displayName' => $user->DisplayName,
-                'roleName' => $user->RoleName
-            ]);
-            return response()->json([
-                'message' => 'Login successfully',
-                'status' => 'success',
-            ]);
 
             
             //user HR
