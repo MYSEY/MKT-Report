@@ -37,20 +37,6 @@ class LoandDetailListingController extends Controller
             
             $query = DB::connection('pgsql')
                 ->table('MKT_LOAN_CONTRACT as LC')
-                ->leftJoinSub($subQueryPD, 'PD', function ($join) {
-                    $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
-                })
-                ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
-                    $join->on('ACC.Account', '=', 'LC.Account');
-                })
-                ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
-                    $q->on('LC.ID', '=', 'LCh1.ID')
-                    ->where('LCh1.ChargeKey', '=', 101);
-                })
-                ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
-                    $q->on('LC.ID', '=', 'LCh2.ID')
-                    ->where('LCh2.ChargeKey', '=', 102);
-                })
                 ->select([
                     'LC.ID',
                     'LC.ContractCustomerID',
@@ -116,10 +102,34 @@ class LoandDetailListingController extends Controller
                     'LCh2.Charge as RegularCharge',
                     'POS.Description as CustomerOccupation',
                     'SD.RepMode as ScheduleType',
-                    'ACC.Account',
-                    'ACC.Reference',
-                    'ACC.LastPaymentDate',
+
+                    // ✅ FINAL FIX (correlated subquery)
+                    DB::raw('(
+                        SELECT MAX(AE."TransactionDate")
+                        FROM "MKT_ACC_ENTRY" AE
+                        WHERE AE."Account" = "LC"."Account"
+                        AND AE."Amount" > 0
+                        AND (
+                            AE."Reference" = "LC"."ID"
+                            OR AE."Reference" = \'PD\' || "LC"."ID"
+                        )
+                    ) as "LastPaymentDate"')
                 ])
+
+                // ✅ PD Subquery Join
+                ->leftJoinSub($subQueryPD, 'PD', function ($join) {
+                    $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
+                })
+
+                // Other joins
+                ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
+                    $q->on('LC.ID', '=', 'LCh1.ID')
+                    ->where('LCh1.ChargeKey', '=', 101);
+                })
+                ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
+                    $q->on('LC.ID', '=', 'LCh2.ID')
+                    ->where('LCh2.ChargeKey', '=', 102);
+                })
                 ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
                 ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
                 ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')

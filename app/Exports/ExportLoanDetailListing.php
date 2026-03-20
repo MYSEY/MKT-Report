@@ -25,125 +25,132 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
     public function __construct($request)
     {
         $subQueryPD = DB::connection('pgsql')
-        ->table(DB::raw('(
-            SELECT DISTINCT ON ("ID")
-                "ID",
-                CAST("NumDayDue" AS INTEGER) AS "DueDay",
-                "DueDate"
-            FROM "MKT_PD_DATE"
-            WHERE "OutIntAmountAS" > 0 OR "OutPriAmountAS" > 0
-            ORDER BY "ID", CAST("NumDayDue" AS INTEGER) DESC
-        ) as PD'));
+            ->table(DB::raw('(
+                SELECT DISTINCT ON ("ID")
+                    "ID",
+                    CAST("NumDayDue" AS INTEGER) AS "DueDay",
+                    "DueDate"
+                FROM "MKT_PD_DATE"
+                WHERE "OutIntAmountAS" > 0 OR "OutPriAmountAS" > 0
+                ORDER BY "ID", CAST("NumDayDue" AS INTEGER) DESC
+            ) as PD'));
+            
+            $subQueryACCENTR = DB::connection('pgsql')
+            ->table('MKT_ACC_ENTRY')
+            ->select(
+                'Account',
+                // 'Reference',
+                DB::raw('MAX("Reference") AS "Reference"'),
+                DB::raw('MAX("TransactionDate") AS "LastPaymentDate"'),
+            )
+            ->where('Amount', '>', 0)
+            ->groupBy('Account');
+            
+            $query = DB::connection('pgsql')
+            ->table('MKT_LOAN_CONTRACT as LC')
+            ->select([
+                'LC.ID',
+                'LC.ContractCustomerID',
+                'LC.Branch',
+                'LC.Account',
+                'LC.Currency',
+                'LC.Disbursed',
+                'LC.LoanBalanceAS',
+                'LC.OutstandingAmountAS',
+                'LC.InterestRate',
+                'LC.AIRAS',
+                'LC.AIRCurrentAS',
+                'LC.AccrIntPerDay',
+                'LC.TotalInterest',
+                'LC.ValueDate',
+                'LC.MaturityDate',
+                'LC.Term',
+                'LC.DisbursedStat',
+                'LC.AssetClass',
+                'LC.MoreThanOneYear',
+                'LC.CBCSubSection',
+                'LC.LoanPurpose',
+                'LC.ContractOfficerID',
+                'LC.LoanType',
+                'LC.RestructuredCycle',
+                'LCol.Collateral as CollateralID',
+                'LC.Amount',
+                'LC.OutstandingAmount',
+                'LC.EIRRate',
+                'LC.AccrInterest',
+                'LC.IntIncEarned',
+                'LC.Sector as MACode',
+                'LC.LoanProduct',
+                'LC.Cycle',
+                'LC.SubAmount',
+                'LC.SubLoanPurpose',
+                'LC.PartneredWith',
+                'LC.RestructureType',
+                'CUST.LastNameEn',
+                'CUST.FirstNameEn',
+                'CUST.Gender',
+                'CUST.IDType',
+                'CUST.IDNumber',
+                'CUST.Mobile1',
+                'CUST.Mobile2',
+                'CUST.HouseNo',
+                'CUST.CBCISSubSection as CBCISSubSectionCuSt',
+                'CUST.Village as AddressCode',
+                'CUST.Street',
+                'VL.LocalDescription as Village',
+                'CM.LocalDescription as Commune',
+                'DS.LocalDescription as District',
+                'PR.LocalDescription as Province',
+                'Sct.Description as MADes',
+                'LPr.Description as LoanProductDes',
+                'PD.DueDay',
+                'PD.DueDate as OverdueDate',
+                'LCh1.Charge AS LoanCharge101',
+                'LCh1.Charge AS LoanCharge',
+                'LCh1.ChargeEarned',
+                'LCh1.ChargeUnearned',
+                'LCh2.Charge AS LoanCharge102',
+                'LCh2.Charge as RegularCharge',
+                'POS.Description as CustomerOccupation',
+                'SD.RepMode as ScheduleType',
 
-        $subQueryACCENTR = DB::connection('pgsql')
-        ->table('MKT_ACC_ENTRY')
-        ->select(
-            'Account',
-            // 'Reference',
-            DB::raw('MAX("Reference") AS "Reference"'),
-            DB::raw('MAX("TransactionDate") AS "LastPaymentDate"'),
-        )
-        ->where('Amount', '>', 0)
-        ->groupBy('Account');
-        
-        //main
-        $query = DB::connection('pgsql')
-        ->table('MKT_LOAN_CONTRACT as LC')
-        ->leftJoinSub($subQueryPD, 'PD', function ($join) {
-            $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
-        })
-        ->leftJoinSub($subQueryACCENTR, 'ACC', function ($join) {
-            $join->on('ACC.Account', '=', 'LC.Account');
-        })
+                // ✅ FINAL FIX (correlated subquery)
+                DB::raw('(
+                    SELECT MAX(AE."TransactionDate")
+                    FROM "MKT_ACC_ENTRY" AE
+                    WHERE AE."Account" = "LC"."Account"
+                    AND AE."Amount" > 0
+                    AND (
+                        AE."Reference" = "LC"."ID"
+                        OR AE."Reference" = \'PD\' || "LC"."ID"
+                    )
+                ) as "LastPaymentDate"')
+            ])
 
-        ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
-            $q->on('LC.ID', '=', 'LCh1.ID')
-            ->where('LCh1.ChargeKey', '=', 101);
-        })
-        ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
-            $q->on('LC.ID', '=', 'LCh2.ID')
-            ->where('LCh2.ChargeKey', '=', 102);
-        })
-        ->select([
-            'LC.ID',
-            'LC.ContractCustomerID',
-            'LC.Branch',
-            'LC.Account',
-            'LC.Currency',
-            'LC.Disbursed',
-            'LC.LoanBalanceAS',
-            'LC.OutstandingAmountAS',
-            'LC.InterestRate',
-            'LC.AIRAS',
-            'LC.AIRCurrentAS',
-            'LC.AccrIntPerDay',
-            'LC.TotalInterest',
-            'LC.ValueDate',
-            'LC.MaturityDate',
-            'LC.Term',
-            'LC.DisbursedStat',
-            'LC.AssetClass',
-            'LC.MoreThanOneYear',
-            'LC.CBCSubSection',
-            'LC.LoanPurpose',
-            'LC.ContractOfficerID',
-            'LC.LoanType',
-            'LC.RestructuredCycle',
-            'LCol.Collateral as CollateralID',
-            'LC.Amount',
-            'LC.OutstandingAmount',
-            'LC.EIRRate',
-            'LC.AccrInterest',
-            'LC.IntIncEarned',
-            'LC.Sector as MACode',
-            'LC.LoanProduct',
-            'LC.Cycle',
-            'LC.SubAmount',
-            'LC.SubLoanPurpose',
-            'LC.PartneredWith',
-            'LC.RestructureType',
-            'CUST.LastNameEn',
-            'CUST.FirstNameEn',
-            'CUST.Gender',
-            'CUST.IDType',
-            'CUST.IDNumber',
-            'CUST.Mobile1',
-            'CUST.Mobile2',
-            'CUST.HouseNo',
-            'CUST.CBCISSubSection as CBCISSubSectionCuSt',
-            'CUST.Village as AddressCode',
-            'CUST.Street',
-            'VL.LocalDescription as Village',
-            'CM.LocalDescription as Commune',
-            'DS.LocalDescription as District',
-            'PR.LocalDescription as Province',
-            'Sct.Description as MADes',
-            'LPr.Description as LoanProductDes',
-            'PD.DueDay',
-            'PD.DueDate as OverdueDate',
-            'LCh1.Charge AS LoanCharge101',
-            'LCh1.Charge AS LoanCharge',
-            'LCh1.ChargeEarned',
-            'LCh1.ChargeUnearned',
-            'LCh2.Charge AS LoanCharge102',
-            'LCh2.Charge as RegularCharge',
-            'POS.Description as CustomerOccupation',
-            'SD.RepMode as ScheduleType',
-            'ACC.Account',
-            'ACC.LastPaymentDate',
-        ])
+            // ✅ PD Subquery Join
+            ->leftJoinSub($subQueryPD, 'PD', function ($join) {
+                $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
+            })
 
-        // CUSTOMER AND REFERENCE TABLES
-        ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
-        ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
-        ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
-        ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
-        ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
-        ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
-        ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
-        ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
-        ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
-        ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
+            // Other joins
+            ->leftJoin('MKT_LOAN_CHARGE as LCh1', function($q){
+                $q->on('LC.ID', '=', 'LCh1.ID')
+                ->where('LCh1.ChargeKey', '=', 101);
+            })
+            ->leftJoin('MKT_LOAN_CHARGE as LCh2', function($q){
+                $q->on('LC.ID', '=', 'LCh2.ID')
+                ->where('LCh2.ChargeKey', '=', 102);
+            })
+            ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
+            ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
+            ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
+            ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
+            ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
+            ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
+            ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
+            ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
+            ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
+            ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
 
         // -------------------------
         // FILTERS (if used)
