@@ -104,11 +104,22 @@ class LoandDetailListingController extends Controller
                     'SD.RepMode as ScheduleType',
 
                     // ✅ FINAL FIX (correlated subquery)
+                    // DB::raw('(
+                    //     SELECT MAX(AE."TransactionDate")
+                    //     FROM "MKT_ACC_ENTRY" AE
+                    //     WHERE AE."Account" = "LC"."Account"
+                    //     AND AE."Amount" > 0
+                    //     AND (
+                    //         AE."Reference" = "LC"."ID"
+                    //         OR AE."Reference" = \'PD\' || "LC"."ID"
+                    //     )
+                    // ) as "LastPaymentDate"')
                     DB::raw('(
                         SELECT MAX(AE."TransactionDate")
                         FROM "MKT_ACC_ENTRY" AE
                         WHERE AE."Account" = "LC"."Account"
                         AND AE."Amount" > 0
+                        AND AE."Transaction" IN (\'6\',\'7\',\'10\',\'11\',\'13\',\'25\',\'27\',\'40\',\'52\',\'53\',\'54\')
                         AND (
                             AE."Reference" = "LC"."ID"
                             OR AE."Reference" = \'PD\' || "LC"."ID"
