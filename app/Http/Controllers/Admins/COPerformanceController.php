@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admins;
 
 use App\Exports\ExportCOPerformance;
 use App\Http\Controllers\Controller;
+use App\Traits\HasRolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class COPerformanceController extends Controller
 {
+
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('CO Performance');
+    }
     public function coPerformance(Request $request){
         if (request()->ajax()) {
             $subQueryPD = DB::connection('pgsql')

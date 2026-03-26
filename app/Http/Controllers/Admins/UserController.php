@@ -62,10 +62,6 @@ class UserController extends Controller
         return view('users.index');
     }
 
-    public function menu(Request $request){
-        return view('menu.index');
-    }
-
     /**
      * Show the form for creating a new resource.
      */

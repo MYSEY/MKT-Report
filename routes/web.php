@@ -4,6 +4,8 @@ use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Admins\COPerformanceController;
 use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Admins\LoandDetailListingController;
+use App\Http\Controllers\Admins\PermissionController;
+use App\Http\Controllers\Admins\RoleController;
 use App\Http\Controllers\Admins\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
@@ -29,11 +31,10 @@ Route::group([
     'middleware' => ['mkt.auth']
     ],function(){
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    // Route::get('loan/detail/listing',[LoandDetailListingController::class,'loanDetailListing']);
-    // Route::get('loan/detail/listing/download',[LoandDetailListingController::class,'download']);
-
     Route::prefix('setting')->group(function () {
         Route::resource('category', CategoryController::class);
+        Route::resource('permission', PermissionController::class);
+        Route::resource('role', RoleController::class);
     });
     Route::prefix('report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
@@ -45,5 +46,4 @@ Route::group([
 
     // users
     Route::get('/user', [UserController::class, 'index']);
-    Route::get('/menu', [UserController::class, 'menu']);
 });

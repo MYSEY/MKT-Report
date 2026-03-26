@@ -57,7 +57,7 @@ class LoginController extends Controller
             ->table('MKT_USER')
             ->leftJoin('MKT_ROLE', 'MKT_USER.Role', '=', 'MKT_ROLE.ID')
             ->select(
-                'MKT_USER.ID',
+                'MKT_USER.Role',
                 'MKT_USER.Password',
                 'MKT_USER.Active',
                 'MKT_USER.LogInName',
@@ -71,13 +71,20 @@ class LoginController extends Controller
                         'status'  => 'error'
                     ]);
                 }
-                // Auth::loginUsingId($user->ID);
+               $permissions = DB::table('role_has_permissions')
+                ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
+                ->where('role_has_permissions.role_id', $user->Role)
+                ->pluck('permissions.name')
+                ->toArray();
+
                 session()->put('MKT_USER', [
-                    'id'   => $user->ID,
-                    'name' => $user->LogInName,
+                    'role'          => $user->Role,
+                    'name'        => $user->LogInName,
                     'displayName' => $user->DisplayName,
-                    'roleName' => $user->RoleName
+                    'roleName'    => $user->RoleName,
+                    'permissions' => $permissions
                 ]);
+                
                 return response()->json([
                     'message' => 'Login successfully',
                     'status' => 'success',
@@ -88,66 +95,6 @@ class LoginController extends Controller
                     'status'=> 'error'
                 ]);
             }
-
-            
-            //user HR
-            // $user = HRConnection::where('number_employee', $request->number_employee)->first();
-            // if (!$user) {
-            //     return response()->json([
-            //         'message' => 'Wrong employee ID or password',
-            //         'status' => 'error'
-            //     ]);
-            // }
-
-            // if(in_array($user->emp_status, ['3','4','5','6','7','8','9'])){
-            //     if ($user->resign_date && $user->resign_date <= now()->toDateString()) {
-            //         return response()->json([
-            //             'message' => 'Your account is not active. Please contact support',
-            //             'status' => 'error'
-            //         ]);
-            //     }
-            // }
-            // if (empty($user->role_id)) {
-            //     return response()->json([
-            //         'message' => "You don't have permission to view this page",
-            //         'status' => 'error'
-            //     ]);
-            // }
-
-            // if ($user->status !== 'Active') {
-            //     return response()->json([
-            //         'message' => 'Your account is not active. Please contact support',
-            //         'status' => 'error'
-            //     ]);
-            // }
-
-            // if ($user->p_status == 0) {
-            //     if (!Hash::check($request->password, $user->password)) {
-            //         return response()->json([
-            //             'message' => 'Wrong employee ID or password',
-            //             'status' => 'error'
-            //         ]);
-            //     }
-
-            //     return response()->json([
-            //         'message' => 'Login successfully',
-            //         'status' => 'success',
-            //         'role' => null
-            //     ]);
-            // }
-
-            // if (!Auth::attempt($request->only('number_employee', 'password'))) {
-            //     return response()->json([
-            //         'message' => 'Wrong employee ID or password',
-            //         'status' => 'error'
-            //     ]);
-            // }
-
-            // return response()->json([
-            //     'message' => 'Login successfully',
-            //     'status' => 'success',
-            //     'role' => Auth::user()->RolePermission
-            // ]);
         } catch (\Exception $e) {
             Log::error('Login error', ['error' => $e->getMessage()]);
             return response()->json([

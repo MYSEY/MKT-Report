@@ -2,31 +2,22 @@
 
 namespace App\Models;
 
-use App\Models\Permission;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Category extends Model
+class Permission extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $table = 'categories';
+
+    protected $table = 'permissions';
     protected $guarded = ['id'];
     protected $fillable = [
+        'category_id',
         'name',
         'created_by',
         'updated_by',
         'deleted_at',
     ];
-
-   public function permissions()
-    {
-        return $this->hasMany(Permission::class, 'category_id');
-    }
-
-    public function getPermissions()
-    {
-        return $this->permissions;
-    }
 }

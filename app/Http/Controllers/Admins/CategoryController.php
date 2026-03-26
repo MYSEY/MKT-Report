@@ -55,7 +55,8 @@ class CategoryController extends Controller
     {
         try {
             $data = $request->all();
-            $data['created_by'] = Auth::user()->id;
+            // $data['created_by'] = Auth::user()->id;
+            $data['created_by'] = session('MKT_USER.displayName');
             Category::create($data);
             DB::commit();
             Toastr::success('Created Category successfully.','Success');
@@ -96,7 +97,8 @@ class CategoryController extends Controller
 
             Category::findOrFail($request->id)->update([
                 'name'       => $request->name,
-                'updated_by' => Auth::id(),
+                'updated_by' => session('MKT_USER.displayName'),
+                // 'updated_by' => Auth::id(),
             ]);
 
             DB::commit();

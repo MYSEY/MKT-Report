@@ -8,15 +8,14 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * php artisan migrate:refresh --path=database/migrations/2026_03_26_041554_create_role_has_permissions_table.php
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('role_has_permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->dateTime('deleted_at')->nullable();
+            $table->string('role_id');
+            $table->integer('permission_id');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('role_has_permissions');
     }
 };

@@ -124,27 +124,32 @@
                                     <span class="nav-link-text">Dashboard</span>
                                 </a>
                             </li>
-
+                            
                             {{-- Loan Reports --}}
-                            <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
-                                <a href="javascript:void(0)" title="Loan Reports">
-                                    <i class="fal fa-calendar-check"></i>
-                                    <span class="nav-link-text">Loan Reports</span>
-                                </a>
-                                <ul>
-                                    <li class="{{ Request::is('admin/report/loan/detail') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/report/loan/detail') }}">
-                                            <span class="nav-link-text">Loan Detail</span>
-                                        </a>
-                                    </li>
-
-                                    <li class="{{ Request::is('admin/report/co-performance') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/report/co-performance') }}">
-                                            <span class="nav-link-text">CO Performance</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                            @can('CO Performance View' || 'Loan Detail View')
+                                <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
+                                    <a href="javascript:void(0)" title="Loan Reports">
+                                        <i class="fal fa-calendar-check"></i>
+                                        <span class="nav-link-text">Loan Reports</span>
+                                    </a>
+                                    <ul>
+                                        @can('Loan Detail View')
+                                            <li class="{{ Request::is('admin/report/loan/detail') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/report/loan/detail') }}">
+                                                    <span class="nav-link-text">Loan Detail</span>
+                                                </a>
+                                            </li>
+                                        @endcan
+                                        @can('CO Performance View')
+                                            <li class="{{ Request::is('admin/report/co-performance') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/report/co-performance') }}">
+                                                    <span class="nav-link-text">CO Performance</span>
+                                                </a>
+                                            </li>
+                                        @endcan
+                                    </ul>
+                                </li>
+                            @endcan
 
                             {{-- Setting --}}
                             <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
@@ -153,9 +158,14 @@
                                     <span class="nav-link-text">Setting</span>
                                 </a>
                                 <ul>
-                                    <li class="{{ Request::is('admin/menu') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/menu') }}">
-                                            <span class="nav-link-text">Menu</span>
+                                    <li class="{{ Request::is('admin/setting/role') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/setting/role') }}">
+                                            <span class="nav-link-text">Roles</span>
+                                        </a>
+                                    </li>
+                                    <li class="{{ Request::is('admin/setting/permission') ? 'active' : '' }}">
+                                        <a href="{{ url('admin/setting/permission') }}">
+                                            <span class="nav-link-text">Permission</span>
                                         </a>
                                     </li>
                                     <li class="{{ Request::is('admin/setting/category') ? 'active' : '' }}">
