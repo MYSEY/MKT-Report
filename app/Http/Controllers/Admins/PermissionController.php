@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admins;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\PermissionRequest;
 use App\Models\Category;
 use App\Models\Permission;
+use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PermissionRequest;
 
 class PermissionController extends Controller
 {
@@ -90,6 +91,13 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            Permission::destroy($id);
+            Toastr::success('Permission deleted successfully.', 'Success');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Toastr::error('Permission delete fail.', 'Error');
+            return redirect()->back();
+        }
     }
 }

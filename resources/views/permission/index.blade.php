@@ -24,6 +24,12 @@
                         <table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <div class="custom-control custom-checkbox custom-control-inline big-checkbox">
+                                            <input type="checkbox" class="custom-control-input checkAll" name="checkAll" id="checkAll" onClick="toggle(this)">
+                                            <label class="custom-control-label" for="checkAll"></label>
+                                        </div>
+                                    </th>
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Created At</th>
@@ -34,17 +40,23 @@
                                 @if (count($data)>0)
                                     @foreach ($data as $key=>$item)
                                         <tr>
-                                            <td>{{$key+1}}</td>
+                                            <td>
+                                                <div class="custom-control custom-checkbox custom-control-inline big-checkbox">
+                                                    <input type="checkbox" class="custom-control-input sub_chk" name="checkbox" data-id="{{ $item->id }}" value="{{$item->id}}">
+                                                    <label class="custom-control-label" for="{{$item->id}}"></label>
+                                                </div>
+                                            </td>
+                                            <td>{{$item->id}}</td>
                                             <td>{{$item->name}}</td>
                                             <td>{{$item->created_at}}</td>
                                             <td>
                                                 <div class="d-flex demo">
-                                                    @can('Permission Delete')
-                                                        <a href="javascript:void(0);" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1 btn_delete" data-toggle="modal" data-target="#delete_permission" data-id="{{$item->id}}" title="Delete Record"><i class="fal fa-times"></i></a>
-                                                    @endcan
-                                                    @can('Permission Edit')
+                                                    {{-- @can('Permission Delete') --}}
+                                                        <a href="javascript:void(0);" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1 btn_delete" data-id="{{$item->id}}" title="Delete Record"><i class="fal fa-times"></i></a>
+                                                    {{-- @endcan --}}
+                                                    {{-- @can('Permission Edit') --}}
                                                         <a href="{{url('admin/permission',$item->id)}}" class="btn btn-sm btn-outline-primary btn-icon btn-inline-block mr-1" title="Edit"><i class="fal fa-edit"></i></a>                                                         
-                                                    @endcan
+                                                    {{-- @endcan --}}
                                                 </div>
                                             </td>
                                         </tr>
@@ -61,4 +73,44 @@
 @endsection
 @section('script')
     @include('includs.datatable_basic')
+    <script>
+        $(function(){
+            $('.checkAll').on('click', function(e) {
+                if($(this).is(':checked',true)){
+                    $(".sub_chk:not(:disabled)").prop("checked", true);
+                } else {
+                    $(".sub_chk:not(:disabled)").prop("checked", false);
+                }
+            });
+            $(document).on('click', '.btn_delete', function () {
+                var id = $(this).data("id");
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, delete it!"
+                }).then((result) => {
+                    $.ajax({
+                        url: "{{ url('admin/setting/permission') }}/" + id,
+                        type: "POST",
+                        data: {
+                            _method: "DELETE",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function (response) {
+                            Swal.fire("Deleted!", "Your record has been deleted.", "success");
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            console.log(xhr.responseText);
+                            Swal.fire("Error!", "Delete failed", "error");
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 @endsection
