@@ -33,7 +33,7 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Created At</th>
-                                    <th>Active</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +55,7 @@
                                                         <a href="javascript:void(0);" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1 btn_delete" data-id="{{$item->id}}" title="Delete Record"><i class="fal fa-times"></i></a>
                                                     {{-- @endcan --}}
                                                     {{-- @can('Permission Edit') --}}
-                                                        <a href="{{url('admin/permission',$item->id)}}" class="btn btn-sm btn-outline-primary btn-icon btn-inline-block mr-1" title="Edit"><i class="fal fa-edit"></i></a>                                                         
+                                                        <a href="{{url('admin/setting/permission',$item->id)}}/edit" class="btn btn-sm btn-outline-primary btn-icon btn-inline-block mr-1" title="Edit"><i class="fal fa-edit"></i></a>                                                         
                                                     {{-- @endcan --}}
                                                 </div>
                                             </td>

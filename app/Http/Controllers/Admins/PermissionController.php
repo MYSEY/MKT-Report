@@ -75,7 +75,9 @@ class PermissionController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = Permission::find($id);
+        $category = Category::all();
+        return view('permission.edit',compact('data','category'));
     }
 
     /**
@@ -83,7 +85,23 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $data_per = Category::findOrFail($request->category_id);
+            $permissionName = $data_per->name;
+            $permission = Permission::findOrFail($id);
+            $permission->name = $permissionName . ' ' . $request->permission;
+            $permission->category_id = $request->category_id;
+            $permission->save();
+            DB::commit();
+            Toastr::success('Permission updated successfully.', 'Success');
+            return redirect()->route('permission.index');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            DB::rollback();
+            Toastr::error('Permission update failed.', 'Error');
+            return redirect()->back();
+        }
     }
 
     /**
