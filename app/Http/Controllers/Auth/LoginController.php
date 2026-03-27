@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Helpers\Helper;
-use App\Http\Controllers\Controller;
-use App\Models\HRConnection;
 use App\Models\User;
-use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Helpers\Helper;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
 {
@@ -44,6 +42,7 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+        // $this->middleware('auth')->only('logout');
     }
     public function index(){
         return view('auth.login');
@@ -52,11 +51,11 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         try {
-            //User MKT
             $user = DB::connection('pgsql')
             ->table('MKT_USER')
             ->leftJoin('MKT_ROLE', 'MKT_USER.Role', '=', 'MKT_ROLE.ID')
             ->select(
+                'MKT_USER.ID',
                 'MKT_USER.Role',
                 'MKT_USER.Password',
                 'MKT_USER.Active',
@@ -71,20 +70,9 @@ class LoginController extends Controller
                         'status'  => 'error'
                     ]);
                 }
-               $permissions = DB::table('role_has_permissions')
-                ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
-                ->where('role_has_permissions.role_id', $user->Role)
-                ->pluck('permissions.name')
-                ->toArray();
-
-                session()->put('MKT_USER', [
-                    'role'          => $user->Role,
-                    'name'        => $user->LogInName,
-                    'displayName' => $user->DisplayName,
-                    'roleName'    => $user->RoleName,
-                    'permissions' => $permissions
-                ]);
-                
+                $authUser = User::find($user->ID);
+                Auth::login($authUser);
+                $request->session()->regenerate();
                 return response()->json([
                     'message' => 'Login successfully',
                     'status' => 'success',

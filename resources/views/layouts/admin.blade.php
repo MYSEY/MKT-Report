@@ -124,32 +124,31 @@
                                     <span class="nav-link-text">Dashboard</span>
                                 </a>
                             </li>
-                            
                             {{-- Loan Reports --}}
-                            @can('CO Performance View' || 'Loan Detail View')
+                            @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View'))
                                 <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
                                         <span class="nav-link-text">Loan Reports</span>
                                     </a>
                                     <ul>
-                                        @can('Loan Detail View')
+                                        @if(Auth::user()->can('Loan Detail View'))
                                             <li class="{{ Request::is('admin/report/loan/detail') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/report/loan/detail') }}">
                                                     <span class="nav-link-text">Loan Detail</span>
                                                 </a>
                                             </li>
-                                        @endcan
-                                        @can('CO Performance View')
+                                        @endif
+                                        @if(Auth::user()->can('CO Performance View'))
                                             <li class="{{ Request::is('admin/report/co-performance') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/report/co-performance') }}">
                                                     <span class="nav-link-text">CO Performance</span>
                                                 </a>
                                             </li>
-                                        @endcan
+                                        @endif
                                     </ul>
                                 </li>
-                            @endcan
+                            @endif
 
                             {{-- Setting --}}
                             <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
@@ -184,6 +183,7 @@
                         <div class="filter-message js-filter-message bg-success-600"></div>
                     </nav>
                 </aside>
+
                 <!-- END Left Aside -->
                 <div class="page-content-wrapper">
                     <!-- BEGIN Page Header -->
@@ -236,7 +236,7 @@
                             </div>
                             <div>
                                 <a href="#" data-toggle="dropdown" title="{{ session('MKT_USER.email') }}" class="header-icon d-flex align-items-center justify-content-center ml-2">
-                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ session('MKT_USER.displayName') }}">
+                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ Auth::user()->DisplayName }}">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
                                     <div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
@@ -245,12 +245,12 @@
                                                 {{-- @if (session('mkt_user.profile'))
                                                     <img src="{{asset('storage/users/profile/'.session('MKT_USER.profile'))}}" class="profile-image rounded-circle" alt="{{ session('MKT_USER.displayName') }}" style="width: 60px;height: 60px;object-fit: cover;">
                                                 @else --}}
-                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ session('MKT_USER.displayName') }}">
+                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ Auth::user()->DisplayName }}">
                                                 {{-- @endif --}}
                                             </span>
                                             <div class="info-card-text">
-                                                <div class="fs-lg text-truncate text-truncate-lg">{{ session('MKT_USER.displayName') }}</div>
-                                                <span class="text-truncate text-truncate-md opacity-80">{{ session('MKT_USER.roleName') }}</span>
+                                                <div class="fs-lg text-truncate text-truncate-lg">{{ Auth::user()->DisplayName }}</div>
+                                                <span class="text-truncate text-truncate-md opacity-80">{{ Auth::user()->RoleName }}</span>
                                             </div>
                                         </div>
                                     </div>

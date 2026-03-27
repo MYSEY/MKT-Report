@@ -3,10 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Role;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -17,19 +18,20 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $connection = 'pgsql'; // ✅ IMPORTANT
+
+    protected $table = 'MKT_USER';
+    protected $primaryKey = 'ID';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = false;
+
     protected $fillable = [
-        'number_employee',
-        'last_name_kh',
-        'first_name_kh',
-        'last_name_en',
-        'first_name_en',
-        'employee_name_kh',
-        'employee_name_en',
-        'email',
-        'password',
-        'status',
-        'emp_status',
-        'p_status',
+        'LogInName',
+        'Password',
+        'Role',
+        'DisplayName',
+        'Active'
     ];
 
     /**
@@ -51,4 +53,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'Role', 'ID');
+    }
+
+    public function getRoleNameAttribute()
+    {
+        return $this->role->Description ?? null;
+    }
 }

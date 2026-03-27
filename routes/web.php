@@ -1,15 +1,15 @@
 <?php
 
-use App\Http\Controllers\Admins\CategoryController;
-use App\Http\Controllers\Admins\COPerformanceController;
-use App\Http\Controllers\Admins\DashboardController;
-use App\Http\Controllers\Admins\LoandDetailListingController;
-use App\Http\Controllers\Admins\PermissionController;
-use App\Http\Controllers\Admins\RoleController;
-use App\Http\Controllers\Admins\UserController;
-use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admins\RoleController;
+use App\Http\Controllers\Admins\UserController;
+use App\Http\Controllers\Admins\CategoryController;
+use App\Http\Controllers\Admins\DashboardController;
+use App\Http\Controllers\Admins\PermissionController;
+use App\Http\Controllers\Admins\COPerformanceController;
+use App\Http\Controllers\Admins\LoandDetailListingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,11 +25,7 @@ Route::get('/', [LoginController::class, 'index']);
 Route::post('/login', [LoginController::class, 'login']);
 
 Auth::routes();
-Route::group([
-    // ['middleware'=>['auth:sanctum'], 'prefix'=>'admin']
-    'prefix' => 'admin',
-    'middleware' => ['mkt.auth']
-    ],function(){
+Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::prefix('setting')->group(function () {
         Route::resource('category', CategoryController::class);

@@ -113,11 +113,13 @@
                                     Search
                                     <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
-                                    <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                    Excel
-                                    <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                </button>
+                                @if(Auth::user()->can('Loan Detail Import'))
+                                    <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
+                                        <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
+                                        Excel
+                                        <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>

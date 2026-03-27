@@ -2,15 +2,22 @@
 
 namespace App\Http\Controllers\Admins;
 
-use App\Exports\ExportLoanDetailListing;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLoanDetailListing;
 
 class LoandDetailListingController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Loan Detail');
+    }
     public function loanDetailListing(Request $request){
         if (request()->ajax()) {
             $subQueryPD = DB::connection('pgsql')
