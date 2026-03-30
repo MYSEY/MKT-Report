@@ -37,8 +37,8 @@ class RoleController extends Controller
             $searchValue = request()->input('search.value');
             if (!empty($searchValue)) {
                 $query->where(function ($q) use ($searchValue) {
-                    $q->where('R.ID', 'like', "%{$searchValue}%")
-                    ->orWhere('R.Description', 'like', "%{$searchValue}%");
+                    $q->where('R.ID', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('R.Description', 'ILIKE', "%{$searchValue}%");
                 });
             }
             

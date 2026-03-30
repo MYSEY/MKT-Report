@@ -38,23 +38,22 @@ class UserController extends Controller
                 'MKT_USER.Active',
             ])->where('Active', 'Yes');
 
-            
+            $searchValue = request()->input('search.value');
             if (!empty($searchValue)) {
                 $query->where(function ($q) use ($searchValue) {
-                    $q->where('MKT_USER.ID', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.LogInName', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.DisplayName', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.Role', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.Branch', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.AccessBranch', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.RestrictBranch', 'like', "%{$searchValue}%")
-                    ->orWhere('MKT_USER.Officer', 'like', "%{$searchValue}%");
+                    $q->where('MKT_USER.ID', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.LogInName', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.DisplayName', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.Role', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.Branch', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.AccessBranch', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.RestrictBranch', 'ILIKE', "%{$searchValue}%")
+                      ->orWhere('MKT_USER.Officer', 'ILIKE', "%{$searchValue}%");
                 });
             }
 
             // Total rows (no search)
-            $recordsTotal = DB::connection('pgsql')
-            ->table('MKT_USER')->where('Active', 'Yes')->count();
+            $recordsTotal = DB::connection('pgsql')->table('MKT_USER')->where('Active', 'Yes')->count();
 
             // Total rows (with search)
             $recordsFiltered = $query->count();
