@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Models\Permission;
+
 trait HasRolePermission
 {
     protected $permissionMap = [
@@ -14,13 +16,28 @@ trait HasRolePermission
     ];
     public function applyRolePermissions($baseName)
     {
-        $controller = $this;
-        $permissions = \App\Models\Permission::where('name', 'like', $baseName . '%')->get();
-        foreach ($permissions as $permission) {
-            $action = last(explode(' ', $permission->name));
+        // $controller = $this;
+        // $permissions = \App\Models\Permission::where('name', 'like', $baseName . '%')->get();
+        // foreach ($permissions as $value) {
+        //     $action = last(explode(' ', $value->name));
+        //     $methods = $this->permissionMap[$action] ?? [];
+        //     if (!empty($methods)) {
+        //         $controller->middleware('permission:' . $value->name, ['only' => $methods]);
+        //     }
+        // }
+        
+        $permissions = Permission::where('name', 'like', $baseName . '%')->get();
+        foreach ($permissions as $value) {
+            $action = last(explode(' ', $value->name));
             $methods = $this->permissionMap[$action] ?? [];
             if (!empty($methods)) {
-                $controller->middleware('permission:' . $permission->name, ['only' => $methods]);
+                foreach ($methods as $method) {
+                    if (request()->routeIs($method)) {
+                        if (!auth()->user()->can($value->name)) {
+                            abort(403, "Your role can't access permission");
+                        }
+                    }
+                }
             }
         }
     }

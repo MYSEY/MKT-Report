@@ -4,11 +4,13 @@
         <div class="col-md-6">
             <h3 class="breadcrumb page-breadcrumb">Category</h3>
         </div>
-        <div class="col-md-6">
-            <div class="text-lg-right">
-                <button class="btn btn-success btn-sm mr-1" data-toggle="modal" data-target="#category-create" type="button"><span><i class="fal fa-plus mr-1"></i> Add New</span></button>
+        @if(Auth::user()->can('Category Create'))
+            <div class="col-md-6">
+                <div class="text-lg-right">
+                    <button class="btn btn-success btn-sm mr-1" data-toggle="modal" data-target="#category-create" type="button"><span><i class="fal fa-plus mr-1"></i> Add New</span></button>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
     
     <div id="panel-1" class="panel">
@@ -115,6 +117,9 @@
 @endsection
 @section('script')
     <script>
+        var edit = @json(Auth::user()->can('Category Edit'));
+        var catDelete = @json(Auth::user()->can('Category Delete'));
+
         $(function(){
             $('.btn-search').on('click', function() {
                 $('#loading-overlay').hide();
@@ -184,8 +189,12 @@
                         name: 'action',
                         render: function(data, type, row) {
                             let actionButtons = '';
-                            actionButtons += `<a href="javascript:void(0);" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-2 btnDelete" data-toggle="modal" data-target="#delete_category" title="Delete Record" data-id="${row.id}"><i class="fal fa-times"></i></a>`;
-                            actionButtons += `<a href="javascript:void(0);" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2 btnEdit" data-id="${row.id}"><i class="fal fa-edit"></i></a>`;
+                            if (catDelete) {
+                                actionButtons += `<a href="javascript:void(0);" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-2 btnDelete" data-toggle="modal" data-target="#delete_category" title="Delete Record" data-id="${row.id}"><i class="fal fa-times"></i></a>`;
+                            }
+                            if(edit){
+                                actionButtons += `<a href="javascript:void(0);" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2 btnEdit" data-id="${row.id}"><i class="fal fa-edit"></i></a>`;
+                            }
                             return actionButtons;
                         },
                         orderable: false,

@@ -4,19 +4,29 @@ namespace App\Http\Controllers\Admins;
 
 use App\Models\Category;
 use App\Models\Permission;
-use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
+use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
 use App\Http\Requests\PermissionRequest;
 
 class PermissionController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Permission');
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        if (!$this->denyPermission('Permission View')) {
+            return view('page.access_page');
+        }
         $data = Permission::all();
         return view('permission.index',compact('data'));
     }

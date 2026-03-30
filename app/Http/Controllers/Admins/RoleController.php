@@ -2,20 +2,30 @@
 
 namespace App\Http\Controllers\Admins;
 
-use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Permission;
 use Brian2694\Toastr\Toastr;
 use Illuminate\Http\Request;
+use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
 class RoleController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Role');
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        if (!$this->denyPermission('Role View')) {
+            return view('page.access_page');
+        }
         if ($request->ajax()) {
             $query = DB::connection('pgsql')
             ->table('MKT_ROLE as R')

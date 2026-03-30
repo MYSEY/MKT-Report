@@ -33,6 +33,7 @@
 @endsection
 @section('script')
     <script>
+        var edit = @json(Auth::user()->can('Role Edit'));
         $(function(){
             $('.btn-search').on('click', function() {
                 $('#loading-overlay').hide();
@@ -80,8 +81,10 @@
                         data: null,
                         name: 'action',
                         render: function(data, type, row) {
-                            let url = "{{ url('admin/setting/role') }}/" + row.ID + "/edit";
-                            return `<a href="${url}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" data-id="${row.ID}"><i class="fal fa-edit"></i></a>`;
+                            if (edit) {
+                                let url = "{{ url('admin/setting/role') }}/" + row.ID + "/edit";
+                                return `<a href="${url}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" data-id="${row.ID}"><i class="fal fa-edit"></i></a>`;   
+                            }
                         },
                         orderable: false,
                         searchable: false

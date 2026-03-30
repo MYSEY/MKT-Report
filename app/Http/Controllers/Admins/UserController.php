@@ -2,17 +2,27 @@
 
 namespace App\Http\Controllers\Admins;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
 class UserController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('User');
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        if (!$this->denyPermission('User View')) {
+            return view('page.access_page');
+        }
         if (request()->ajax()) {
             $query = DB::connection('pgsql')
             ->table('MKT_USER')
@@ -28,7 +38,7 @@ class UserController extends Controller
                 'MKT_USER.Active',
             ])->where('Active', 'Yes');
 
-            $searchValue = request()->input('search.value');
+            
             if (!empty($searchValue)) {
                 $query->where(function ($q) use ($searchValue) {
                     $q->where('MKT_USER.ID', 'like', "%{$searchValue}%")

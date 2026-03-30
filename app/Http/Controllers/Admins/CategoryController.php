@@ -2,21 +2,31 @@
 
 namespace App\Http\Controllers\Admins;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreCategoryRequest;
 use App\Models\Category;
-use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreCategoryRequest;
 
 class CategoryController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Category');
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        if (!$this->denyPermission('Category View')) {
+            return view('page.access_page');
+        }
         if ($request->ajax()) {
             // Define the base query
             $query = Category::query();
@@ -27,7 +37,7 @@ class CategoryController extends Controller
             // Apply pagination for the actual data retrieval
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 10));
-            $data = $query->orderBy('id', 'DESC')->offset($start)->limit($limit)->get();
+            $data = $query->offset($start)->limit($limit)->get();
             
             // Return JSON response
             return response()->json([
