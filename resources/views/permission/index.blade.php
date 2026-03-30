@@ -93,22 +93,24 @@
                     cancelButtonColor: "#d33",
                     confirmButtonText: "Yes, delete it!"
                 }).then((result) => {
-                    $.ajax({
-                        url: "{{ url('admin/setting/permission') }}/" + id,
-                        type: "POST",
-                        data: {
-                            _method: "DELETE",
-                            _token: "{{ csrf_token() }}"
-                        },
-                        success: function (response) {
-                            Swal.fire("Deleted!", "Your record has been deleted.", "success");
-                            location.reload();
-                        },
-                        error: function (xhr) {
-                            console.log(xhr.responseText);
-                            Swal.fire("Error!", "Delete failed", "error");
-                        }
-                    });
+                    if (result.value === true) {
+                        $.ajax({
+                            url: "{{ url('admin/setting/permission') }}/" + id,
+                            type: "POST",
+                            data: {
+                                _method: "DELETE",
+                                _token: "{{ csrf_token() }}"
+                            },
+                            success: function (response) {
+                                Swal.fire("Deleted!", "Your record has been deleted.", "success");
+                                location.reload();
+                            },
+                            error: function (xhr) {
+                                console.log(xhr.responseText);
+                                Swal.fire("Error!", "Delete failed", "error");
+                            }
+                        });
+                    }
                 });
             });
         });

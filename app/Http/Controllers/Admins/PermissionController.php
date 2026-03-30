@@ -111,11 +111,13 @@ class PermissionController extends Controller
     {
         try {
             Permission::destroy($id);
-            Toastr::success('Permission deleted successfully.', 'Success');
-            return redirect()->back();
+            return response()->json([
+                'status' => 'success'
+            ]);
         } catch (\Exception $e) {
-            Toastr::error('Permission delete fail.', 'Error');
-            return redirect()->back();
+            return response()->json([
+                'status' => 'error'
+            ], 500);
         }
     }
 }
