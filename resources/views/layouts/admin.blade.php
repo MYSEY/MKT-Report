@@ -180,8 +180,8 @@
                                             </li>
                                         @endif
                                         @if(Auth::user()->can('User View'))
-                                            <li class="{{ Request::is('admin/user') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/user') }}">
+                                            <li class="{{ Request::is('admin/setting/user') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/setting/user') }}">
                                                     <span class="nav-link-text">User</span>
                                                 </a>
                                             </li>

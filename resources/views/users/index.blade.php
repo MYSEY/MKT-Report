@@ -28,16 +28,6 @@
                             <tbody>
                                 
                             </tbody>
-                            {{-- <tfoot>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Position</th>
-                                    <th>Office</th>
-                                    <th>Age</th>
-                                    <th>Start date</th>
-                                    <th>Salary</th>
-                                </tr>
-                            </tfoot> --}}
                         </table>
                         <!-- datatable end -->
                     </div>
@@ -49,25 +39,6 @@
 @section('script')
     <script>
         $(function(){
-            $(".btn_excel").on("click", function() {
-                let query = {
-                    branch_id: $("#branch_id").val()
-                };
-                var url = "{{URL::to('admin/report/co-performance/download')}}?" + $.param(query)
-                window.location = url;
-            });
-            // Reload only (DON'T destroy/reinit)
-            $('.btn-search').on('click', function() {
-                $('#loading-overlay').hide();
-                branch_id = $('#branch_id').val();
-                $('#tbl_suer').DataTable().ajax.reload(null, false);
-            });
-            $(".reset-btn").on("click", function() {
-                $(this).prop('disabled', true);
-                $(".btn-text-reset").hide();
-                $("#btn-text-loading").css('display', 'block');
-                window.location.replace("{{ URL('admin/report/co-performance') }}");
-            });
             // Initialize only once
             dataTables();
         });
@@ -86,7 +57,7 @@
                 order: [[0, 'desc']],
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
-                    url: '{{ URL("admin/user") }}',
+                    url: '{{ URL("admin/setting/user") }}',
                     type: 'GET',
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();
