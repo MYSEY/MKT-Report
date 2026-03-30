@@ -24,12 +24,6 @@
                         <table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
                             <thead>
                                 <tr>
-                                    <th>
-                                        <div class="custom-control custom-checkbox custom-control-inline big-checkbox">
-                                            <input type="checkbox" class="custom-control-input checkAll" name="checkAll" id="checkAll" onClick="toggle(this)">
-                                            <label class="custom-control-label" for="checkAll"></label>
-                                        </div>
-                                    </th>
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Created At</th>
@@ -40,12 +34,6 @@
                                 @if (count($data)>0)
                                     @foreach ($data as $key=>$item)
                                         <tr>
-                                            <td>
-                                                <div class="custom-control custom-checkbox custom-control-inline big-checkbox">
-                                                    <input type="checkbox" class="custom-control-input sub_chk" name="checkbox" data-id="{{ $item->id }}" value="{{$item->id}}">
-                                                    <label class="custom-control-label" for="{{$item->id}}"></label>
-                                                </div>
-                                            </td>
                                             <td>{{$item->id}}</td>
                                             <td>{{$item->name}}</td>
                                             <td>{{$item->created_at}}</td>

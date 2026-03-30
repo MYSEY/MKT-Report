@@ -24,12 +24,6 @@ trait HasRolePermission
             }
         }
     }
-    // public static function userCan($permissionName)
-    // {
-    //     $userPermissions = session('MKT_USER.permissions', []);
-    //     return in_array($permissionName, $userPermissions);
-    // }
-
     public static function userCan(...$permissionNames)
     {
         $userPermissions = session('MKT_USER.permissions', []);
@@ -39,5 +33,13 @@ trait HasRolePermission
             }
         }
         return false; // has none
+    }
+
+    public function denyPermission($permissionName)
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        return auth()->user()->can($permissionName);
     }
 }

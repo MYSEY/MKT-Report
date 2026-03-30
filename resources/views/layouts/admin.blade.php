@@ -151,34 +151,44 @@
                             @endif
 
                             {{-- Setting --}}
-                            <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
-                                <a href="javascript:void(0)" title="Setting">
-                                    <i class="fal fa-cog"></i>
-                                    <span class="nav-link-text">Setting</span>
-                                </a>
-                                <ul>
-                                    <li class="{{ Request::is('admin/setting/role') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/setting/role') }}">
-                                            <span class="nav-link-text">Roles</span>
-                                        </a>
-                                    </li>
-                                    <li class="{{ Request::is('admin/setting/permission') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/setting/permission') }}">
-                                            <span class="nav-link-text">Permission</span>
-                                        </a>
-                                    </li>
-                                    <li class="{{ Request::is('admin/setting/category') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/setting/category') }}">
-                                            <span class="nav-link-text">Category</span>
-                                        </a>
-                                    </li>
-                                    <li class="{{ Request::is('admin/user') ? 'active' : '' }}">
-                                        <a href="{{ url('admin/user') }}">
-                                            <span class="nav-link-text">Users</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                            @if(Auth::user()->can('Role View') || Auth::user()->can('Permission View') || Auth::user()->can('Category View') || Auth::user()->can('User View'))
+                                <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
+                                    <a href="javascript:void(0)" title="Setting">
+                                        <i class="fal fa-cog"></i>
+                                        <span class="nav-link-text">Setting</span>
+                                    </a>
+                                    <ul>
+                                        @if(Auth::user()->can('Role View'))
+                                            <li class="{{ Request::is('admin/setting/role') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/setting/role') }}">
+                                                    <span class="nav-link-text">Role</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Permission View'))
+                                            <li class="{{ Request::is('admin/setting/permission') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/setting/permission') }}">
+                                                    <span class="nav-link-text">Permission</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Category View'))
+                                            <li class="{{ Request::is('admin/setting/category') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/setting/category') }}">
+                                                    <span class="nav-link-text">Category</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('User View'))
+                                            <li class="{{ Request::is('admin/user') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/user') }}">
+                                                    <span class="nav-link-text">User</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </li>
+                            @endif
                         </ul>
                         <div class="filter-message js-filter-message bg-success-600"></div>
                     </nav>

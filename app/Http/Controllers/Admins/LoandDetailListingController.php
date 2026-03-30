@@ -18,7 +18,11 @@ class LoandDetailListingController extends Controller
     {
         $this->applyRolePermissions('Loan Detail');
     }
+
     public function loanDetailListing(Request $request){
+        if (!$this->denyPermission('Loan Detail View')) {
+            return view('page.access_page');
+        }
         if (request()->ajax()) {
             $subQueryPD = DB::connection('pgsql')
             ->table(DB::raw('(

@@ -34,6 +34,14 @@
                                 </div>
                             </div>
                             <hr>
+                            <div class="form-group">
+                                <div class="frame-wrap">
+                                    <div class="custom-control custom-checkbox custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" name="" id="defaultInline" value="" onClick="toggle(this)">
+                                        <label class="custom-control-label" for="defaultInline">Check All Permission</label>
+                                    </div>
+                                </div>
+                            </div>
                             <label for="">Permission Name</label>
                             <div class="row">
                                 @foreach ($category as $key=>$cate)
@@ -51,8 +59,8 @@
                                                 <div class="card-body">
                                                     <div class="mb-1">
                                                         <div class="custom-control custom-checkbox custom-control-inline">
-                                                            <input type="checkbox" class="custom-control-input check_all check_all" id="checkAll" onClick="toggle(this)">
-                                                            <label class="custom-control-label" for="checkAll">Check All</label>
+                                                            <input type="checkbox" class="custom-control-input check_all check_all_{{$cate->id}}" id="checkAll_{{$cate->id}}" {{ $allChecked ? 'checked' : '' }} onClick="toggle_{{ $cate->id }}(this)">
+                                                            <label class="custom-control-label" for="checkAll_{{$cate->id}}">Check All</label>
                                                         </div>
                                                     </div>
                                                     @foreach ($permission as $item)
