@@ -62,7 +62,10 @@ class LoginController extends Controller
                 'MKT_USER.LogInName',
                 'MKT_USER.DisplayName',
                 'MKT_ROLE.Description as RoleName'
-            )->where('Active', 'Yes')->whereRaw('"MKT_USER"."LogInName" = ?', [$request->number_employee])->first();
+            )->where('Active', 'Yes')
+            ->where('MKT_USER.LogInName','=', $request->user_name)
+            // ->whereRaw('"MKT_USER"."LogInName" = ?', [$request->user_name])
+            ->first();
             if ($user) {
                 if (!$user || !Helper::verifyPbkdf2(trim($request->password), trim($user->Password))) {
                     return response()->json([

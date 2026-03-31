@@ -102,7 +102,6 @@
                             <img src="{{asset('admins/img/favicon/commalogo1.png')}}" alt="SupportForm WebApp" aria-roledescription="logo" style="width: 90px">
                             <span class="page-logo-text mr-1">Camma Reports</span>
                             <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
-                            <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
                         </a>
                     </div>
                     <!-- BEGIN PRIMARY NAVIGATION -->

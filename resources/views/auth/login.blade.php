@@ -23,11 +23,10 @@
         <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
         <!-- Optional: page related CSS-->
         <link rel="stylesheet" media="screen, print" href="{{asset('/admins/css/fa-brands.css') }}">
-
-        <link rel="stylesheet" href="http://cdn.bootcss.com/toastr.js/latest/css/toastr.min.css">
+        {{-- toastr --}}
+        <link rel="stylesheet" href="{{asset('admins/css/notifications/toastr/toastr.css')}}">
     </head>
     <body class="desktop chrome webkit pace-done blur">
-        {!! Toastr::message() !!}
         <div class="pace  pace-inactive">
             <div class="pace-progress" data-progress-text="100%" data-progress="99" style="transform: translate3d(100%, 0px, 0px);">
                 <div class="pace-progress-inner"></div>
@@ -45,9 +44,9 @@
             <div class="card p-4 border-top-left-radius-0 border-top-right-radius-0">
                 <form id="loginForm">
                     <div class="form-group">
-                        <label class="form-label" for="number_employee">UserName</label>
-                        <input type="text" name="number_employee" id="number_employee" class="form-control" required>
-                        @error('number_employee')
+                        <label class="form-label" for="user_name">UserName</label>
+                        <input type="text" name="user_name" id="user_name" class="form-control" required>
+                        @error('user_name')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
                             </span>
@@ -70,7 +69,9 @@
         </div>
         <script src="{{asset('admins/js/vendors.bundle.js')}}"></script>
         <script src="{{asset('admins/js/app.bundle.js')}}"></script>
-        <script src="http://cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>
+        {{-- toastr --}}
+        <script src="{{asset('admins/js/notifications/toastr/toastr.js')}}"></script>
+        {!! Toastr::message() !!}
     </body>
     <script>
         $(function() {
@@ -83,7 +84,7 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
-                        number_employee: $("#number_employee").val(),
+                        user_name: $("#user_name").val(),
                         password: $("#password").val(),
                     },
                     dataType: "JSON",
