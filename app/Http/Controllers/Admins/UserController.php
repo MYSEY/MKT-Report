@@ -36,7 +36,7 @@ class UserController extends Controller
                 'MKT_USER.RestrictBranch',
                 'MKT_USER.Officer',
                 'MKT_USER.Active',
-            ])->where('Active', 'Yes');
+            ]);
 
             $searchValue = request()->input('search.value');
             if (!empty($searchValue)) {
@@ -53,7 +53,7 @@ class UserController extends Controller
             }
 
             // Total rows (no search)
-            $recordsTotal = DB::connection('pgsql')->table('MKT_USER')->where('Active', 'Yes')->count();
+            $recordsTotal = DB::connection('pgsql')->table('MKT_USER')->count();
 
             // Total rows (with search)
             $recordsFiltered = $query->count();

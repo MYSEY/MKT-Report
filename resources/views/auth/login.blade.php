@@ -39,8 +39,7 @@
             <div class="page-logo m-0 w-100 align-items-center justify-content-center rounded border-bottom-left-radius-0 border-bottom-right-radius-0 px-4" style="background-color: #0f619f !important;">
                 <a href="javascript:void(0)" class="page-logo-link press-scale-down d-flex align-items-center">
                     <img src="{{asset('admins/img/favicon/commalogo1.png')}}" alt="Support Form" aria-roledescription="logo" style="width: 85px !important">
-                    <span class="page-logo-text mr-1">Welcome! Please login.</span>
-                    <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
+                    <span class="page-logo-text mr-1">Welcome! Please login</span>
                 </a>
             </div>
             <div class="card p-4 border-top-left-radius-0 border-top-right-radius-0">
