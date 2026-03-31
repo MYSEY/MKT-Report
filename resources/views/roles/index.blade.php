@@ -84,6 +84,8 @@
                             if (edit) {
                                 let url = "{{ url('admin/setting/role') }}/" + row.ID + "/edit";
                                 return `<a href="${url}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" data-id="${row.ID}"><i class="fal fa-edit"></i></a>`;   
+                            }else{
+                                return '';
                             }
                         },
                         orderable: false,
