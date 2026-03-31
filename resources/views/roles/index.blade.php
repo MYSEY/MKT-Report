@@ -35,17 +35,6 @@
     <script>
         var edit = @json(Auth::user()->can('Role Edit'));
         $(function(){
-            $('.btn-search').on('click', function() {
-                $('#loading-overlay').hide();
-                branch_id = $('#branch_id').val();
-                $('#tbl_role').DataTable().ajax.reload(null, false);
-            });
-            $(".reset-btn").on("click", function() {
-                $(this).prop('disabled', true);
-                $(".btn-text-reset").hide();
-                $("#btn-text-loading").css('display', 'block');
-                window.location.replace("{{ URL('admin/s/category') }}");
-            });
             dataTables();
         });
 

@@ -119,19 +119,7 @@
     <script>
         var edit = @json(Auth::user()->can('Category Edit'));
         var catDelete = @json(Auth::user()->can('Category Delete'));
-
         $(function(){
-            $('.btn-search').on('click', function() {
-                $('#loading-overlay').hide();
-                branch_id = $('#branch_id').val();
-                $('#btn_category').DataTable().ajax.reload(null, false);
-            });
-            $(".reset-btn").on("click", function() {
-                $(this).prop('disabled', true);
-                $(".btn-text-reset").hide();
-                $("#btn-text-loading").css('display', 'block');
-                window.location.replace("{{ URL('admin/s/category') }}");
-            });
             $(document).on('click','.btnDelete',function(){
                 $('.e_id').val($(this).data("id"));
             });
