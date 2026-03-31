@@ -2,14 +2,14 @@
 @section('content')
     <div class="row">
         <div class="col-md-6">
-            <h3 class="breadcrumb page-breadcrumb">Rols</h3>
+            <h3 class="breadcrumb page-breadcrumb">Roles</h3>
         </div>
     </div>
     
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Rols
+                Roles
             </h2>
         </div>
         <div class="panel-container show">
