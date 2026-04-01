@@ -90,8 +90,8 @@
                         searchable: true,
                     },
                     {
-                        data: 'Role', 
-                        name: 'Role',
+                        data: 'Description', 
+                        name: 'Description',
                         orderable: true,
                         searchable: true,
                     },

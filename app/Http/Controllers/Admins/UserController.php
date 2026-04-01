@@ -36,19 +36,21 @@ class UserController extends Controller
                 'MKT_USER.RestrictBranch',
                 'MKT_USER.Officer',
                 'MKT_USER.Active',
-            ]);
+                'Roles.Description',
+            ])->leftJoin('MKT_ROLE as Roles', 'MKT_USER.Role', '=', 'Roles.ID');
 
             $searchValue = request()->input('search.value');
             if (!empty($searchValue)) {
                 $query->where(function ($q) use ($searchValue) {
                     $q->where('MKT_USER.ID', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.LogInName', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.DisplayName', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.Role', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.Branch', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.AccessBranch', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.RestrictBranch', 'ILIKE', "%{$searchValue}%")
-                      ->orWhere('MKT_USER.Officer', 'ILIKE', "%{$searchValue}%");
+                    ->orWhere('MKT_USER.LogInName', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.DisplayName', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.Role', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.Branch', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.AccessBranch', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.RestrictBranch', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('MKT_USER.Officer', 'ILIKE', "%{$searchValue}%")
+                    ->orWhere('Roles.Description', 'ILIKE', "%{$searchValue}%");
                 });
             }
 
