@@ -23,13 +23,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="">ID</label>
-                                        <input type="text" class="form-control" name="id" id="id" value="{{$role->Role}}" placeholder="ID">
+                                        <input type="text" class="form-control" name="id" id="id" value="{{$role->Role}}" placeholder="ID" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="">Role</label>
-                                        <input type="text" class="form-control" name="role" id="role" value="{{$role->Description}}" placeholder="Role">
+                                        <input type="text" class="form-control" name="role" id="role" value="{{$role->Description}}" placeholder="Role" readonly>
                                     </div>
                                 </div>
                             </div>
