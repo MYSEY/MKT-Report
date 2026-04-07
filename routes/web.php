@@ -10,6 +10,7 @@ use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Admins\PermissionController;
 use App\Http\Controllers\Admins\COPerformanceController;
 use App\Http\Controllers\Admins\LoandDetailListingController;
+use App\Http\Controllers\Admins\NetworkEmployeeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,5 +40,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);
         Route::get('test',[LoandDetailListingController::class,'test']);
+    });
+    Route::prefix('hr-report')->group(function () {
+        Route::get('network-employee',[NetworkEmployeeController::class,'index']);
+        Route::get('network-employee/download',[NetworkEmployeeController::class,'exportExcel'])->name('hr-reports.network_employee_export');
     });
 });
