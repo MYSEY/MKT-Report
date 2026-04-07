@@ -149,6 +149,22 @@
                                 </li>
                             @endif
 
+                                <li class="{{ Request::is('admin/hr-report/*') ? 'active open' : '' }}">
+                                    <a href="javascript:void(0)" title="Loan Reports">
+                                        <i class="fal fa-calendar-check"></i>
+                                        <span class="nav-link-text">HR Reports</span>
+                                    </a>
+                                    <ul>
+                                        @if(Auth::user()->can('Network Employee View'))
+                                            <li class="{{ Request::is('admin/hr-report/network-employee') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/hr-report/network-employee') }}">
+                                                    <span class="nav-link-text">Network Employee</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </li>
+
                             {{-- Setting --}}
                             @if(Auth::user()->can('Role View') || Auth::user()->can('Permission View') || Auth::user()->can('Category View') || Auth::user()->can('User View'))
                                 <li class="{{ Request::is('admin/setting/*') ? 'active open' : '' }}">
