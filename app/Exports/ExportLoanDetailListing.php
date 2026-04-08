@@ -91,12 +91,6 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
         $this->export_datas = $dataExcel;
     }
-    public function khmerToEnglishNumber($value)
-    {
-        $khmerNumbers = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
-        $englishNumbers = ['0','1','2','3','4','5','6','7','8','9'];
-        return str_replace($khmerNumbers, $englishNumbers, $value);
-    }
 
     public function columnFormats(): array
     {
