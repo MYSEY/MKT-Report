@@ -268,7 +268,7 @@
                             </div>
                             <div>
                                 <a href="#" data-toggle="dropdown" title="{{ session('MKT_USER.email') }}" class="header-icon d-flex align-items-center justify-content-center ml-2">
-                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="profile-image rounded-circle" alt="{{ Auth::user()->DisplayName }}">
+                                    <img src="{{asset('admins/img/demo/avatars/avatar-m.png')}}" class="profile-image rounded-circle" alt="{{Auth::user()->DisplayName}}">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
                                     <div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
@@ -277,7 +277,7 @@
                                                 {{-- @if (session('mkt_user.profile'))
                                                     <img src="{{asset('storage/users/profile/'.session('MKT_USER.profile'))}}" class="profile-image rounded-circle" alt="{{ session('MKT_USER.displayName') }}" style="width: 60px;height: 60px;object-fit: cover;">
                                                 @else --}}
-                                                    <img src="{{asset('admins/img/demo/avatars/avatar-admin.png')}}" class="rounded-circle profile-image" alt="{{ Auth::user()->DisplayName }}">
+                                                    <img src="{{asset('admins/img/demo/avatars/avatar-m.png')}}" class="rounded-circle profile-image" alt="{{ Auth::user()->DisplayName }}">
                                                 {{-- @endif --}}
                                             </span>
                                             <div class="info-card-text">
