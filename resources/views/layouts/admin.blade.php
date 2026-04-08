@@ -162,6 +162,13 @@
                                                 </a>
                                             </li>
                                         @endif
+                                         @if(Auth::user()->can('TMG Report View'))
+                                            <li class="{{ Request::is('admin/hr-report/tmg') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/hr-report/tmg') }}">
+                                                    <span class="nav-link-text">TMG Report</span>
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
 
