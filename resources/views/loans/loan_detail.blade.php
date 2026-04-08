@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('content')
-<style>
+    <style>
         .co-performance-wrapper {
             background: #fff;
             padding: 15px;
