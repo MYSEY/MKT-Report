@@ -61,6 +61,11 @@
                         <tbody>
                             {{-- DataTables នឹងបំពេញទិន្នន័យនៅទីនេះ --}}
                         </tbody>
+                        <tfoot style="background-color: #f2f2f2; font-weight: bold;">
+                            <tr>
+                                <th colspan="3" class="text-right">សរុបរួម:</th>
+                                <th class="text-center"></th> <th class="text-center"></th> <th class="text-center"></th> <th class="text-center"></th> <th class="text-center"></th> <th class="text-center"></th> </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -173,6 +178,22 @@
                             }
                         }
                         lastMergeGroup = row.merge_group;
+                    });
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+
+                    // មុខងារជំនួយសម្រាប់បូកលេខ
+                    var intVal = function (i) {
+                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                    };
+
+                    // បញ្ជី Column Index ដែលត្រូវបូក (3, 4, 5, 6, 7, 8)
+                    [3, 4, 5, 6, 7, 8].forEach(function (index) {
+                        let total = api.column(index).data().reduce(function (a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+                        $(api.column(index).footer()).html(total > 0 ? total : '');
                     });
                 }
             });
