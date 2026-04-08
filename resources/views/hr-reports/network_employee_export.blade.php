@@ -92,4 +92,35 @@
             @endforeach
         @endforeach
     </tbody>
+    <tfoot>
+        <tr style="background-color: #f2f2f2; font-weight: bold;">
+            <td colspan="3" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+            
+            {{-- ស្នាក់ការកណ្តាល --}}
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->where('is_hq', 1)->count() }}
+            </td>
+
+            {{-- បូក branch_count ដោយ convert ទៅ int ការពារ error --}}
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->sum(fn($row) => (int)$row->branch_count) }}
+            </td>
+
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->sum(fn($row) => (int)$row->male) }}
+            </td>
+            
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->sum(fn($row) => (int)$row->female) }}
+            </td>
+            
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->sum(fn($row) => (int)$row->total) }}
+            </td>
+            
+            <td style="border: 1px solid #000; text-align: center;">
+                {{ $data->sum(fn($row) => (int)$row->co_count) }}
+            </td>
+        </tr>
+    </tfoot>
 </table>
