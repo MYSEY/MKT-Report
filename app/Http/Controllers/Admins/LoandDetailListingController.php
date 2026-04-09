@@ -206,6 +206,6 @@ class LoandDetailListingController extends Controller
                     ->orWhere('LPr.Description', 'like', "%{$searchValue}%");
                 });
             }
-        return $query;
+        return $query->orderBy('LC.ID');
     }
 }
