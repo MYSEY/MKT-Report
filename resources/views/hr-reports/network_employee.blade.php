@@ -6,7 +6,7 @@
             <div class="row filter-btn">
                 <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
                     <div class="form-group">
-                        <select class="select2 form-control filter-branch" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
+                        <select class="select2 form-control btn-filter filter-branch" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
                             <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
                             @foreach ($branch as $item)
                                 <option value="{{ $item->id }}">
@@ -16,7 +16,19 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-sm-8 col-md-8">
+                <div class="col-sm-4 col-md-4">
+                    <div class="form-group">
+                        <input type="text" 
+                            class="form-control datepicker_month btn-filter" 
+                            name="network_date" 
+                            id="network_date" 
+                            value="{{ date('Y-m') }}"
+                            placeholder="mm/yyyy" 
+                            readonly 
+                            style="background-color: #fff;">
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
                     <div class="float-right">
                         @if(Auth::user()->can('Network Employee Export'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
@@ -75,17 +87,26 @@
 @section('script')
     <script>
         $(function(){
+            $(document).ready(function() {
+                $('.datepicker_month').datepicker({
+                    format: "yyyy-mm",     // កំណត់ Format បង្ហាញ
+                    viewMode: "months",    // បង្ហាញផ្ទាំងខែពេលបើកដំបូង
+                    minViewMode: "months", // កំណត់ឱ្យរើសបានត្រឹមខែ (ចុចលើខែហើយបិទតែម្ដង)
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            });
             $(".btn_excel").on("click", function() {
                 let query = {
+                    network_date: $('input[name="network_date"]').val(),
                     branch_id: $("#branch_id").val()
                 };
                 var url = "{{URL::to('admin/hr-report/network-employee/download')}}?" + $.param(query)
                 window.location = url;
             });
             // Reload only (DON'T destroy/reinit)
-            $('.filter-branch').on('change', function() {
+            $('.btn-filter').on('change', function() {
                 $('#loading-overlay').hide();
-                branch_id = $('#branch_id').val();
                 $('#tbl-network-employee').DataTable().ajax.reload(null, false);
             });
             // Initialize only once
@@ -114,6 +135,7 @@
                     type: 'GET',
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();
+                        d.network_date = $('input[name="network_date"]').val();
                     },
                     dataSrc: function (json) {
                         return json.data;

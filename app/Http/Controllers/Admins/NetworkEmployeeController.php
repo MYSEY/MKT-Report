@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Province;
 use App\Exports\NetworkEmployeeExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class NetworkEmployeeController extends Controller
 {
@@ -16,6 +17,104 @@ class NetworkEmployeeController extends Controller
     public function __construct()
     {
         $this->applyRolePermissions('Network Employee');
+    }
+    // public static function condition($request) {
+    //     return function ($query) use ($request) {
+    //         // ១. កំណត់យកថ្ងៃចុងក្រោយនៃខែ (Default គឺថ្ងៃចុងក្រោយនៃខែបច្ចុប្បន្ន)
+    //         if ($request->has('network_date') && !empty($request->network_date)) {
+    //             $targetDate = $request->network_date;
+    //         } else {
+    //             $targetDate = date('Y-m-d'); // ថ្ងៃនេះ
+    //         }
+
+    //         // បង្កើតជាថ្ងៃចុងក្រោយនៃខែនោះ (ឧទាហរណ៍៖ 2026-04-30)
+    //         $lastDayOfMonth = date('Y-m-t', strtotime($targetDate));
+
+    //         // ៣. Logic សំខាន់សម្រាប់ទាញទិន្នន័យ Active តាមកាលបរិច្ឆេទ (Point-in-time)
+    //         $query->where(function($q) use ($lastDayOfMonth) {
+    //             $q->where(function($activeQuery) use ($lastDayOfMonth) {
+                    
+    //                 // លក្ខខណ្ឌទី ១: ថ្ងៃចូលធ្វើការត្រូវតែតូចជាង ឬត្រឹមដំណាច់ខែដែលរើស
+    //                 $activeQuery->whereDate('users.date_of_commencement', '<=', $lastDayOfMonth);
+
+    //                 // លក្ខខណ្ឌទី ២: មិនទាន់លាឈប់ (NULL) ឬ ក៏ថ្ងៃលាឈប់លើសពីខែដែលរើស
+    //                 $activeQuery->where(function($resignCheck) use ($lastDayOfMonth) {
+    //                     $resignCheck->whereNull('users.resign_date')
+    //                                 ->orWhereDate('users.resign_date', '>', $lastDayOfMonth);
+    //                 });
+    //             })
+    //             // បង្ហាញជួរដែលគ្មានបុគ្គលិក (សម្រាប់ Left Join ជាមួយខេត្ត/សាខា)
+    //             ->orWhereNull('users.id');
+    //         });
+    //     };
+    // }
+
+    public static function condition($request) {
+        return function ($query) use ($request) {
+            // បំបែកខែ និង ឆ្នាំ
+            // $month = date('m', strtotime('01/' . $dateInput));
+            // $year = date('Y', strtotime('01/' . $dateInput));
+            // if ($request->has('network_date') && !empty($request->network_date)) {
+            //     $targetDate = $request->network_date;
+            // } else {
+            //     $targetDate = date('Y-m-d'); // ថ្ងៃនេះ
+            // }
+
+            // // បង្កើតជាថ្ងៃចុងក្រោយនៃខែនោះ (ឧទាហរណ៍៖ 2026-04-30)
+            // $lastDayOfMonth = date('Y-m-t', strtotime($targetDate));
+
+
+            $query->where(function($q) use ($request) {
+                $dateInput = $request->get('network_date') ?? date('Y-m-d');
+                $time = strtotime($dateInput);
+                $month = date('m', $time);
+                $year  = date('Y', $time);
+                $lastDayOfMonth = date('Y-m-t', $time);
+
+                // ប្រើ Sub-Query ដើម្បីខ្ចប់លក្ខខណ្ឌបុគ្គលិកទាំងអស់ ការពារកុំឱ្យជះឥទ្ធិពលដល់លក្ខខណ្ឌផ្សេង
+                $q->where(function($mainGroup) use ($month, $year, $lastDayOfMonth) {
+                    
+                    // --- លក្ខខណ្ឌទី ១: បុគ្គលិកកំពុងធ្វើការ (Active) ---
+                    // និយមន័យ៖ ចូលធ្វើការមុនដាច់ខែនេះ ហើយ (មិនទាន់ឈប់ ឬ ឈប់ក្រោយដាច់ខែនេះ)
+                    $mainGroup->where(function($active) use ($lastDayOfMonth) {
+                        $active->whereIn("users.emp_status", ['1', '2', '10', 'Probation'])
+                            ->whereDate('users.date_of_commencement', '<=', $lastDayOfMonth);
+                    });
+
+                    // --- លក្ខខណ្ឌទី ២: បុគ្គលិកឈប់ចន្លោះថ្ងៃ ០៦ ដល់ ០៥ នៃខែបន្ទាប់ ---
+                    $mainGroup->orWhere(function($resignCycle) use ($month, $year) {
+                        $from_date = date('Y-m-d', strtotime($year . '-' . $month . '-06'));
+                        $to_date = date('Y-m-d', strtotime($from_date . ' +1 month -1 day')); // ថ្ងៃទី ០៥ ខែបន្ទាប់
+                        
+                        $resignCycle->whereIn("users.emp_status", ['3', '4', '5', '6', '7', '8', '9'])
+                                    ->where('users.date_of_commencement', '<=', $to_date)
+                                    ->whereBetween('users.resign_date', [$from_date, $to_date]);
+                    });
+
+                    // --- លក្ខខណ្ឌទី ៣: បុគ្គលិកទើបចូល ហើយឈប់វិញភ្លាមៗក្នុងខែតែមួយ (ថ្ងៃ ០១ ដល់ ០៥) ---
+                    $mainGroup->orWhere(function($shortTerm) use ($month, $year) {
+                        $from_date = date('Y-m-d', strtotime($year . '-' . $month . '-01'));
+                        $to_date = date('Y-m-d', strtotime($year . '-' . $month . '-05'));
+                        
+                        $shortTerm->whereIn("users.emp_status", ['3', '4', '5', '6', '7', '8', '9'])
+                                ->whereBetween('users.date_of_commencement', [$from_date, $to_date])
+                                ->whereBetween('users.resign_date', [$from_date, $to_date]);
+                    });
+
+                    // --- លក្ខខណ្ឌទី ៤: បុគ្គលិកដែលឈប់មុនថ្ងៃទី ០១ (ករណីពិសេសប្រសិនបើអ្នកចង់បង្ហាញ) ---
+                    // ចំណាំ៖ លក្ខខណ្ឌនេះគួរតែកំណត់រយៈពេលឱ្យច្បាស់ បើមិនដូច្នោះទេវានឹងចេញទិន្នន័យចាស់ៗខ្លាំងពេក
+                    $mainGroup->orWhere(function($oldResign) use ($month, $year) {
+                        $firstDayOfMonth = date('Y-m-d', strtotime($year . '-' . $month . '-01'));
+                        $oldResign->whereIn("users.emp_status", ['3', '4', '5', '6', '7', '8', '9'])
+                                ->whereDate('users.resign_date', '>=', $firstDayOfMonth) // យ៉ាងហោចណាស់ឈប់ក្នុងខែហ្នឹង
+                                ->whereDate('users.date_of_commencement', '<', $firstDayOfMonth);
+                    });
+
+                })
+                // បង្ហាញជួរទទេសម្រាប់ខេត្តដែលគ្មានបុគ្គលិក
+                ->orWhereNull('users.id');
+            });
+        };
     }
 
     public static function getDatas($request)
@@ -86,11 +185,8 @@ class NetworkEmployeeController extends Controller
                 ->orWhere('branchs.branch_name_en', 'like', "%{$search}%");
             });
         }
-        
-        $query->where(function($q) {
-            $q->whereIn("users.emp_status", ['1', '2', '10', 'Probation'])
-            ->orWhereNull('users.id'); // បន្ថែមជួរនេះ ដើម្បីឱ្យបង្ហាញខេត្តដែលគ្មានបុគ្គលិក
-        });
+        $query->where(self::condition($request));
+
         return $query;
     }
     /**
