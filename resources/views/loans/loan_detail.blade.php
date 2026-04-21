@@ -229,7 +229,7 @@
                 $(this).prop('disabled', true);
                 $(".btn-text-reset").hide();
                 $("#btn-text-loading").css('display', 'block');
-                window.location.replace("{{ URL('admin/report/loan/detail') }}");
+                window.location.replace("{{ URL('admin/mkt-report/loan/detail') }}");
             });
             dataTables();
         });
@@ -250,7 +250,7 @@
                 order: [[0, 'desc']],
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
-                    url: '{{ URL("admin/report/loan/detail") }}',
+                    url: '{{ URL("admin/mkt-report/loan/detail") }}',
                     type: 'GET',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

@@ -124,30 +124,44 @@
                                 </a>
                             </li>
                             {{-- Loan Reports --}}
-                            @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View'))
-                                <li class="{{ Request::is('admin/report/loan/*') || Request::is('admin/report/co-performance') ? 'active open' : '' }}">
+                            {{-- @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View')) --}}
+                                <li class="{{ 
+                                Request::is('admin/mkt-report/loan/*') 
+                                || 
+                                Request::is('admin/mkt-report/co-performance') 
+                                || 
+                                Request::is('admin/mkt-report/sale-record')
+                                ? 'active open' : '' 
+                                }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
-                                        <span class="nav-link-text">Loan Reports</span>
+                                        <span class="nav-link-text">MKT Reports</span>
                                     </a>
                                     <ul>
                                         @if(Auth::user()->can('Loan Detail View'))
-                                            <li class="{{ Request::is('admin/report/loan/detail') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/report/loan/detail') }}">
+                                            <li class="{{ Request::is('admin/mkt-report/loan/detail') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/loan/detail') }}">
                                                     <span class="nav-link-text">Loan Detail</span>
                                                 </a>
                                             </li>
                                         @endif
                                         @if(Auth::user()->can('CO Performance View'))
-                                            <li class="{{ Request::is('admin/report/co-performance') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/report/co-performance') }}">
+                                            <li class="{{ Request::is('admin/mkt-report/co-performance') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/co-performance') }}">
                                                     <span class="nav-link-text">CO Performance</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Sale Record View'))
+                                            <li class="{{ Request::is('admin/mkt-report/sale-record') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/sale-record') }}">
+                                                    <span class="nav-link-text">Sale Record</span>
                                                 </a>
                                             </li>
                                         @endif
                                     </ul>
                                 </li>
-                            @endif
+                            {{-- @endif --}}
 
                                 <li class="{{ Request::is('admin/hr-report/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">

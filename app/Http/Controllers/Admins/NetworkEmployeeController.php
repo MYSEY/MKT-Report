@@ -18,36 +18,6 @@ class NetworkEmployeeController extends Controller
     {
         $this->applyRolePermissions('Network Employee');
     }
-    // public static function condition($request) {
-    //     return function ($query) use ($request) {
-    //         // ១. កំណត់យកថ្ងៃចុងក្រោយនៃខែ (Default គឺថ្ងៃចុងក្រោយនៃខែបច្ចុប្បន្ន)
-    //         if ($request->has('network_date') && !empty($request->network_date)) {
-    //             $targetDate = $request->network_date;
-    //         } else {
-    //             $targetDate = date('Y-m-d'); // ថ្ងៃនេះ
-    //         }
-
-    //         // បង្កើតជាថ្ងៃចុងក្រោយនៃខែនោះ (ឧទាហរណ៍៖ 2026-04-30)
-    //         $lastDayOfMonth = date('Y-m-t', strtotime($targetDate));
-
-    //         // ៣. Logic សំខាន់សម្រាប់ទាញទិន្នន័យ Active តាមកាលបរិច្ឆេទ (Point-in-time)
-    //         $query->where(function($q) use ($lastDayOfMonth) {
-    //             $q->where(function($activeQuery) use ($lastDayOfMonth) {
-                    
-    //                 // លក្ខខណ្ឌទី ១: ថ្ងៃចូលធ្វើការត្រូវតែតូចជាង ឬត្រឹមដំណាច់ខែដែលរើស
-    //                 $activeQuery->whereDate('users.date_of_commencement', '<=', $lastDayOfMonth);
-
-    //                 // លក្ខខណ្ឌទី ២: មិនទាន់លាឈប់ (NULL) ឬ ក៏ថ្ងៃលាឈប់លើសពីខែដែលរើស
-    //                 $activeQuery->where(function($resignCheck) use ($lastDayOfMonth) {
-    //                     $resignCheck->whereNull('users.resign_date')
-    //                                 ->orWhereDate('users.resign_date', '>', $lastDayOfMonth);
-    //                 });
-    //             })
-    //             // បង្ហាញជួរដែលគ្មានបុគ្គលិក (សម្រាប់ Left Join ជាមួយខេត្ត/សាខា)
-    //             ->orWhereNull('users.id');
-    //         });
-    //     };
-    // }
 
     public static function condition($request) {
         return function ($query) use ($request) {
