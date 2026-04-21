@@ -188,7 +188,7 @@
                 let query = {
                     branch_id: $("#branch_id").val()
                 };
-                var url = "{{URL::to('admin/report/co-performance/download')}}?" + $.param(query)
+                var url = "{{URL::to('admin/mkt-report/co-performance/download')}}?" + $.param(query)
                 window.location = url;
             });
             // Reload only (DON'T destroy/reinit)
@@ -201,7 +201,7 @@
                 $(this).prop('disabled', true);
                 $(".btn-text-reset").hide();
                 $("#btn-text-loading").css('display', 'block');
-                window.location.replace("{{ URL('admin/report/co-performance') }}");
+                window.location.replace("{{ URL('admin/mkt-report/co-performance') }}");
             });
             // Initialize only once
             dataTables();
@@ -224,7 +224,7 @@
                 order: [[0, 'desc']],
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
-                    url: '{{ URL("admin/report/co-performance") }}',
+                    url: '{{ URL("admin/mkt-report/co-performance") }}',
                     type: 'GET',
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();

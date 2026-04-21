@@ -11,6 +11,7 @@ use App\Http\Controllers\Admins\PermissionController;
 use App\Http\Controllers\Admins\COPerformanceController;
 use App\Http\Controllers\Admins\LoandDetailListingController;
 use App\Http\Controllers\Admins\NetworkEmployeeController;
+use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 
 /*
@@ -35,12 +36,16 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::resource('role', RoleController::class);
         Route::get('user', [UserController::class, 'index']);
     });
-    Route::prefix('report')->group(function () {
+    Route::prefix('mkt-report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);
         Route::get('test',[LoandDetailListingController::class,'test']);
+
+        Route::get('sale-record',[SaleRecordController::class,'index']);
+        Route::get('sale-record/download',[SaleRecordController::class,'exportExcel']);
+        Route::get('sale-record/downloads',[SaleRecordController::class,'exportExcelAll']);
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);
