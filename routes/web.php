@@ -41,6 +41,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);
+        Route::get('test',[LoandDetailListingController::class,'test']);
+
+        Route::get('sale-record',[SaleRecordController::class,'index']);
+        Route::get('sale-record/download',[SaleRecordController::class,'exportExcel']);
+        Route::get('sale-record/downloads',[SaleRecordController::class,'exportExcelAll']);
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);
