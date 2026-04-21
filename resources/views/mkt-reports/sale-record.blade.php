@@ -29,13 +29,13 @@
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel to Template
+                                Excel Summary
                             </button>
 
                             <button type="button" class="btn btn-sm btn-success waves-effect waves-themed btn_excel_all mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-2" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel Not Template
+                                Excel Details
                             </button>
                         @endif
                     </div>
