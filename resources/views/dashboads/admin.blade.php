@@ -10,7 +10,7 @@
             <div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white mb-g">
                 <div class="">
                     <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                        21.5k
+                        00
                         <small class="m-0 l-h-n">users signed up</small>
                     </h3>
                 </div>
@@ -21,7 +21,7 @@
             <div class="p-3 bg-warning-400 rounded overflow-hidden position-relative text-white mb-g">
                 <div class="">
                     <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                        $10,203
+                        00
                         <small class="m-0 l-h-n">Visual Index Figure</small>
                     </h3>
                 </div>
@@ -32,7 +32,7 @@
             <div class="p-3 bg-success-200 rounded overflow-hidden position-relative text-white mb-g">
                 <div class="">
                     <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                        - 103.72
+                        00
                         <small class="m-0 l-h-n">Offset Balance Ratio</small>
                     </h3>
                 </div>
@@ -43,7 +43,7 @@
             <div class="p-3 bg-info-200 rounded overflow-hidden position-relative text-white mb-g">
                 <div class="">
                     <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                        +40%
+                        00
                         <small class="m-0 l-h-n">Product level increase</small>
                     </h3>
                 </div>

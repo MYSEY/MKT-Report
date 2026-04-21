@@ -50,9 +50,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);
         Route::get('network-employee/download',[NetworkEmployeeController::class,'exportExcel'])->name('hr-reports.network_employee_export');
-     
+
         Route::get('tmg',[TMGController::class,'index']);
         Route::get('tmg/download',[TMGController::class,'exportExcel'])->name('hr-reports.TMG_report');
-        
+
     });
 });
