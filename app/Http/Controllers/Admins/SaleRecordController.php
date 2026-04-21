@@ -34,6 +34,85 @@ class SaleRecordController extends Controller
         $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000; // ប្រើតម្លៃពី DB បើគ្មានប្រើ 4000
         $query = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
             ->select([
+                'MKT_AIR_JOURNAL.Reference',
+                'MKT_AIR_JOURNAL.Currency',
+                
+                // ប្រើ MAX ដើម្បីទាញយកតម្លៃសម្រាប់ Column ដែលមិនបាន Group
+                DB::raw('MAX("MKT_AIR_JOURNAL"."TransactionDate") as "TransactionDate"'),
+                DB::raw('MAX("MKT_AIR_JOURNAL"."Branch") as "Branch"'),
+                DB::raw('MAX("MKT_AIR_JOURNAL"."GL_KEYS") as "GL_KEYS"'),
+                DB::raw('MAX("MKT_AIR_JOURNAL"."DebitCredit") as "DebitCredit"'),
+
+                // ✅ Sum Amount តាម Reference & Currency
+                DB::raw('SUM("MKT_AIR_JOURNAL"."Amount") as "Amount"'),
+
+                // ✅ គណនា Total KHR (Sum ជាមុនសិន)
+                DB::raw("SUM(CASE 
+                    WHEN \"MKT_AIR_JOURNAL\".\"Currency\" = 'USD' THEN \"MKT_AIR_JOURNAL\".\"Amount\" * $rate 
+                    ELSE \"MKT_AIR_JOURNAL\".\"Amount\" 
+                END) as \"TotalKHR\""),
+
+                // ✅ គណនា Tax 1%
+                DB::raw("SUM(CASE 
+                    WHEN \"MKT_AIR_JOURNAL\".\"Currency\" = 'USD' THEN (\"MKT_AIR_JOURNAL\".\"Amount\" * $rate) * 0.01 
+                    ELSE \"MKT_AIR_JOURNAL\".\"Amount\" * 0.01 
+                END) as \"Tax1Percent\""),
+
+                // ប្រើ MAX សម្រាប់ឈ្មោះអតិថិជន
+                DB::raw('MAX(CONCAT(TRIM("CUST"."LastNameKh"), \' \', TRIM("CUST"."FirstNameKh"))) as "KhName"'),
+                DB::raw('MAX(CONCAT(TRIM("CUST"."LastNameEn"), \' \', TRIM("CUST"."FirstNameEn"))) as "EnName"'),
+            ])
+            ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.ID', '=', 'MKT_AIR_JOURNAL.Reference')
+            ->leftJoin('MKT_CLOSED_LOAN as CL', 'CL.ID', '=', 'MKT_AIR_JOURNAL.Reference')
+            ->leftJoin('MKT_CUSTOMER as CUST', 'CUST.ID', '=', DB::raw('COALESCE("LC"."ContractCustomerID", "CL"."ContractCustomerID")'))
+            ->where('MKT_AIR_JOURNAL.TransactionDate', '>=', $from_date)
+            ->where('MKT_AIR_JOURNAL.TransactionDate', '<=', $to_date)
+            ->where('MKT_AIR_JOURNAL.GL_KEYS', 'like', '5%')
+            
+            // ✅ Group តែ Reference និង Currency ប៉ុណ្ណោះ
+            ->groupBy(
+                'MKT_AIR_JOURNAL.Reference',
+                'MKT_AIR_JOURNAL.Currency'
+            );
+       
+        // ផ្នែក Search
+        $search = request()->input('search.value');
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                // ១. បង្កើត Raw Expression សម្រាប់បូកបញ្ចូលឈ្មោះ (Khmer & English)
+                $fullNameKh = 'TRIM("CUST"."LastNameKh") || \' \' || TRIM("CUST"."FirstNameKh")';
+                $fullNameEn = 'TRIM("CUST"."LastNameEn") || \' \' || TRIM("CUST"."FirstNameEn")';
+
+                $q->where(DB::raw($fullNameKh), 'ilike', "%{$search}%") // Search ឈ្មោះខ្មែរពេញ
+                ->orWhere(DB::raw($fullNameEn), 'ilike', "%{$search}%") // Search ឈ្មោះអង់គ្លេសពេញ
+                ->orWhere('MKT_AIR_JOURNAL.Reference', 'ilike', "%{$search}%")
+                ->orWhere('CUST.LastNameEn', 'ilike', "%{$search}%") // បន្ថែមសម្រាប់ករណី search តែត្រកូល
+                ->orWhere('CUST.FirstNameEn', 'ilike', "%{$search}%"); // បន្ថែមសម្រាប់ករណី search តែឈ្មោះ
+            });
+        }
+        
+        return [
+            "query"=>$query,
+            "currencyRate"=>$rate
+        ];
+        
+    }
+    public static function getDataDetails($request){
+        $dateInput = $request->get('date') ?? date('Y-m');
+        $time = strtotime($dateInput);
+        $from_date = date('Y-m-01', $time);
+        $to_date = date('Y-m-t', $time);
+
+        // ទាញយកអត្រាប្តូរប្រាក់ (Rate) បើរកមិនឃើញឱ្យ default = 4000
+        $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
+            ->where('ch.Authorizeon', 'like', $dateInput.'%')
+            ->where('ch.ID', 'like', 'USD%')
+            ->orderBy('ch.Curr', 'desc')
+            ->first();
+
+        $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000; // ប្រើតម្លៃពី DB បើគ្មានប្រើ 4000
+        $query = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
+            ->select([
                 'MKT_AIR_JOURNAL.TransactionDate',
                 'MKT_AIR_JOURNAL.Branch',
                 'MKT_AIR_JOURNAL.Reference',
@@ -66,8 +145,6 @@ class SaleRecordController extends Controller
             ->where('MKT_AIR_JOURNAL.TransactionDate', '>=', $from_date)
             ->where('MKT_AIR_JOURNAL.TransactionDate', '<=', $to_date)
             ->where('MKT_AIR_JOURNAL.GL_KEYS', 'like', '5%');
-
-        // ផ្នែក Search
         $search = request()->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -87,7 +164,6 @@ class SaleRecordController extends Controller
             "query"=>$query,
             "currencyRate"=>$rate
         ];
-        
     }
     public function index(Request $request) {
         if (!$this->denyPermission('Sale Record View')) {
@@ -95,17 +171,29 @@ class SaleRecordController extends Controller
         }
         if (request()->ajax()) {
             $get = self::getDatas($request);
-            $recordsFiltered = $get["query"]->count();
+            
+            // ✅ វិធីរាប់ចំនួន Record សរុបឱ្យត្រឹមត្រូវសម្រាប់ Group By (PostgreSQL)
+            $totalQuery = DB::connection('pgsql')->table(DB::raw("({$get['query']->toSql()}) as sub"))
+                            ->mergeBindings($get['query']); 
+            $recordsTotal = $totalQuery->count();
+            $recordsFiltered = $recordsTotal; 
+
             $start = intval(request()->input('start', 0));
             $limit = intval(request()->input('length', 20));
-            $data = $get["query"]->orderBy('MKT_AIR_JOURNAL.ID', 'ASC')->offset($start)->limit($limit)->get();
+
+            // ✅ ទាញយកទិន្នន័យតាមកម្រិត (Limit/Offset)
+            $data = $get["query"]
+                    ->orderBy('MKT_AIR_JOURNAL.Reference', 'desc')
+                    ->offset($start)
+                    ->limit($limit)
+                    ->get();
             
             return response()->json([
                 'draw' => intval(request()->input('draw')),
-                'recordsTotal' => 0,
-                'recordsFiltered' => $get["query"]->count(), 
+                'recordsTotal' => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered, 
                 'data' => $data,
-                'currency'=>$get["currencyRate"]
+                'currency' => $get["currencyRate"]
             ]);
         }
         return view('mkt-reports.sale-record');
@@ -127,7 +215,7 @@ class SaleRecordController extends Controller
         ini_set('memory_limit', '2048M');
         set_time_limit(0);
 
-        $get = self::getDatas($request);
+        $get = self::getDataDetails($request);
         $query = $get["query"];
         $date = $request->get('date') ?? date('Y-m');
         $dataGenerator = function () use ($query) {
