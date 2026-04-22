@@ -23,7 +23,7 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃ ជាប្រាក់រៀល</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃ ជាប្រាក់ដុល្លារ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃសរុប ជាប្រាក់រៀល</th>
-            <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អត្រាប្រាក់ពន្ធ<br>រ៉ាប់រងលើប្រាក់<br>ចំណូល ១%</th>
+            <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អត្រាប្រាក់ពន្ធរំដោះលើប្រាក់ចំណូល ១%</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">បរិយាយ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">វិធីសាស្ត្រ<br>គណនេយ្យ</th>
         </tr>
@@ -62,4 +62,28 @@
             </tr>
         @endforeach
     </tbody>
+    <tfoot>
+        <tr style="background-color: #f2f2f2; font-weight: bold;">
+            <td colspan="8" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+
+            <td align="right" style="border: 1px solid #000;">
+                {{ number_format($data->where('Currency', 'KHR')->sum('Amount')) }} ៛
+            </td>
+
+            <td align="right" style="border: 1px solid #000;">
+                $ {{ number_format($data->where('Currency', 'USD')->sum('Amount'), 2) }}
+            </td>
+
+            <td align="right" style="border: 1px solid #000; font-weight: bold;">
+                {{ number_format($data->sum('TotalKHR')) }} ៛
+            </td>
+
+            <td align="right" style="border: 1px solid #000;">
+                {{ number_format($data->sum(fn($row) => round($row->Tax1Percent))) }} ៛
+            </td>
+
+            <td style="border: 1px solid #000;">Loan Repayment</td>
+            <td align="center" style="border: 1px solid #000;">0</td>
+        </tr>
+    </tfoot>
 </table>

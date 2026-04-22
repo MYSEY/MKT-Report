@@ -77,6 +77,16 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+                            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                <th colspan="8" style="text-align: right;">Total:</th>
+                                <th id="sum_khr" class="text-right"></th>
+                                <th id="sum_usd" class="text-right"></th>
+                                <th id="sum_total_khr" class="text-right"></th>
+                                <th id="sum_tax" class="text-right"></th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -280,6 +290,40 @@
                         }
                     },
                 ],
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+
+                    // បង្កើត Function ជំនួយសម្រាប់បម្លែង string ទៅជាលេខ
+                    var intVal = function (i) {
+                        return typeof i === 'string' ? i.replace(/[\$,៛]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                    };
+
+                    // ១. សរុប Amount_KHR (បូកតែជួរដែលមាន Currency == "KHR")
+                    var totalKHR = api.rows().data().toArray().reduce(function (a, b) {
+                        return b.Currency === "KHR" ? a + intVal(b.Amount) : a;
+                    }, 0);
+
+                    // ២. សរុប Amount_USD (បូកតែជួរដែលមាន Currency == "USD")
+                    var totalUSD = api.rows().data().toArray().reduce(function (a, b) {
+                        return b.Currency === "USD" ? a + intVal(b.Amount) : a;
+                    }, 0);
+
+                    // ៣. សរុប Total_Amount_KHR (បូកគ្រប់ជួរ)
+                    var totalAllKHR = api.column(10).data().reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                    // ៤. សរុប Income_Tax_Rate_1% (បូកគ្រប់ជួរ)
+                    var totalTax = api.column(11).data().reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                    // បង្ហាញលទ្ធផលចូលក្នុង Footer
+                    $(api.column(8).footer()).html(totalKHR.toLocaleString() + ' ៛');
+                    $(api.column(9).footer()).html(totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2})+ ' $');
+                    $(api.column(10).footer()).html(totalAllKHR.toLocaleString() + ' ៛');
+                    $(api.column(11).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
+                }
             });
 
             $('#tbl-sale-record').on('processing.dt', function (e, settings, processing) {
