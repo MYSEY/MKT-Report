@@ -5,11 +5,13 @@
             សៀវភៅទិន្នានុប្បវត្តិលក់
         </td>
     </tr>
-    <tr><td colspan="14" style="text-align: center; font-weight: bold; font-size: 14pt;">ប្រចំាខែ..... ឆ្នំា.......</td></tr>
+    <tr><td colspan="14" style="text-align: center; font-weight: bold; font-size: 14pt;">
+        ប្រចំាខែ {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['month' => true]) }} ឆ្នំា {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['year' => true]) }}
+    </td></tr>
     <tr><td colspan="14" style="font-weight: bold;">នាមករណ៍សហគ្រាស : ខេមា មីក្រូហិរញ្ញវត្ថុ លីមីតធីត</td></tr>
     <tr><td colspan="14">អាស័យដ្ឋានៈផ្ទះលេខ១០១A ផ្លូវ 289 សង្កាត់បឹងកក់១ ខណ្ឌ ទួលគោក រាជធានី ភ្នំពេញ</td></tr>
     <tr>
-        <td colspan="12">គណនីសហគ្រាស​​​ :  </td>
+        <td colspan="12">គណនីសហគ្រាស​​​ :  L001-10​7008408</td>
         <td style="font-weight: bold; text-align: right;">អត្រាប្តូរប្រាក់</td>
         <td style="font-weight: bold; text-align: center;">{{$currency}}៛ </td>
     </tr>
@@ -17,7 +19,7 @@
         <tr style="background-color: #d9ead3; text-align: center;">
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ល.រ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">កាលបរិច្ឆេទ</th>
-            <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ<br>ប្រតិបត្តិការគយ<br>ឬ លេខសក្ខីប័ត្របង់ប្រាក់</th>
+            <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ ប្រតិវេទន៍គយ ឬ លេខសក្ខីបត្របង្គរ*</th>
             <th colspan="4" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អ្នកទិញ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ប្រភេទផ្គត់ផ្គង់ទំនិញ<br>ឬសេវាកម្ម</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃ ជាប្រាក់រៀល</th>
@@ -84,6 +86,63 @@
 
             <td style="border: 1px solid #000;">Loan Repayment</td>
             <td align="center" style="border: 1px solid #000;">0</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td colspan="6"style="text-align: center">
+                <span>រាជធានីភ្នំពេញ, ថ្ងៃទី......... ខែ......... ឆ្នាំ២០២៦</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="text-align: center">
+                <span>អនុញ្ញាតដោយ</span>
+            </td>
+
+            <td colspan="4" style="text-align: center">
+                <span>ពិនិត្យដោយ</span>
+            </td>
+
+            <td colspan="6" style="text-align: center">
+                <span>រៀបចំដោយ</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="text-align: center">
+                <span>អគ្គនាយកប្រតិបត្តិ</span>
+            </td>
+
+            <td colspan="4" style="text-align: center">
+                <span>នាយិកានាយកដ្ឋានគណនេយ្យ និងហិរញ្ញវត្ថុ</span>
+            </td>
+
+            <td colspan="6" style="text-align: center">
+                <span>នាយិកានាយកដ្ឋានគណនេយ្យ និងហិរញ្ញវត្ថុ</span>
+            </td>
         </tr>
     </tfoot>
 </table>
