@@ -124,8 +124,26 @@
                                 </a>
                             </li>
                             {{-- Loan Reports --}}
-                            @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View') || Auth::user()->can('Sale Record View'))
-                                <li class="{{ Request::is('admin/mkt-report/loan/*')  || Request::is('admin/mkt-report/co-performance') || Request::is('admin/mkt-report/sale-record') ? 'active open' : '' }}">
+
+                            @if(Auth::user()->can('CO Performance View') 
+                            || Auth::user()->can('Loan Detail View') 
+                            || Auth::user()->can('Sale Record View')
+                            || Auth::user()->can('Sale Record Exemption View')
+                            || Auth::user()->can('Sale Record Console View')
+                            )
+                                <li class="{{ 
+                                Request::is('admin/mkt-report/loan/*') 
+                                || 
+                                Request::is('admin/mkt-report/co-performance') 
+                                || 
+                                Request::is('admin/mkt-report/sale-record')
+                                ||
+                                Request::is('admin/mkt-report/sale-record-exemption')
+                                ||
+                                Request::is('admin/mkt-report/sale-record-console')
+
+                                ? 'active open' : '' 
+                                }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
                                         <span class="nav-link-text">MKT Reports</span>
@@ -152,6 +170,20 @@
                                                 </a>
                                             </li>
                                         @endif
+                                        @if(Auth::user()->can('Sale Record Exemption View'))
+                                            <li class="{{ Request::is('admin/mkt-report/sale-record-exemption') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/sale-record-exemption') }}">
+                                                    <span class="nav-link-text">Sale Record Exemption</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Sale Record Console View'))
+                                            <li class="{{ Request::is('admin/mkt-report/sale-record-console') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/sale-record-console') }}">
+                                                    <span class="nav-link-text">Sale Record Console</span>
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif
@@ -173,6 +205,24 @@
                                             <li class="{{ Request::is('admin/hr-report/tmg') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/hr-report/tmg') }}">
                                                     <span class="nav-link-text">TMG Report</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </li>
+                            @endif
+
+                            @if(Auth::user()->can('Interest Income View'))
+                                <li class="{{ Request::is('admin/configuration/*') ? 'active open' : '' }}">
+                                    <a href="javascript:void(0)" title="Configurations">
+                                        <i class="fal fa-cog"></i>
+                                        <span class="nav-link-text">Configurations</span>
+                                    </a>
+                                    <ul>
+                                        @if(Auth::user()->can('Interest Income View'))
+                                            <li class="{{ Request::is('admin/configuration/interest-income') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/configuration/interest-income') }}">
+                                                    <span class="nav-link-text">Interest Income </span>
                                                 </a>
                                             </li>
                                         @endif

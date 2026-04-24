@@ -47,18 +47,27 @@
                 <td style="border: 1px solid #000;">{{ $row->KhName }}</td>
                 <td style="border: 1px solid #000;">{{ $row->EnName }}</td>
                 <td align="center" style="border: 1px solid #000;">3</td>
+                
+                {{-- ✅ បង្ហាញ Amount KHR --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Currency === 'KHR' ? number_format($row->Amount) . ' ៛' : '- ៛' }}
+                    {{ $row->Amount_KHR != 0 ? number_format($row->Amount_KHR) : '-' }}
                 </td>
+
+                {{-- ✅ បង្ហាញ Amount USD --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Currency === 'USD' ? '$ ' . number_format($row->Amount, 2) : '- $' }}
+                    {{ $row->Amount_USD != 0 ? number_format($row->Amount_USD, 2) : '-' }}
                 </td>
+
+                {{-- ✅ បង្ហាញ Total Amount KHR --}}
                 <td align="right" style="font-weight: bold; border: 1px solid #000;">
-                    {{ number_format($row->TotalKHR) }} ៛
+                    {{ number_format($row->Total_Amount_KHR) }}
                 </td>
+
+                {{-- ✅ បង្ហាញ Income Tax 1% --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Tax1Percent > 0 ? number_format(round($row->Tax1Percent)) : 0 }} ៛
+                    {{ number_format(round($row->Income_Tax)) }}
                 </td>
+                
                 <td style="border: 1px solid #000;">Loan Repayment</td>
                 <td align="center" style="border: 1px solid #000;">0</td>
             </tr>
@@ -68,24 +77,27 @@
         <tr style="background-color: #f2f2f2; font-weight: bold;">
             <td colspan="8" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
 
+            {{-- ✅ បូកសរុប Amount_KHR --}}
             <td align="right" style="border: 1px solid #000;">
-                {{ number_format($data->where('Currency', 'KHR')->sum('Amount')) }} ៛
+                {{ number_format($data->sum('Amount_KHR')) }}
             </td>
 
+            {{-- ✅ បូកសរុប Amount_USD --}}
             <td align="right" style="border: 1px solid #000;">
-                $ {{ number_format($data->where('Currency', 'USD')->sum('Amount'), 2) }}
+                {{ number_format($data->sum('Amount_USD'), 2) }}
             </td>
 
+            {{-- ✅ បូកសរុប Total_Amount_KHR --}}
             <td align="right" style="border: 1px solid #000; font-weight: bold;">
-                {{ number_format($data->sum('TotalKHR')) }} ៛
+                {{ number_format($data->sum('Total_Amount_KHR')) }}
             </td>
 
+            {{-- ✅ បូកសរុប Income_Tax --}}
             <td align="right" style="border: 1px solid #000;">
-                {{ number_format($data->sum(fn($row) => round($row->Tax1Percent))) }} ៛
+                {{ number_format($data->sum(fn($r) => round($r->Income_Tax))) }}
             </td>
 
-            <td style="border: 1px solid #000;">Loan Repayment</td>
-            <td align="center" style="border: 1px solid #000;">0</td>
+            <td colspan="2" style="border: 1px solid #000; background-color: #f2f2f2;"></td>
         </tr>
         <tr>
             <td></td>
