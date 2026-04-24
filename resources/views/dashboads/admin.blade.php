@@ -90,47 +90,48 @@
             <i class='subheader-icon fal fa-chart-area'></i> <span class='fw-300'>Dashboard</span>
         </h1>
     </div>
-    <div class="row mb-2">
-        <div class="col-md-6 col-sm-6 col-xl-3">
-            <div class="card">
-                <div class="card-header">
-                    <span>Branch Productivity</span>
-                    <span class="refresh">⟳</span>
-                </div>
-            
-                <div class="card-body">
-                    <div class="top-section">
-                        <div class="box">
-                            <div class="label"># OF CUSTOMER</div>
-                            <div class="value">{{ number_format($customer) }}</div>
-                        </div>
-            
-                        <div class="box">
-                            <div class="label"># LOAN CONTRACT</div>
-                            <div class="value">{{ number_format($loan) }}</div>
-                        </div>
+    @if(Auth::user()->can('Dashboard Branch Productivity'))
+        <div class="row mb-2">
+            <div class="col-md-6 col-sm-6 col-xl-3">
+                <div class="card">
+                    <div class="card-header">
+                        <span>Branch Productivity</span>
+                        <span class="refresh">⟳</span>
                     </div>
-            
-                    <div class="portfolio-title">TOTAL PORTFOLIO</div>
-            
-                    <div class="bottom-section">
-                        <div class="currency">
-                            <div class="type">KHR</div>
-                            <div class="amount">{{ number_format($data->khr ?? 0, 0) }}</div>
+                
+                    <div class="card-body">
+                        <div class="top-section">
+                            <div class="box">
+                                <div class="label"># OF CUSTOMER</div>
+                                <div class="value">{{ number_format($customer) }}</div>
+                            </div>
+                
+                            <div class="box">
+                                <div class="label"># LOAN CONTRACT</div>
+                                <div class="value">{{ number_format($loan) }}</div>
+                            </div>
                         </div>
-            
-                        <div class="divider"></div>
-            
-                        <div class="currency">
-                            <div class="type">USD</div>
-                            <div class="amount">{{ number_format($data->usd ?? 0, 2) }}</div>
+                
+                        <div class="portfolio-title">TOTAL PORTFOLIO</div>
+                
+                        <div class="bottom-section">
+                            <div class="currency">
+                                <div class="type">KHR</div>
+                                <div class="amount">{{ number_format($data->khr ?? 0, 0) }}</div>
+                            </div>
+                
+                            <div class="divider"></div>
+                
+                            <div class="currency">
+                                <div class="type">USD</div>
+                                <div class="amount">{{ number_format($data->usd ?? 0, 2) }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
+    @endif
 
     {{-- <div class="row">
         <div class="col-sm-6 col-xl-3">
