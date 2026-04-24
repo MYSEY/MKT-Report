@@ -15,12 +15,14 @@ class ExportSaleRecord implements FromView, WithEvents
     protected $data;
     protected $date;
     protected $currency;
+    protected $type;
 
-    public function __construct($data,$date,$currency)
+    public function __construct($data,$date,$currency,$type)
     {
         $this->data = $data;
         $this->date = $date;
         $this->currency = $currency;
+        $this->type = $type;
     }
     /**
     * @return \Illuminate\Support\Collection
@@ -31,7 +33,11 @@ class ExportSaleRecord implements FromView, WithEvents
     }
     public function view(): View
     {
-        return view('mkt-reports.sale_record_export', [
+        $name_file ="mkt-reports.sale-records.sale_record_export";
+        if ($this->type == "2" || $this->type == "1") {
+            $name_file = "mkt-reports.sale-records.sale_record_ExCs_export";
+        }
+        return view($name_file, [
             'data' => $this->data,
             'date'=>$this->date,
             'currency'=>$this->currency

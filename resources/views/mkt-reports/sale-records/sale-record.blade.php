@@ -171,7 +171,7 @@
                 scrollX: true, // បើកវិញប្រសិនបើ Column ច្រើនពេកហៀរចេញក្រៅ
                 scrollY: '350px',
                 scroller: false,
-                order: [[1, 'asc']],
+                order: [[1, 'desc']],
                 lengthMenu: [ [20, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
                     url: '{{ URL("admin/mkt-report/sale-record") }}',
@@ -188,140 +188,68 @@
                 columns: [
                     {
                         data: null,
-                        name: 'id',
+                        name: 'no',
                         orderable: false,
                         searchable: false,
                         className: 'text-center',
-                        render: function (data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
+                        render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
-                    {   
-                        data: 'TransactionDate', 
-                        name: 'TransactionDate',
-                    },
-                    { 
-                        data: null,
-                        render: function () {
-                            return 11111;
-                        }
-                    },
-                    { 
-                        data: null,
-                        className: 'text-center',
-                        render: function () {
-                            return 2;
-                        }
-                    },
-                    { 
-                        data: 'Reference', 
-                        name: 'Reference',
-                    },
-                    { 
-                        data: 'KhName', 
-                        name: 'KhName',
-                    },
-                    { 
-                        data: 'EnName', 
-                        name: 'EnName',
-                    },
-                    { 
-                        data: null,
-                        className: 'text-center',
-                        render: function () {
-                            return 3;
-                        }
-                    },
-                   
-                    // ✅ KHR amount
-                    { 
-                        className: 'text-right',
-                        data: 'Amount',
-                        name: 'Amount',
-                        render: function (data, type, row) {
-                            if (row.Currency === "KHR") {
-                                return Number(data) + '៛';
-                            } else {
-                                return '- ៛';
-                            }
-                        }
-                    },
-                     // ✅ USD amount
-                    { 
-                        className: 'text-right',
-                        data: 'Amount',
-                        name: 'Amount',
-                        render: function (data, type, row) {
-                            if (row.Currency === "USD") {
-                                return Number(data) + '$';
-                            } else {
-                                return '- $';
-                            }
-                        }
-                    },
-                    {
-                        className: 'text-right',
-                        data: 'TotalKHR', // ប្រើឈ្មោះដែលយើងបានប្ដូរនៅ Backend
-                        name: 'TotalKHR',
-                        render: function (data) {
-                            return Number(data).toLocaleString() + ' ៛';
-                        }
-                    },
+                    { data: 'TransactionDate', name: 'j.TransactionDate', className: 'text-center' },
+                    { data: null, render: () => 11111, className: 'text-center' },
+                    { data: null, render: () => 2, className: 'text-center' },
+                    { data: 'Reference', name: 'j.Reference' },
+                    { data: 'KhName', name: 'CUST.LastNameKh' },
+                    { data: 'EnName', name: 'CUST.LastNameEn' },
+                    { data: null, render: () => 3, className: 'text-center' },
 
-                    // ✅ Column ពន្ធ ១%
+                    // Amount KHR
                     { 
+                        data: 'Amount_KHR', 
+                        name: 'Amount_KHR', 
                         className: 'text-right',
-                        data: 'Tax1Percent', // ប្រើឈ្មោះដែលយើងបានប្ដូរនៅ Backend
-                        name: 'Tax1Percent',
-                        render: function (data) {
-                            return Math.round(data).toLocaleString() + ' ៛';
-                        }
+                        render: d => d != 0 ? Number(d).toLocaleString() + ' ៛' : '-'
                     },
+                    // Amount USD
                     { 
-                        data: null,
-                        render: function () {
-                            return 'Loan Repayment';
-                        }
+                        data: 'Amount_USD', 
+                        name: 'Amount_USD', 
+                        className: 'text-right',
+                        render: d => d != 0 ? '$ ' + Number(d).toLocaleString(undefined, {minimumFractionDigits: 2}) : '-'
                     },
+                    // Total Amount KHR
                     { 
-                        data: null,
-                        render: function () {
-                            return 0;
-                        }
+                        data: 'Total_Amount_KHR', 
+                        name: 'Total_Amount_KHR', 
+                        className: 'text-right font-weight-bold',
+                        render: d => Number(d).toLocaleString() + ' ៛'
                     },
+                    // Income Tax 1%
+                    { 
+                        data: 'Income_Tax', 
+                        name: 'Income_Tax', 
+                        className: 'text-right',
+                        render: d => Math.round(d).toLocaleString() + ' ៛'
+                    },
+                    { data: null, render: () => 'Loan Repayment' },
+                    { data: null, render: () => 0, className: 'text-center' },
                 ],
+
                 footerCallback: function (row, data, start, end, display) {
-                    var api = this.api();
+                    const api = this.api();
 
-                    // បង្កើត Function ជំនួយសម្រាប់បម្លែង string ទៅជាលេខ
-                    var intVal = function (i) {
-                        return typeof i === 'string' ? i.replace(/[\$,៛]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                    };
+                    // Function ជំនួយសម្រាប់ដកក្បៀស និងប្តូរជាលេខ
+                    const parseNum = i => typeof i === 'string' ? i.replace(/[\$,៛,]/g, '') * 1 : typeof i === 'number' ? i : 0;
 
-                    // ១. សរុប Amount_KHR (បូកតែជួរដែលមាន Currency == "KHR")
-                    var totalKHR = api.rows().data().toArray().reduce(function (a, b) {
-                        return b.Currency === "KHR" ? a + intVal(b.Amount) : a;
-                    }, 0);
+                    // បូកសរុបតាម Column (ប្រើ index 8, 9, 10, 11)
+                    const totalKHR = api.column(8, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalUSD = api.column(9, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalAll = api.column(10, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalTax = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
 
-                    // ២. សរុប Amount_USD (បូកតែជួរដែលមាន Currency == "USD")
-                    var totalUSD = api.rows().data().toArray().reduce(function (a, b) {
-                        return b.Currency === "USD" ? a + intVal(b.Amount) : a;
-                    }, 0);
-
-                    // ៣. សរុប Total_Amount_KHR (បូកគ្រប់ជួរ)
-                    var totalAllKHR = api.column(10).data().reduce(function (a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                    // ៤. សរុប Income_Tax_Rate_1% (បូកគ្រប់ជួរ)
-                    var totalTax = api.column(11).data().reduce(function (a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                    // បង្ហាញលទ្ធផលចូលក្នុង Footer
-                    $(api.column(8).footer()).html(totalKHR.toLocaleString() + ' ៛');
-                    $(api.column(9).footer()).html(totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2})+ ' $');
-                    $(api.column(10).footer()).html(totalAllKHR.toLocaleString() + ' ៛');
+                    // បង្ហាញលទ្ធផលក្នុង Footer
+                    $(api.column(8).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
+                    $(api.column(9).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
+                    $(api.column(10).footer()).html(totalAll.toLocaleString() + ' ៛');
                     $(api.column(11).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
                 }
             });

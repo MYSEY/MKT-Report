@@ -13,6 +13,7 @@ use App\Http\Controllers\Admins\LoandDetailListingController;
 use App\Http\Controllers\Admins\NetworkEmployeeController;
 use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
+use App\Http\Controllers\Admins\InterestIncomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::resource('role', RoleController::class);
         Route::get('user', [UserController::class, 'index']);
     });
+    Route::prefix('configuration')->group(function () {
+        Route::resource('interest-income', InterestIncomeController::class);
+        Route::post('interest-income/import', [InterestIncomeController::class, 'import']);
+    });
     Route::prefix('mkt-report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
@@ -44,6 +49,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('sale-record',[SaleRecordController::class,'index']);
         Route::get('sale-record/download',[SaleRecordController::class,'exportExcel']);
         Route::get('sale-record/downloads',[SaleRecordController::class,'exportExcelAll']);
+
+        Route::get('sale-record-exemption',[SaleRecordController::class,'indexExemption']);
+        Route::get('sale-record-console',[SaleRecordController::class,'indexConsole']);
+        Route::get('sale-record-excs/download',[SaleRecordController::class,'exportExCsExcel']);
+
+
+        
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);
