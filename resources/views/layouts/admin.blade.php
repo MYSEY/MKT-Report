@@ -124,15 +124,8 @@
                                 </a>
                             </li>
                             {{-- Loan Reports --}}
-                            {{-- @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View')) --}}
-                                <li class="{{ 
-                                Request::is('admin/mkt-report/loan/*') 
-                                || 
-                                Request::is('admin/mkt-report/co-performance') 
-                                || 
-                                Request::is('admin/mkt-report/sale-record')
-                                ? 'active open' : '' 
-                                }}">
+                            @if(Auth::user()->can('CO Performance View') || Auth::user()->can('Loan Detail View') || Auth::user()->can('Sale Record View'))
+                                <li class="{{ Request::is('admin/mkt-report/loan/*')  || Request::is('admin/mkt-report/co-performance') || Request::is('admin/mkt-report/sale-record') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
                                         <span class="nav-link-text">MKT Reports</span>
@@ -161,7 +154,7 @@
                                         @endif
                                     </ul>
                                 </li>
-                            {{-- @endif --}}
+                            @endif
 
                                 <li class="{{ Request::is('admin/hr-report/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
