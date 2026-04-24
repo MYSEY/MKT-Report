@@ -155,7 +155,7 @@
                                     </ul>
                                 </li>
                             @endif
-
+                            @if(Auth::user()->can('Network Employee View') || Auth::user()->can('TMG Report View'))
                                 <li class="{{ Request::is('admin/hr-report/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
@@ -169,7 +169,7 @@
                                                 </a>
                                             </li>
                                         @endif
-                                         @if(Auth::user()->can('TMG Report View'))
+                                            @if(Auth::user()->can('TMG Report View'))
                                             <li class="{{ Request::is('admin/hr-report/tmg') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/hr-report/tmg') }}">
                                                     <span class="nav-link-text">TMG Report</span>
@@ -178,6 +178,7 @@
                                         @endif
                                     </ul>
                                 </li>
+                            @endif
 
                             {{-- Setting --}}
                             @if(Auth::user()->can('Role View') || Auth::user()->can('Permission View') || Auth::user()->can('Category View') || Auth::user()->can('User View'))
