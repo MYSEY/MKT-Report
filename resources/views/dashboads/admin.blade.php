@@ -44,7 +44,7 @@
         }
 
         .box .value {
-            font-size: 36px;
+            font-size: 30px;
             font-weight: bold;
             color: #444;
         }
@@ -73,7 +73,7 @@
         }
 
         .currency .amount {
-            font-size: 18px;
+            font-size: 13px;
             font-weight: bold;
             color: #333;
         }
