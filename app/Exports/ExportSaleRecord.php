@@ -40,7 +40,8 @@ class ExportSaleRecord implements FromView, WithEvents
         return view($name_file, [
             'data' => $this->data,
             'date'=>$this->date,
-            'currency'=>$this->currency
+            'currency'=>$this->currency,
+            'type'=> $this->type
         ]);
     }
     public function registerEvents(): array

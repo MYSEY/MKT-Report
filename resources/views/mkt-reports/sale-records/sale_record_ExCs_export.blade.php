@@ -26,7 +26,14 @@
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃជាប្រាក់រៀល</th>
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃជាប្រាក់ដុល្លារ</th>
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃសរុបជាប្រាក់រៀល</th>
-            <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ចំណូលមិនត្រូវបង់ (Exemption1%)</th>
+            <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">
+                @if ($type =="1")
+                    ចំណូលត្រូវបង់ ១%
+                @endif
+                @if ($type =="2")
+                    ចំណូលមិនត្រូវបង់ (Exemption1%)
+                @endif
+            </th>
         </tr>
     </thead>
     @php
