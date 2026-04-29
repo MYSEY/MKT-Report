@@ -14,80 +14,10 @@ use App\Models\InterestIncome;
 class SaleRecordController extends Controller
 {
     use HasRolePermission;
-    // public static function getDatas($request)
-    // {
-    //     $dateInput = $request->get('date') ?? date('Y-m');
-    //     $time = strtotime($dateInput);
-    //     $from_date = date('Y-m-01', $time);
-    //     $to_date = date('Y-m-t', $time);
-
-    //     // ទាញយកអត្រាប្តូរប្រាក់ (Rate) បើរកមិនឃើញឱ្យ default = 4000
-    //     $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
-    //         ->where('ch.Authorizeon', 'like', $dateInput.'%')
-    //         ->where('ch.ID', 'like', 'USD%')
-    //         ->orderBy('ch.Curr', 'desc')
-    //         ->first();
-
-    //     $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000; // ប្រើតម្លៃពី DB បើគ្មានប្រើ 4000
-    //     $query = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
-    //             ->select([
-    //                 'MKT_AIR_JOURNAL.Reference',
-    //                 'MKT_AIR_JOURNAL.Currency',
-                    
-    //                 DB::raw('MAX("MKT_AIR_JOURNAL"."TransactionDate") as "TransactionDate"'),
-    //                 DB::raw('MAX("MKT_AIR_JOURNAL"."Branch") as "Branch"'),
-    //                 DB::raw('MAX("MKT_AIR_JOURNAL"."GL_KEYS") as "GL_KEYS"'),
-
-    //                 // ✅ ១. គណនា Amount សុទ្ធ (Cr - Dr)
-    //                 // បើ Cr បូកបញ្ចូល (+) បើ Dr ដកចេញ (-)
-    //                 DB::raw('SUM(CASE WHEN "MKT_AIR_JOURNAL"."DebitCredit" = \'Cr\' THEN "MKT_AIR_JOURNAL"."Amount" ELSE -"MKT_AIR_JOURNAL"."Amount" END) as "Amount"'),
-
-    //                 // ✅ ២. គណនា Total KHR (Cr - Dr រួចគុណ Rate បើជា USD)
-    //                 DB::raw("SUM(
-    //                     CASE WHEN \"MKT_AIR_JOURNAL\".\"DebitCredit\" = 'Cr' THEN \"MKT_AIR_JOURNAL\".\"Amount\" ELSE -\"MKT_AIR_JOURNAL\".\"Amount\" END * CASE WHEN \"MKT_AIR_JOURNAL\".\"Currency\" = 'USD' THEN $rate ELSE 1 END
-    //                 ) as \"TotalKHR\""),
-
-    //                 // ✅ ៣. គណនា Tax 1% ពីលទ្ធផលសុទ្ធ (Net Amount)
-    //                 DB::raw("SUM(
-    //                     CASE WHEN \"MKT_AIR_JOURNAL\".\"DebitCredit\" = 'Cr' THEN \"MKT_AIR_JOURNAL\".\"Amount\" ELSE -\"MKT_AIR_JOURNAL\".\"Amount\" END * CASE WHEN \"MKT_AIR_JOURNAL\".\"Currency\" = 'USD' THEN $rate ELSE 1 END
-    //                 ) * 0.01 as \"Tax1Percent\""),
-
-    //                 DB::raw('MAX(CONCAT(TRIM("CUST"."LastNameKh"), \' \', TRIM("CUST"."FirstNameKh"))) as "KhName"'),
-    //                 DB::raw('MAX(CONCAT(TRIM("CUST"."LastNameEn"), \' \', TRIM("CUST"."FirstNameEn"))) as "EnName"'),
-    //             ])
-    //             ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.ID', '=', 'MKT_AIR_JOURNAL.Reference')
-    //             ->leftJoin('MKT_CLOSED_LOAN as CL', 'CL.ID', '=', 'MKT_AIR_JOURNAL.Reference')
-    //             ->leftJoin('MKT_CUSTOMER as CUST', 'CUST.ID', '=', DB::raw('COALESCE("LC"."ContractCustomerID", "CL"."ContractCustomerID")'))
-    //             ->where('MKT_AIR_JOURNAL.TransactionDate', '>=', $from_date)
-    //             ->where('MKT_AIR_JOURNAL.TransactionDate', '<=', $to_date)
-    //             ->where('MKT_AIR_JOURNAL.GL_KEYS', 'like', '5%')
-    //             ->groupBy(
-    //                 'MKT_AIR_JOURNAL.Reference',
-    //                 'MKT_AIR_JOURNAL.Currency'
-    //             );
-       
-    //     // ផ្នែក Search
-    //     $search = request()->input('search.value');
-    //     if (!empty($search)) {
-    //         $query->where(function ($q) use ($search) {
-    //             // ១. បង្កើត Raw Expression សម្រាប់បូកបញ្ចូលឈ្មោះ (Khmer & English)
-    //             $fullNameKh = 'TRIM("CUST"."LastNameKh") || \' \' || TRIM("CUST"."FirstNameKh")';
-    //             $fullNameEn = 'TRIM("CUST"."LastNameEn") || \' \' || TRIM("CUST"."FirstNameEn")';
-
-    //             $q->where(DB::raw($fullNameKh), 'ilike', "%{$search}%") // Search ឈ្មោះខ្មែរពេញ
-    //             ->orWhere(DB::raw($fullNameEn), 'ilike', "%{$search}%") // Search ឈ្មោះអង់គ្លេសពេញ
-    //             ->orWhere('MKT_AIR_JOURNAL.Reference', 'ilike', "%{$search}%")
-    //             ->orWhere('CUST.LastNameEn', 'ilike', "%{$search}%") // បន្ថែមសម្រាប់ករណី search តែត្រកូល
-    //             ->orWhere('CUST.FirstNameEn', 'ilike', "%{$search}%"); // បន្ថែមសម្រាប់ករណី search តែឈ្មោះ
-    //         });
-    //     }
-        
-    //     return [
-    //         "query"=>$query,
-    //         "currencyRate"=>$rate
-    //     ];
-        
-    // }
+    public static function getBranchs(){
+        $branchs = DB::connection('pgsql')->table('MKT_BRANCH')->get();
+        return $branchs;
+    }
     public static function getDatas($request)
     {
         $dateInput = $request->get('date') ?? date('Y-m');
@@ -304,18 +234,124 @@ class SaleRecordController extends Controller
 
        return (new FastExcel($dataGenerator()))->download('សៀវភៅទិញ_'.$date.'.xlsx');
     }
+    // public static function getDataExSl($request, $type)
+    // {
+    //     $dateInput = $request->get('date') ?? date('Y-m');
+    //     $time = strtotime($dateInput);
+    //     $year = date('Y', $time);
+    //     $month = date('m', $time);
+    //     // ១. ទាញយកបញ្ជីលេខគណនី (Array)
+    //     $accountNumbers = InterestIncome::where("type", $type)
+    //                         ->pluck('account_number')
+    //                         ->toArray();
+
+    //     // ទាញយកអត្រាប្តូរប្រាក់ (Rate) បើរកមិនឃើញឱ្យ default = 4000
+    //     $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
+    //         ->where('ch.Authorizeon', 'like', $dateInput.'%')
+    //         ->where('ch.ID', 'like', 'USD%')
+    //         ->orderBy('ch.Curr', 'desc')
+    //         ->first();
+
+    //     $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000;
+
+    //     $query = DB::connection('pgsql')->table('MKT_GL_BALANCE_BACKUP as Bl')
+    //     ->when($request->branch_id, fn($q, $branch_id) =>
+    //         $q->where('Bl.Branch', $branch_id)
+    //     )
+    //     ->leftJoin('MKT_GL_MAPPING as Mp', 'Bl.ID', '=', 'Mp.ID')
+    //     ->select([
+    //         'Bl.ID',
+    //         'Bl.GLYear', 
+    //         'Bl.GLMonth',
+    //         DB::raw('MAX("Bl"."GLDay") as "GLDay"'),
+    //         'Mp.ID as MpID',
+    //         'Mp.Description',
+    //         'Bl.Currency', 
+
+    //         // ✅ ១. បូកសរុបជា KHR (បង្កត់ ២ ខ្ទង់លើ Row នីមួយៗមុនបូក)
+    //         DB::raw("SUM(
+    //             CASE 
+    //                 WHEN \"Bl\".\"Currency\" = 'KHR' 
+    //                 THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
+    //                 ELSE 0 
+    //             END
+    //         ) as \"AmountKHR\""),
+            
+    //         // ✅ ២. បូកសរុបជា USD (បង្កត់ ២ ខ្ទង់លើ Row នីមួយៗមុនបូក)
+    //         DB::raw("SUM(
+    //             CASE 
+    //                 WHEN \"Bl\".\"Currency\" = 'USD' 
+    //                 THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
+    //                 ELSE 0 
+    //             END
+    //         ) as \"AmountUSD\""),
+
+    //         // ✅ ៣. គណនា Total Amount KHR = (USD * Rate) + KHR
+    //         DB::raw("SUM(
+    //             CASE 
+    //                 WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) * $rate 
+    //                 WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
+    //                 ELSE 0 
+    //             END
+    //         ) as \"TotalAmountKHR\""),
+
+    //         // ✅ ៤. គណនា Tax 1% ពី Total Amount KHR (បង្កត់លទ្ធផលចុងក្រោយ)
+    //         DB::raw("ROUND((SUM(
+    //             CASE 
+    //                 WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) * $rate 
+    //                 WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
+    //                 ELSE 0 
+    //             END
+    //         ) * 0.01)::numeric, 2) as \"Exemption1Percent\""),
+            
+    //         // ✅ ៥. Column ផ្សេងៗបូកធម្មតា តែបង្កត់ ២ ខ្ទង់ដូចគ្នា
+    //         DB::raw('SUM(ROUND(COALESCE("Bl"."PrevMonthBal", 0)::numeric, 2)) as "PrevMonthBal"'),
+    //         DB::raw('SUM(ROUND(COALESCE("Bl"."CurrentMonthBal", 0)::numeric, 2)) as "CurrentMonthBal"')
+    //     ])
+    //     ->whereIn("Bl.ID", $accountNumbers)
+    //     // ->whereRaw('LENGTH("Bl"."ID") = ?', [8])
+    //     ->where('Bl.Audit', '=', '1')
+    //     ->where('Bl.GLYear', '=', $year)
+    //     ->where('Bl.GLMonth', '=', $month)
+        
+    //     // ✅ ត្រូវដាក់ Bl.Currency ចូលក្នុង groupBy ដែរព្រោះយើងបាន select វា
+    //     ->groupBy(
+    //         'Bl.ID', 
+    //         'Bl.GLYear', 
+    //         'Bl.GLMonth', 
+    //         // 'Bl.GLDay',
+    //         'Mp.ID', 
+    //         'Mp.Description', 
+    //         'Bl.Currency'
+    //     )
+    //     ->orderBy('Bl.ID', 'asc');
+    //     // ផ្នែក Search
+    //     $search = request()->input('search.value');
+    //     if (!empty($search)) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('Bl.ID', 'ilike', "%{$search}%")
+    //             ->orWhere('Mp.Description', 'ilike', "%{$search}%");
+    //         });
+    //     }
+
+    //     return [
+    //         "query" => $query,
+    //         "currencyRate" => $rate
+    //     ];
+    // }
     public static function getDataExSl($request, $type)
     {
         $dateInput = $request->get('date') ?? date('Y-m');
         $time = strtotime($dateInput);
         $year = date('Y', $time);
         $month = date('m', $time);
-        // ១. ទាញយកបញ្ជីលេខគណនី (Array)
+
+        // ១. ទាញយកបញ្ជីលេខគណនី
         $accountNumbers = InterestIncome::where("type", $type)
                             ->pluck('account_number')
                             ->toArray();
 
-        // ទាញយកអត្រាប្តូរប្រាក់ (Rate) បើរកមិនឃើញឱ្យ default = 4000
+        // ២. ទាញយកអត្រាប្តូរប្រាក់
         $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
             ->where('ch.Authorizeon', 'like', $dateInput.'%')
             ->where('ch.ID', 'like', 'USD%')
@@ -324,63 +360,64 @@ class SaleRecordController extends Controller
 
         $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000;
 
-        // ទាញយក Rate
+        // ៣. បង្កើត Raw SQL សម្រាប់បូកសរុប (ជៀសវាងសរសេរដដែលៗ)
+        $sumKhr = "SUM(CASE WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) ELSE 0 END)";
+        $sumUsd = "SUM(CASE WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) ELSE 0 END)";
+        $sumTotalKhr = "SUM(
+            CASE 
+                WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) * $rate 
+                WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
+                ELSE 0 
+            END
+        )";
+
+        // ៤. កំណត់ Select និង GroupBy តាមលក្ខខណ្ឌ Branch
+        if ($request->branch_id) {
+            $selectColumns = [
+                DB::raw('MAX("Bl"."ID") as "ID"'), // ប្រើ MAX ដើម្បីកុំឱ្យ Error GroupBy
+                'Bl.Branch',
+                'Bl.GLYear', 
+                'Bl.GLMonth',
+                DB::raw('MAX("Bl"."GLDay") as "GLDay"'),
+                DB::raw('MAX("Mp"."ID") as "MpID"'),
+                DB::raw("'All Accounts In Branch' as \"Description\""), // បង្ហាញអក្សរជួសឱ្យ Description លម្អិត
+                'Bl.Currency',
+            ];
+            $groupByColumns = ['Bl.Branch', 'Bl.GLYear', 'Bl.GLMonth', 'Bl.Currency'];
+        } else {
+            $selectColumns = [
+                'Bl.ID',
+                'Bl.GLYear', 
+                'Bl.GLMonth',
+                DB::raw('MAX("Bl"."GLDay") as "GLDay"'), 
+                'Mp.ID as MpID',
+                'Mp.Description',
+                'Bl.Currency',
+            ];
+            $groupByColumns = ['Bl.ID', 'Bl.GLYear', 'Bl.GLMonth', 'Mp.ID', 'Mp.Description', 'Bl.Currency'];
+        }
+
+        // ៥. បន្ថែម Column បូកសរុបចូលក្នុង Select
+        $selectColumns[] = DB::raw("$sumKhr as \"AmountKHR\"");
+        $selectColumns[] = DB::raw("$sumUsd as \"AmountUSD\"");
+        $selectColumns[] = DB::raw("$sumTotalKhr as \"TotalAmountKHR\"");
+        $selectColumns[] = DB::raw("ROUND(($sumTotalKhr * 0.01)::numeric, 2) as \"Exemption1Percent\"");
+        $selectColumns[] = DB::raw('SUM(ROUND(COALESCE("Bl"."PrevMonthBal", 0)::numeric, 2)) as "PrevMonthBal"');
+        $selectColumns[] = DB::raw('SUM(ROUND(COALESCE("Bl"."CurrentMonthBal", 0)::numeric, 2)) as "CurrentMonthBal"');
+
+        // ៦. ចាប់ផ្តើម Query
         $query = DB::connection('pgsql')->table('MKT_GL_BALANCE_BACKUP as Bl')
-        ->leftJoin('MKT_GL_MAPPING as Mp', 'Bl.ID', '=', 'Mp.ID')
-        ->select([
-            'Bl.ID',
-            'Bl.GLYear', 
-            'Bl.GLMonth',
-            'Bl.GLDay',  
-            'Mp.ID as MpID',
-            'Mp.Description',
-            'Bl.Currency', // ទាញមកបង្ហាញបើត្រូវការ
+            ->leftJoin('MKT_GL_MAPPING as Mp', 'Bl.ID', '=', 'Mp.ID')
+            ->when($request->branch_id, fn($q, $branch_id) => $q->where('Bl.Branch', $branch_id))
+            ->select($selectColumns)
+            ->whereIn("Bl.ID", $accountNumbers)
+            ->where('Bl.Audit', '=', '1')
+            ->where('Bl.GLYear', '=', $year)
+            ->where('Bl.GLMonth', '=', $month)
+            ->groupBy($groupByColumns)
+            ->orderBy($request->branch_id ? 'Bl.Branch' : 'Bl.ID', 'asc');
 
-            // ✅ បូកសរុបជា KHR បើ Column Currency == 'KHR'
-            DB::raw("SUM(CASE WHEN \"Bl\".\"Currency\" = 'KHR' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) ELSE 0 END) as \"AmountKHR\""),
-
-            // ✅ បូកសរុបជា USD បើ Column Currency == 'USD'
-            DB::raw("SUM(CASE WHEN \"Bl\".\"Currency\" = 'USD' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) ELSE 0 END) as \"AmountUSD\""),
-
-            // ✅ គណនា Total Amount KHR = (USD * Rate) + KHR
-            DB::raw("SUM(
-                CASE 
-                    WHEN \"Bl\".\"Currency\" = 'USD' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) * $rate 
-                    WHEN \"Bl\".\"Currency\" = 'KHR' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) 
-                    ELSE 0 
-                END
-            ) as \"TotalAmountKHR\""),
-
-            // ✅ គណនា Tax 1% ពី Total Amount KHR ខាងលើ
-            DB::raw("SUM(
-                CASE 
-                    WHEN \"Bl\".\"Currency\" = 'USD' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) * $rate 
-                    WHEN \"Bl\".\"Currency\" = 'KHR' THEN COALESCE(\"Bl\".\"CurrentMonthBal\", 0) 
-                    ELSE 0 
-                END
-            ) * 0.01 as \"Exemption1Percent\""),
-            
-            DB::raw('SUM(COALESCE("Bl"."PrevMonthBal", 0)) as "PrevMonthBal"'),
-            DB::raw('SUM(COALESCE("Bl"."CurrentMonthBal", 0)) as "CurrentMonthBal"')
-        ])
-        ->whereIn("Bl.ID", $accountNumbers)
-        // ->whereRaw('LENGTH("Bl"."ID") = ?', [8])
-        ->where('Bl.Audit', '=', '1')
-        ->where('Bl.GLYear', '=', $year)
-        ->where('Bl.GLMonth', '=', $month)
-        
-        // ✅ ត្រូវដាក់ Bl.Currency ចូលក្នុង groupBy ដែរព្រោះយើងបាន select វា
-        ->groupBy(
-            'Bl.ID', 
-            'Bl.GLYear', 
-            'Bl.GLMonth', 
-            'Bl.GLDay', 
-            'Mp.ID', 
-            'Mp.Description', 
-            'Bl.Currency'
-        )
-        ->orderBy('Bl.ID', 'asc');
-        // ផ្នែក Search
+        // ៧. ផ្នែក Search
         $search = request()->input('search.value');
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -408,10 +445,9 @@ class SaleRecordController extends Controller
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 20));
 
-            // ✅ ដំណោះស្រាយ៖ ប្ដូរពី MKT_GL_BALANCE_BACKUP.ID មកជា Bl.ID
             $data = $get["query"]
                     ->reorder() // លុប order ចាស់ដែលមកពី getDataExemptions (បើមាន)
-                    ->orderBy('Bl.ID', 'asc') 
+                    // ->orderBy('Bl.ID', 'asc') 
                     ->offset($start)
                     ->limit($limit)
                     ->get();
@@ -424,7 +460,8 @@ class SaleRecordController extends Controller
                 'currency' => $get["currencyRate"]
             ]);
         }
-        return view('mkt-reports.sale-records.sale-record-exemption');
+        $branchs = self::getBranchs();
+        return view('mkt-reports.sale-records.sale-record-exemption',compact('branchs'));
     }
     public function indexConsole(Request $request) {
         if (!$this->denyPermission('Sale Record Console View')) {
@@ -443,7 +480,7 @@ class SaleRecordController extends Controller
             // ✅ ដំណោះស្រាយ៖ ប្ដូរពី MKT_GL_BALANCE_BACKUP.ID មកជា Bl.ID
             $data = $get["query"]
                     ->reorder() // លុប order ចាស់ដែលមកពី getDataExemptions (បើមាន)
-                    ->orderBy('Bl.ID', 'asc') 
+                    // ->orderBy('Bl.ID', 'asc') 
                     ->offset($start)
                     ->limit($limit)
                     ->get();
@@ -456,7 +493,8 @@ class SaleRecordController extends Controller
                 'currency' => $get["currencyRate"]
             ]);
         }
-        return view('mkt-reports.sale-records.sale-record-console');
+        $branchs = self::getBranchs();
+        return view('mkt-reports.sale-records.sale-record-console', compact('branchs'));
     }
     public function exportExCsExcel(Request $request){
         //*** (យ៉ាងហោច RAM 8GB ឡើងទៅ) **/

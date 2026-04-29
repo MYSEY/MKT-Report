@@ -55,7 +55,7 @@
             <tr>
                 <td align="center" style="border: 1px solid #000;">{{ $index + 1 }}</td>
                 <td align="center" style="border: 1px solid #000;">
-                    {{ $row->GLDay && $row->GLMonth && $row->GLYear ? $row->GLDay .'-'. $row->GLMonth .'-'. $row->GLYear : '-' }}
+                    {{$row->GLDay .'-' .$row->GLMonth . '-'. $row->GLYear}}
                 </td>
                 <td align="center" style="border: 1px solid #000;">11111</td>
                 <td align="center" style="border: 1px solid #000;">{{ $row->ID }}</td>
@@ -68,11 +68,11 @@
                 @endif
 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">
-                    {{ $row->AmountKHR > 0 ? number_format($row->AmountKHR) . ' ៛' : '-' }}
+                    {{ number_format($row->AmountKHR,2) . ' ៛' }}
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">
-                    {{ $row->AmountUSD > 0 ? '$ ' . number_format($row->AmountUSD, 2) : '-' }}
+                    {{ number_format($row->AmountUSD,2) .' $'}}
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px; font-weight: bold;">
@@ -80,7 +80,7 @@
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">
-                    {{ $row->Exemption1Percent > 0 ? number_format(round($row->Exemption1Percent)) . ' ៛' : '0 ៛' }}
+                    {{ $row->Exemption1Percent . ' ៛'}}
                 </td>
             </tr>
         @endforeach
@@ -89,10 +89,10 @@
     <tfoot>
         <tr style="background-color: #f2f2f2; font-weight: bold;">
             <td colspan="6" align="right" style="border: 1px solid #000; padding: 8px;">សរុបរួម:</td>
-            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumKHR) }} ៛</td>
+            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumKHR,2) }} ៛</td>
             <td align="right" style="border: 1px solid #000; padding-right: 5px;">$ {{ number_format($sumUSD, 2) }}</td>
-            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumTotalKHR) }} ៛</td>
-            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumTax) }} ៛</td>
+            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumTotalKHR,2) }} ៛</td>
+            <td align="right" style="border: 1px solid #000; padding-right: 5px;">{{ number_format($sumTax,2) }} ៛</td>
         </tr>
         <tr>
             <td></td>
