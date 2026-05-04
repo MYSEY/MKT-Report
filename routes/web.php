@@ -14,6 +14,7 @@ use App\Http\Controllers\Admins\NetworkEmployeeController;
 use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 use App\Http\Controllers\Admins\InterestIncomeController;
+use App\Http\Controllers\Admins\LoanInactiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,8 +55,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('sale-record-console',[SaleRecordController::class,'indexConsole']);
         Route::get('sale-record-excs/download',[SaleRecordController::class,'exportExCsExcel']);
 
-
+        Route::get('loan-inactive',[LoanInactiveController::class,'index']);
+        Route::get('loan-inactive/download',[LoanInactiveController::class,'export']);
         
+
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);

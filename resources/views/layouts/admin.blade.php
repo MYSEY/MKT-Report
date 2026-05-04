@@ -130,6 +130,7 @@
                             || Auth::user()->can('Sale Record View')
                             || Auth::user()->can('Sale Record Exemption View')
                             || Auth::user()->can('Sale Record Console View')
+                            || Auth::user()->can('Loan Inactive View')
                             )
                                 <li class="{{ 
                                 Request::is('admin/mkt-report/loan/*') 
@@ -141,6 +142,8 @@
                                 Request::is('admin/mkt-report/sale-record-exemption')
                                 ||
                                 Request::is('admin/mkt-report/sale-record-console')
+                                ||
+                                Request::is('admin/mkt-report/loan-inactive')
 
                                 ? 'active open' : '' 
                                 }}">
@@ -181,6 +184,13 @@
                                             <li class="{{ Request::is('admin/mkt-report/sale-record-console') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/mkt-report/sale-record-console') }}">
                                                     <span class="nav-link-text">Sale Record Console</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Loan Inactive View'))
+                                            <li class="{{ Request::is('admin/mkt-report/loan-inactive') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/mkt-report/loan-inactive') }}">
+                                                    <span class="nav-link-text">Loan Inactive Monitoring</span>
                                                 </a>
                                             </li>
                                         @endif
