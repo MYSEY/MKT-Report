@@ -33,7 +33,7 @@ class SaleRecordController extends Controller
         $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000;
 
         // ១. Sub-query: បូកសរុបបំបែកតាម Currency និង Reference
-    $subQuery = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
+        $subQuery = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
         ->select([
             'Reference',
             'Currency',
@@ -45,8 +45,8 @@ class SaleRecordController extends Controller
         ->where('GL_KEYS', 'like', '5%')
         ->groupBy('Reference', 'Currency');
 
-    // ២. Main Query: រៀបចំ Column តាមរូបភាព Table របស់អ្នក
-    $query = DB::connection('pgsql')->table(DB::raw("({$subQuery->toSql()}) as j"))
+        // ២. Main Query: រៀបចំ Column តាមរូបភាព Table របស់អ្នក
+        $query = DB::connection('pgsql')->table(DB::raw("({$subQuery->toSql()}) as j"))
         ->mergeBindings($subQuery) 
         ->select([
             'j.Reference',
