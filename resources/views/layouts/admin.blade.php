@@ -100,7 +100,7 @@
                     <div class="page-logo">
                         <a href="#" class="page-logo-link press-scale-down d-flex align-items-center position-relative" data-toggle="modal" data-target="#modal-shortcut">
                             <img src="{{asset('admins/img/favicon/commalogo1.png')}}" alt="SupportForm WebApp" aria-roledescription="logo" style="width: 90px">
-                            <span class="page-logo-text mr-1">Camma Reports</span>
+                            <span class="page-logo-text mr-1">Camma MFI</span>
                             <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
                         </a>
                     </div>
@@ -149,7 +149,7 @@
                                 }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
                                         <i class="fal fa-calendar-check"></i>
-                                        <span class="nav-link-text">MKT Reports</span>
+                                        <span class="nav-link-text">CBS Reports</span>
                                     </a>
                                     <ul>
                                         @if(Auth::user()->can('Loan Detail View'))
