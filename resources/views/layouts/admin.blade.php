@@ -123,80 +123,113 @@
                                     <span class="nav-link-text">Dashboard</span>
                                 </a>
                             </li>
-                            {{-- Loan Reports --}}
+                            <li class="active open">
+                                <a href="#" title="Pages" data-filter-tags="pages">
+                                    <i class="fal fa-calendar-check"></i>
+                                    <span class="nav-link-text" data-i18n="nav.pages">CBS Reports</span>
+                                </a>
+                                <ul>
+                                     {{-- *** block loan reports *** --}}
+                                    @if(Auth::user()->can('CO Performance View') 
+                                        || Auth::user()->can('Loan Detail View')
+                                        || Auth::user()->can('Loan Inactive View')
+                                        )
+                                        <li class="{{ 
+                                            Request::is('admin/mkt-report/loan/*') 
+                                            || 
+                                            Request::is('admin/mkt-report/co-performance') 
+                                            || 
+                                            Request::is('admin/mkt-report/loan-inactive')
+                                            ? 'active open' : '' 
+                                            }}"
+                                            >
+                                            <a href="javascript:void(0);" title="Forum" data-filter-tags="pages forum">
+                                                <span class="nav-link-text" data-i18n="nav.pages_forum">Loan Reports</span>
+                                            </a>
+                                            <ul>
+                                            @if(Auth::user()->can('Loan Detail View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/loan/detail') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/loan/detail') }}">
+                                                            <span class="nav-link-text">Loan Detail</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('CO Performance View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/co-performance') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/co-performance') }}">
+                                                            <span class="nav-link-text">CO Performance</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Loan Inactive View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/loan-inactive') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/loan-inactive') }}">
+                                                            <span class="nav-link-text">Loan Inactive Monitoring</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </li>
+                                    @endif
+                                    {{-- *** block accounting reports *** --}}
+                                    @if(Auth::user()->can('Sale Record View')
+                                        || Auth::user()->can('Sale Record Exemption View')
+                                        || Auth::user()->can('Sale Record Console View')
+                                        )
+                                        <li class="{{
+                                            Request::is('admin/mkt-report/sale-record')
+                                            ||
+                                            Request::is('admin/mkt-report/sale-record-exemption')
+                                            ||
+                                            Request::is('admin/mkt-report/sale-record-console')
 
-                            @if(Auth::user()->can('CO Performance View') 
-                            || Auth::user()->can('Loan Detail View') 
-                            || Auth::user()->can('Sale Record View')
-                            || Auth::user()->can('Sale Record Exemption View')
-                            || Auth::user()->can('Sale Record Console View')
-                            || Auth::user()->can('Loan Inactive View')
-                            )
-                                <li class="{{ 
-                                Request::is('admin/mkt-report/loan/*') 
-                                || 
-                                Request::is('admin/mkt-report/co-performance') 
-                                || 
-                                Request::is('admin/mkt-report/sale-record')
-                                ||
-                                Request::is('admin/mkt-report/sale-record-exemption')
-                                ||
-                                Request::is('admin/mkt-report/sale-record-console')
-                                ||
-                                Request::is('admin/mkt-report/loan-inactive')
-
-                                ? 'active open' : '' 
-                                }}">
-                                    <a href="javascript:void(0)" title="Loan Reports">
-                                        <i class="fal fa-calendar-check"></i>
-                                        <span class="nav-link-text">CBS Reports</span>
-                                    </a>
-                                    <ul>
-                                        @if(Auth::user()->can('Loan Detail View'))
-                                            <li class="{{ Request::is('admin/mkt-report/loan/detail') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/loan/detail') }}">
-                                                    <span class="nav-link-text">Loan Detail</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(Auth::user()->can('CO Performance View'))
-                                            <li class="{{ Request::is('admin/mkt-report/co-performance') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/co-performance') }}">
-                                                    <span class="nav-link-text">CO Performance</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(Auth::user()->can('Sale Record View'))
-                                            <li class="{{ Request::is('admin/mkt-report/sale-record') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/sale-record') }}">
-                                                    <span class="nav-link-text">Sale Record</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(Auth::user()->can('Sale Record Exemption View'))
-                                            <li class="{{ Request::is('admin/mkt-report/sale-record-exemption') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/sale-record-exemption') }}">
-                                                    <span class="nav-link-text">Sale Record Exemption</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(Auth::user()->can('Sale Record Console View'))
-                                            <li class="{{ Request::is('admin/mkt-report/sale-record-console') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/sale-record-console') }}">
-                                                    <span class="nav-link-text">Sale Record Console</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(Auth::user()->can('Loan Inactive View'))
-                                            <li class="{{ Request::is('admin/mkt-report/loan-inactive') ? 'active' : '' }}">
-                                                <a href="{{ url('admin/mkt-report/loan-inactive') }}">
-                                                    <span class="nav-link-text">Loan Inactive Monitoring</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                    </ul>
-                                </li>
-                            @endif
+                                            ? 'active open' : '' 
+                                            }}">
+                                            <a href="javascript:void(0);" title="Forum" data-filter-tags="pages forum">
+                                                <span class="nav-link-text" data-i18n="nav.pages_forum">Accounting Reports</span>
+                                            </a>
+                                            <ul>
+                                                @if(Auth::user()->can('Sale Record View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/sale-record') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/sale-record') }}">
+                                                            <span class="nav-link-text">Sale Record</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Sale Record Exemption View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/sale-record-exemption') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/sale-record-exemption') }}">
+                                                            <span class="nav-link-text">Sale Record Exemption</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Sale Record Console View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/sale-record-console') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/sale-record-console') }}">
+                                                            <span class="nav-link-text">Sale Record Console</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </li>
+                                    @endif
+                                    {{-- *** block customer reports *** --}}
+                                    @if(Auth::user()->can('Customer View'))
+                                        <li>
+                                            <a href="javascript:void(0);" title="Forum" data-filter-tags="pages forum">
+                                                <span class="nav-link-text" data-i18n="nav.pages_forum">Customer Reports</span>
+                                            </a>
+                                            <ul>
+                                                <li>
+                                                    <a href="page_forum_list.html" title="List" data-filter-tags="pages forum list">
+                                                        <span class="nav-link-text" data-i18n="nav.pages_forum_list">List</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </li>
                             @if(Auth::user()->can('Network Employee View') || Auth::user()->can('TMG Report View'))
                                 <li class="{{ Request::is('admin/hr-report/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Loan Reports">
