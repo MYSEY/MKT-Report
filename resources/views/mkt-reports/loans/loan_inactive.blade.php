@@ -10,6 +10,7 @@
                             class="form-control datepicker_month btn-filter" 
                             name="from_closedDate" 
                             id="from_closedDate" 
+                            value="{{ \Carbon\Carbon::now()->format('d-m-Y') }}"
                             placeholder="From ClosedDate" 
                             readonly 
                             style="background-color: #fff;">
@@ -21,6 +22,7 @@
                             class="form-control datepicker_month btn-filter" 
                             name="to_closedDate" 
                             id="to_closedDate" 
+                            value="{{ \Carbon\Carbon::now()->addMonth()->format('d-m-Y') }}"
                             placeholder="To ClosedDate " 
                             readonly 
                             style="background-color: #fff;">
@@ -28,7 +30,7 @@
                 </div>
                  <div class="col-sm-3 col-md-3">
                     <div class="form-group">
-                        <select class="select2 form-control btn-filter filter-branch" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
+                        <select class="select2 form-control btn-filter filter-branch" name="branch_id" id="branch_id" data-select2-id="select2-data-2-c0n2" >
                             <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
                             @foreach ($branchs as $item)
                                 <option value="{{ $item->ID }}">
@@ -66,11 +68,12 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>LoanStatus </th>
                                 <th>Branch </th>
                                 <th>ID </th>
                                 <th>ContractCustomerID </th>
                                 <th>CustomerName </th>
-                                <th>Account </th>
+                                {{-- <th>Account </th> --}}
                                 <th>Currency </th>
                                 <th>DisburseDate </th>
                                 <th>ClosedDate </th>
@@ -82,7 +85,6 @@
                                 <th>Sector </th>
                                 <th>Category </th>
                                 <th>ContractOfficerID </th>
-                                <th>LoanStatus </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -157,84 +159,75 @@
                 columns: [
                     {
                         data: null,
-                        name: 'no',
-                        orderable: false,
-                        searchable: false,
                         className: 'text-center',
                         render: function (data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {   
-                        data: 'Branch', 
-                        name: 'Branch', 
-                    },
-                    {   
-                        data: 'ID', 
-                        name: 'ID', 
-                    },
                     { 
-                        data: "ContractCustomerID",
-                        name: "ContractCustomerID",
-                    },
-                    { 
-                        data: "EnName",
-                        name: "EnName",
-                    },
-                    { 
-                        data: 'Account', 
-                        name: 'Account', 
-                    },
-                    { 
-                        data: 'Currency', 
-                        name: 'Currency', 
-                    },
-                    { 
-                        data: "ValueDate",
-                        name: "ValueDate",
-                    },
-                    { 
-                        data: "ClosedDate",
-                        name: "ClosedDate"
-                    },
-                    { 
-                        data: "Disbursed",
-                        name: 'Disbursed', 
-                    },
-                    { 
-                        data: "InterestRate",
-                        name: "InterestRate",
-                    },
-                    { 
-                        data: "Term",
-                        name: "Term",
-                    },
-                    { 
-                        data: "MaturityDate",
-                        name: "MaturityDate",
-                    },
-                    { 
-                        data: "LoanProduct",
-                        name: "LoanProduct",
-                    },
-                    { 
-                        data: "Sector",
-                        name: "Sector",
-                    },
-                    { 
-                        data: "Category",
-                        name: "Category",
-                    },
-                    { 
-                        data: "ContractOfficerID",
-                        name: "ContractOfficerID",
-                    },
-                    { 
-                        data: "LoanStatus",
+                        data: "LoanStatus", 
                         name: "LoanStatus",
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            let badgeClass = 'secondary'; // ពណ៌ប្រផេះសម្រាប់ Status ទូទៅ
+                            let statusText = data ? data : 'N/A';
+
+                            // ឆែកលក្ខខណ្ឌបើ status ស្មើ "Active"
+                            if (data === "Active") {
+                                badgeClass = 'success'; // ពណ៌បៃតង (Bootstrap class)
+                            } else{
+                                badgeClass = 'danger'; // ពណ៌ក្រហម
+                            }
+
+                            return '<span class="badge badge-' + badgeClass + '" style="padding: 5px 10px; border-radius: 4px;">' + statusText + '</span>';
+                        }
                     },
-                    
+                    // { data: "LoanStatus", name: "LoanStatus" },
+                    { data: 'Branch', name: 'Branch' },
+                    { data: 'ID', name: 'ID' },
+                    { data: "ContractCustomerID", name: "ContractCustomerID" },
+                    { data: "EnName", name: "EnName" },
+                    { data: 'Currency', name: 'Currency' },
+                    { data: "ValueDate", name: "ValueDate" },
+                    { data: "ClosedDate", name: "ClosedDate" },
+                    { 
+                        data: "Disbursed", 
+                        className: 'text-right',
+                        render: function (data) {
+                            return data ? new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data) : '0.00';
+                        }
+                    },
+                    { data: "InterestRate", name: "InterestRate" },
+                    { data: "Term", name: "Term" },
+                    { data: "MaturityDate", name: "MaturityDate" },
+                    { data: "ProdName", name: "ProdName" },
+                    { data: "Sector", name: "Sector" },
+                    { data: "Category", name: "Category" },
+                    { data: "ContractOfficerID", name: "ContractOfficerID" },
                 ],
+                drawCallback: function (settings) {
+                    var api = this.api();
+                    var rows = api.rows({ page: 'current' }).nodes();
+                    var last = null;
+
+                    api.column(4, { page: 'current' })
+                        .data()
+                        .each(function (group, i) {
+                            if (last !== group) {
+                                // ទាញយកឈ្មោះអតិថិជនពី Row នោះមកបង្ហាញក្នុង Header តែម្តង
+                                var rowData = api.row(i).data();
+                                var customerName = rowData ? rowData.EnName : '';
+
+                                $(rows).eq(i).before(
+                                    '<tr class="group" style="background-color: #e9ecef; font-weight: bold; border-left: 4px solid #6f42c1;">' +
+                                    '<td colspan="17" style="padding-left: 15px;">' + 
+                                    '<i class="fa fa-user"></i> ID: ' + group + ' | ' + customerName + 
+                                    '</td></tr>'
+                                );
+                                last = group;
+                            }
+                        });
+                }
             });
 
             $('#tbl-loan-inactive').on('processing.dt', function (e, settings, processing) {
