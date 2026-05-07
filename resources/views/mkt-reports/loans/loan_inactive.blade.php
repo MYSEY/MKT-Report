@@ -1,5 +1,19 @@
 @extends('layouts.admin')
 @section('content')
+<style>
+
+    /* កំណត់ Width ពិសេសសម្រាប់ Column LoanProduct */
+    .w-150 {
+        width: 150px !important;
+        min-width: 150px !important;
+    }
+
+    /* ជួយឱ្យអត្ថបទវែងៗចុះបន្ទាត់ */
+    .text-wrap {
+        white-space: normal !important;
+        word-wrap: break-word;
+    }
+</style>
     {!! Toastr::message() !!}
     <div class="card mb-2">
         <div class="card-body">
@@ -96,6 +110,7 @@
     </div>
 @endsection
 @section('script')
+<script src="{{asset('admins/js/export_xlsx.bundle.js')}}"></script>
     <script>
         $(function(){
             dataTables();
@@ -106,14 +121,85 @@
                     todayHighlight: true
                 });
             });
-            $(".btn_excel").on("click", function() {
-                let query = {
-                    branch_id: $('select[name="branch_id"]').val(),
-                    from_closedDate: $('input[name="from_closedDate"]').val(),
-                    to_closedDate: $('input[name="to_closedDate"]').val(),
-                };
-                var url = "{{URL::to('admin/mkt-report/loan-inactive/download')}}?" + $.param(query)
-                window.location = url;
+            // $(".btn_excel").on("click", function() {
+            //     let query = {
+            //         branch_id: $('select[name="branch_id"]').val(),
+            //         from_closedDate: $('input[name="from_closedDate"]').val(),
+            //         to_closedDate: $('input[name="to_closedDate"]').val(),
+            //     };
+            //     var url = "{{URL::to('admin/mkt-report/loan-inactive/download')}}?" + $.param(query)
+            //     window.location = url;
+            // });
+            $(document).on('click', '.btn_excel', function (e) {
+                e.preventDefault();
+                $('.btn-text-excel').hide();
+                $('#btn-text-loading-excel-1').show();
+
+                var table = document.getElementById("tbl-loan-inactive");
+                var ws = XLSX.utils.table_to_sheet(table);
+
+                // កំណត់ទំហំ Range នៃតារាង
+                var range = XLSX.utils.decode_range(ws['!ref']);
+
+                for (var R = range.s.r; R <= range.e.r; ++R) {
+                    for (var C = range.s.c; C <= range.e.c; ++C) {
+                        var cell_ref = XLSX.utils.encode_cell({r: R, c: C});
+                        if (!ws[cell_ref]) continue;
+
+                        // 1. កំណត់ Border ខ្មៅស្តើងគ្រប់ Cell ទាំងអស់
+                        ws[cell_ref].s = {
+                            border: {
+                                top: { style: "thin", color: { rgb: "000000" } },
+                                bottom: { style: "thin", color: { rgb: "000000" } },
+                                left: { style: "thin", color: { rgb: "000000" } },
+                                right: { style: "thin", color: { rgb: "000000" } }
+                            },
+                            font: { name: "Arial", sz: 10 },
+                            alignment: { vertical: "center", horizontal: "left" }
+                        };
+
+                        // 2. Style សម្រាប់ Header (ជួរទី ០)
+                        if (R === 0) {
+                            ws[cell_ref].s.fill = { fgColor: { rgb: "F2F2F2" } }; // ពណ៌ប្រផេះស្រាលដូចរូប
+                            ws[cell_ref].s.font.bold = true;
+                            ws[cell_ref].s.alignment.horizontal = "center";
+                        }
+
+                        // 3. Style សម្រាប់ Group Header (ជួរ ID: ...)
+                        // យើងឆែកមើលបើវាជាជួរដែល Header ឈ្មោះអតិថិជនលោតឡើង
+                        if (ws[cell_ref].v && String(ws[cell_ref].v).includes("ID:")) {
+                            ws[cell_ref].s.fill = { fgColor: { rgb: "E9ECEF" } };
+                            ws[cell_ref].s.font.bold = true;
+                        }
+
+                        // 4. Set Color សម្រាប់ LoanStatus (Column ទី ២ - Index 1)
+                        if (C === 1 && R > 0) {
+                            var statusText = String(ws[cell_ref].v).trim();
+                            ws[cell_ref].s.font.bold = true;
+                            ws[cell_ref].s.alignment.horizontal = "center";
+                            
+                            if (statusText === "Active") {
+                                ws[cell_ref].s.font.color = { rgb: "28A745" }; // ពណ៌បៃតង
+                            } else {
+                                ws[cell_ref].s.font.color = { rgb: "DC3545" }; // ពណ៌ក្រហម (TMN)
+                            }
+                        }
+                    }
+                }
+
+                // កំណត់ទទឹង Column ឱ្យស្អាត (Optional)
+                ws['!cols'] = [
+                    {wpx: 40}, {wpx: 90}, {wpx: 70}, {wpx: 120}, {wpx: 120}, {wpx: 150}
+                ];
+
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Loan_Report");
+                XLSX.writeFile(wb, "Loan_Inactive_Report.xlsx");
+
+                setTimeout(function() {
+                    $('.btn-text-excel').show();
+                    $('#btn-text-loading-excel-1').hide();
+                }, 1000);
             });
             // Reload only (DON'T destroy/reinit)
             $('.btn-filter').on('change', function() {
@@ -121,7 +207,6 @@
                 $('#tbl-loan-inactive').DataTable().ajax.reload(null, false);
                 $(".currency_month").text($('input[name="sale_date"]').val());
             });
-            // Initialize only once
             
         });
 
@@ -179,14 +264,16 @@
                                 badgeClass = 'danger'; // ពណ៌ក្រហម
                             }
 
-                            return '<span class="badge badge-' + badgeClass + '" style="padding: 5px 10px; border-radius: 4px;">' + statusText + '</span>';
+                            return '<span class="badge badge-' + badgeClass + '" style="padding: 3px 10px; border-radius: 4px;">' + statusText + '</span>';
                         }
                     },
-                    // { data: "LoanStatus", name: "LoanStatus" },
                     { data: 'Branch', name: 'Branch' },
                     { data: 'ID', name: 'ID' },
                     { data: "ContractCustomerID", name: "ContractCustomerID" },
-                    { data: "EnName", name: "EnName" },
+                    { data: "EnName", name: "EnName",
+                        width: "150px",
+                        className: "w-150 text-wrap" 
+                    },
                     { data: 'Currency', name: 'Currency' },
                     { data: "ValueDate", name: "ValueDate" },
                     { data: "ClosedDate", name: "ClosedDate" },
@@ -200,11 +287,17 @@
                     { data: "InterestRate", name: "InterestRate" },
                     { data: "Term", name: "Term" },
                     { data: "MaturityDate", name: "MaturityDate" },
-                    { data: "ProdName", name: "ProdName" },
+                    { 
+                        data: "ProdName", 
+                        name: "ProdName", 
+                        width: "150px",
+                        className: "w-150 text-wrap" 
+                    },
                     { data: "Sector", name: "Sector" },
                     { data: "Category", name: "Category" },
                     { data: "ContractOfficerID", name: "ContractOfficerID" },
                 ],
+                autoWidth: false,
                 drawCallback: function (settings) {
                     var api = this.api();
                     var rows = api.rows({ page: 'current' }).nodes();
@@ -221,7 +314,7 @@
                                 $(rows).eq(i).before(
                                     '<tr class="group" style="background-color: #e9ecef; font-weight: bold; border-left: 4px solid #6f42c1;">' +
                                     '<td colspan="17" style="padding-left: 15px;">' + 
-                                    '<i class="fa fa-user"></i> ID: ' + group + ' | ' + customerName + 
+                                    'ID: ' + group + ' | ' + customerName + 
                                     '</td></tr>'
                                 );
                                 last = group;

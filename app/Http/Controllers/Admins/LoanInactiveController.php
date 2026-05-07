@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Traits\HasRolePermission;
 use Illuminate\Support\Facades\DB;
 use Rap2hpoutre\FastExcel\FastExcel;
+use App\Exports\ExportLoanInactive;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class LoanInactiveController extends Controller
@@ -173,5 +175,16 @@ class LoanInactiveController extends Controller
             }
         };
        return (new FastExcel($dataGenerator()))->download('LoanInactiveMonitoring_'.$date.'.xlsx');
+    }
+    public function exportInactive(Request $request){
+        //*** (យ៉ាងហោច RAM 8GB ឡើងទៅ) **/
+        ini_set('memory_limit', '-1'); 
+        set_time_limit(0);
+
+        $data = self::getDatas($request)->orderBy('combined.ContractCustomerID', 'asc')
+            ->orderBy('combined.ValueDate', 'asc')->get();
+        $date = $request->get('date') ?? date('Y-m');
+        $name_file = "LoanInactiveMonitoring_";
+        return Excel::download(new ExportLoanInactive($data), $name_file.$date.'.xlsx');
     }
 }
