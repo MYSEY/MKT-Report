@@ -143,7 +143,7 @@
                                             ? 'active open' : '' 
                                             }}"
                                             >
-                                            <a href="javascript:void(0);" title="Forum" data-filter-tags="pages forum">
+                                            <a href="javascript:void(0);" title="Loan Reports" data-filter-tags="pages loan">
                                                 <span class="nav-link-text" data-i18n="nav.pages_forum">Loan Reports</span>
                                             </a>
                                             <ul>
@@ -175,6 +175,7 @@
                                     @if(Auth::user()->can('Sale Record View')
                                         || Auth::user()->can('Sale Record Exemption View')
                                         || Auth::user()->can('Sale Record Console View')
+                                        || Auth::user()->can('Trial Balance View')
                                         )
                                         <li class="{{
                                             Request::is('admin/mkt-report/sale-record')
@@ -182,13 +183,21 @@
                                             Request::is('admin/mkt-report/sale-record-exemption')
                                             ||
                                             Request::is('admin/mkt-report/sale-record-console')
-
+                                            || 
+                                            Request::is('admin/mkt-report/trial-balance')
                                             ? 'active open' : '' 
                                             }}">
-                                            <a href="javascript:void(0);" title="Forum" data-filter-tags="pages forum">
+                                            <a href="javascript:void(0);" title="Accounting Reports" data-filter-tags="pages accounting">
                                                 <span class="nav-link-text" data-i18n="nav.pages_forum">Accounting Reports</span>
                                             </a>
-                                            <ul>
+                                            <ul> 
+                                                @if(Auth::user()->can('Trial Balance View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/trial-balance') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/trial-balance') }}">
+                                                            <span class="nav-link-text">Trial Balance</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
                                                 @if(Auth::user()->can('Sale Record View'))
                                                     <li class="{{ Request::is('admin/mkt-report/sale-record') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/sale-record') }}">
@@ -797,7 +806,7 @@
 
         <script src="{{asset('admins/js/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.js')}}"></script>
         <script src="{{asset('admins/js/pusher/service-pusher.js')}}"></script>
-        
+        <script src="{{asset('admins/js/export_xlsx.bundle.js')}}"></script>
         {!! Toastr::message() !!}
 
         @yield('script')
