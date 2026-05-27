@@ -55,6 +55,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('sale-record-console',[SaleRecordController::class,'indexConsole']);
         Route::get('sale-record-excs/download',[SaleRecordController::class,'exportExCsExcel']);
 
+        Route::get('trial-balance',[SaleRecordController::class,'indexTrialBalance']);
+
         Route::get('loan-inactive',[LoanInactiveController::class,'index']);
         // Route::get('loan-inactive/download',[LoanInactiveController::class,'export']);
         Route::get('loan-inactive/download',[LoanInactiveController::class,'exportInactive']);

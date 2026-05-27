@@ -10,6 +10,8 @@ use App\Exports\ExportSaleRecord;
 use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Models\InterestIncome;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class SaleRecordController extends Controller
 {
@@ -158,6 +160,178 @@ class SaleRecordController extends Controller
             "currencyRate"=>$rate
         ];
     }
+    public static function getDataTB($request) {
+        $AccessBranch = Auth::user()->AccessBranch;
+        $branches = preg_split('/\s+/', trim($AccessBranch));
+        $dateInput = $request->get('date') ?? date('Y-m');
+        $previousDate = Carbon::parse($dateInput)->subMonth()->format('Y-m');
+        $previousYear = Carbon::parse($dateInput)->format('Y');
+        $previousMonth = Carbon::parse($dateInput)->subMonth()->format('m');
+
+        if($request->period !="current_month" && !$request->date){
+            if($request->period == "current_previous_month"){
+                $dateInput      = Carbon::parse()->format('Y-m');
+                $previousDate   = Carbon::parse()->subMonth()->format('Y-m');
+                $previousYear   = Carbon::parse()->subMonth()->format('Y');
+                $previousMonth  = Carbon::parse()->subMonth()->format('m');
+            };
+            if($request->period == "current_previous_year"){
+                $dateInput      = Carbon::parse()->subYear(1)->format('Y');
+                $previousDate   = Carbon::parse()->subYear(2)->format('Y');
+                $previousYear   = Carbon::parse()->subYear(1)->format('Y');
+                $previousMonth  = null;
+            };
+            if($request->period == "current_year"){
+                $dateInput      = Carbon::parse()->format('Y');
+                $previousDate   = Carbon::parse()->subYear()->format('Y');
+                $previousYear   = Carbon::parse()->format('Y');
+                $previousMonth  = null;
+            };
+        }
+        // ទាញយក Exchange Rate នៃខែមុននោះពី Database
+        $previousCurrencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
+            ->where('ch.Authorizeon', 'like', $previousDate . '%') // ប្រើខែដែលបានដករួច
+            ->where('ch.ID', 'like', 'USD%')
+            ->orderBy('ch.Curr', 'desc')
+            ->first();
+        $previousRate = $previousCurrencyRate ? $previousCurrencyRate->OtherRate1 : 4000;
+        $previousRate = $previousRate > 0 ? $previousRate : 4000;
+
+        $isCurrent = ($request->period == "current_month");
+        $name_table_currency = $isCurrent ? "MKT_CURRENCY" : "MKT_CURRENCY_HIST";
+        $currencyRate = DB::connection('pgsql')->table($name_table_currency.' as ch')
+            ->where('ch.Authorizeon', 'like', $dateInput.'%')
+            ->where('ch.ID', 'like', 'USD%')
+            ->orderBy('ch.Curr', 'desc')
+            ->first();
+        $currentExcahnge = $currencyRate ? $currencyRate->OtherRate1 : 4000;
+        $currentExcahnge = $currentExcahnge > 0 ? $currentExcahnge : 4000;
+        $Symbol = '/'; 
+        $Currency = "KHR";
+        if ($request->filled('currency') && $request->currency == "KHR") {
+            $Symbol = '*';
+            $Currency = "USD";
+        }
+        $name_table = $isCurrent ? "MKT_GL_BALANCE" : "MKT_GL_BALANCE_BACKUP";
+        $query = DB::connection('pgsql')->table("MKT_GL_MAPPING as mp")
+            ->leftJoin($name_table . ' as bl', 'mp.ID', '=', 'bl.ID')
+            ->select(
+                'mp.ID',
+                'mp.Description',
+                'mp.BalanceType',
+                DB::raw("COALESCE(SUM(CASE 
+                    WHEN bl.\"Currency\" = '" . $Currency . "' THEN ROUND(CAST(bl.\"PrevMonthBal\" AS NUMERIC) " . $Symbol . " " . $previousRate . ", 2)
+                    ELSE ROUND(CAST(bl.\"PrevMonthBal\" AS NUMERIC), 2)
+                END), 0) as \"BeginningBalance\""),
+
+                  // --- EndingBalance ---
+                DB::raw("COALESCE(SUM(CASE 
+                    WHEN bl.\"Currency\" = '" . $Currency . "' THEN ROUND(CAST(bl.\"CurrentMonthBal\" AS NUMERIC) " . $Symbol . " " . $currentExcahnge . ", 2)
+                    ELSE ROUND(CAST(bl.\"CurrentMonthBal\" AS NUMERIC), 2)
+                END), 0) as \"movementBalance\""),
+
+                DB::raw('SUM(bl."LCYBalance") as "LCYBalance"'),
+                DB::raw('SUM(bl."LCYPrevMonthBal") as "LCYPrevMonthBal"'),
+                DB::raw('SUM(bl."CurrentMonthBal") as "CurrentMonthBal"'),
+                DB::raw('SUM(bl."LCYCurrentMonthBal") as "LCYCurrentMonthBal"'),
+                DB::raw('SUM(bl."PrevYearBal") as "PrevYearBal"'),
+                DB::raw('SUM(bl."LCYPrevYearBal") as "LCYPrevYearBal"'),
+                DB::raw('SUM(bl."YTDBal") as "YTDBal"'),
+                DB::raw('SUM(bl."LCYYTDBal") as "LCYYTDBal"'),
+                // --- EndingBalance ---
+                DB::raw("COALESCE(SUM(CASE 
+                    WHEN bl.\"Currency\" = '" . $Currency . "' THEN ROUND(CAST(bl.\"Balance\" AS NUMERIC) " . $Symbol . " " . $currentExcahnge . ", 2)
+                    ELSE ROUND(CAST(bl.\"Balance\" AS NUMERIC), 2)
+                END), 0) as \"EndingBalance\""),
+                DB::raw('SUM(bl."LCYBalance") as "LCYBalance"')
+            )
+            ->whereRaw('LENGTH(bl."ID"::text) = 8') // Cast ទៅជា text ករណី ID ជាប្រភេទលេខ
+            ->where('bl.Branch', '<>', '');
+        
+        // --- Filters ---
+        if($branches[0] == "HQ"){
+            if ($request->branch_id && $request->branch_id != 'ALL') {
+                $query->where('bl.Branch', $request->branch_id);
+            }
+        }else{
+            $query->where('bl.Branch', $branches[0]);
+        }
+        if(!$isCurrent){
+            if ($previousYear) {
+                $query->where('bl.GLYear', $previousYear);
+            }
+            if ($previousMonth) {
+                $query->where('bl.GLMonth', $previousMonth);
+            }
+        }
+        
+        $search = request()->input('search.value');
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where(DB::raw('bl."ID"::text'), 'like', "%{$search}%")
+                ->orWhere(DB::raw('mp."ID"::text'), 'like', "%{$search}%")
+                ->orWhere(DB::raw('mp."Description"::text'), 'like', "%{$search}%");
+            });
+        }
+        $query->groupBy('mp.ID');
+        return $query;
+    }
+
+    public function indexTrialBalance(Request $request) {
+        if (!$this->denyPermission('Trial Balance View')) {
+            return view('page.access_page');
+        }
+        
+        if (request()->ajax()) {
+            // ១. ទាញ Query ពី getDataTB (ដែលមិនទាន់មាន GroupBy)
+            $baseQuery = self::getDataTB($request);
+            
+            $groupedQuery = clone $baseQuery;
+            $groupedQuery->groupBy('mp.ID', 'mp.Description', 'mp.BalanceType');
+
+            // ៣. រាប់ចំនួន RecordsFiltered (ប្រើ Sub-query)
+            $recordsTotal = DB::connection('pgsql')
+                ->table(DB::raw("({$groupedQuery->toSql()}) as sub"))
+                ->mergeBindings($groupedQuery)
+                ->count();
+
+            // ៤. គណនា Totals សម្រាប់ Footer
+            $totals = DB::connection('pgsql')
+                ->table(DB::raw("({$groupedQuery->toSql()}) as sub"))
+                ->mergeBindings($groupedQuery)
+                ->select(
+                    DB::raw("SUM(\"BeginningBalance\") as sum_beg"),
+                    DB::raw("SUM(\"movementBalance\") as sum_mov"),
+                    DB::raw("SUM(\"EndingBalance\") as sum_end"),
+                )
+                ->first();
+
+            // ៥. ទាញទិន្នន័យសម្រាប់បង្ហាញតាមទំព័រ
+            $start = intval($request->input('start', 0));
+            $limit = intval($request->input('length', 20));
+            
+            if ($limit == -1) {
+                $data = $groupedQuery->get();
+            } else {
+                $data = $groupedQuery->offset($start)->limit($limit)->get();
+            }
+
+            return response()->json([
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $recordsTotal,
+                'recordsFiltered' => $recordsTotal, 
+                'data' => $data,
+                'totals' => [
+                    'sum_beg' => number_format($totals->sum_beg ?? 0, 2),
+                    'sum_mov' => number_format($totals->sum_mov ?? 0, 2),
+                    'sum_end' => number_format($totals->sum_end ?? 0, 2),
+                ]
+            ]);
+        }
+        
+        $branchs = self::getBranchs();
+        return view('mkt-reports.trial-balances.index', compact('branchs'));
+    }
     public function index(Request $request) {
         if (!$this->denyPermission('Sale Record View')) {
             return view('page.access_page');
@@ -234,111 +408,6 @@ class SaleRecordController extends Controller
 
        return (new FastExcel($dataGenerator()))->download('សៀវភៅទិញ_'.$date.'.xlsx');
     }
-    // public static function getDataExSl($request, $type)
-    // {
-    //     $dateInput = $request->get('date') ?? date('Y-m');
-    //     $time = strtotime($dateInput);
-    //     $year = date('Y', $time);
-    //     $month = date('m', $time);
-    //     // ១. ទាញយកបញ្ជីលេខគណនី (Array)
-    //     $accountNumbers = InterestIncome::where("type", $type)
-    //                         ->pluck('account_number')
-    //                         ->toArray();
-
-    //     // ទាញយកអត្រាប្តូរប្រាក់ (Rate) បើរកមិនឃើញឱ្យ default = 4000
-    //     $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
-    //         ->where('ch.Authorizeon', 'like', $dateInput.'%')
-    //         ->where('ch.ID', 'like', 'USD%')
-    //         ->orderBy('ch.Curr', 'desc')
-    //         ->first();
-
-    //     $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000;
-
-    //     $query = DB::connection('pgsql')->table('MKT_GL_BALANCE_BACKUP as Bl')
-    //     ->when($request->branch_id, fn($q, $branch_id) =>
-    //         $q->where('Bl.Branch', $branch_id)
-    //     )
-    //     ->leftJoin('MKT_GL_MAPPING as Mp', 'Bl.ID', '=', 'Mp.ID')
-    //     ->select([
-    //         'Bl.ID',
-    //         'Bl.GLYear', 
-    //         'Bl.GLMonth',
-    //         DB::raw('MAX("Bl"."GLDay") as "GLDay"'),
-    //         'Mp.ID as MpID',
-    //         'Mp.Description',
-    //         'Bl.Currency', 
-
-    //         // ✅ ១. បូកសរុបជា KHR (បង្កត់ ២ ខ្ទង់លើ Row នីមួយៗមុនបូក)
-    //         DB::raw("SUM(
-    //             CASE 
-    //                 WHEN \"Bl\".\"Currency\" = 'KHR' 
-    //                 THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
-    //                 ELSE 0 
-    //             END
-    //         ) as \"AmountKHR\""),
-            
-    //         // ✅ ២. បូកសរុបជា USD (បង្កត់ ២ ខ្ទង់លើ Row នីមួយៗមុនបូក)
-    //         DB::raw("SUM(
-    //             CASE 
-    //                 WHEN \"Bl\".\"Currency\" = 'USD' 
-    //                 THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
-    //                 ELSE 0 
-    //             END
-    //         ) as \"AmountUSD\""),
-
-    //         // ✅ ៣. គណនា Total Amount KHR = (USD * Rate) + KHR
-    //         DB::raw("SUM(
-    //             CASE 
-    //                 WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) * $rate 
-    //                 WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
-    //                 ELSE 0 
-    //             END
-    //         ) as \"TotalAmountKHR\""),
-
-    //         // ✅ ៤. គណនា Tax 1% ពី Total Amount KHR (បង្កត់លទ្ធផលចុងក្រោយ)
-    //         DB::raw("ROUND((SUM(
-    //             CASE 
-    //                 WHEN \"Bl\".\"Currency\" = 'USD' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) * $rate 
-    //                 WHEN \"Bl\".\"Currency\" = 'KHR' THEN ROUND(COALESCE(\"Bl\".\"CurrentMonthBal\", 0)::numeric, 2) 
-    //                 ELSE 0 
-    //             END
-    //         ) * 0.01)::numeric, 2) as \"Exemption1Percent\""),
-            
-    //         // ✅ ៥. Column ផ្សេងៗបូកធម្មតា តែបង្កត់ ២ ខ្ទង់ដូចគ្នា
-    //         DB::raw('SUM(ROUND(COALESCE("Bl"."PrevMonthBal", 0)::numeric, 2)) as "PrevMonthBal"'),
-    //         DB::raw('SUM(ROUND(COALESCE("Bl"."CurrentMonthBal", 0)::numeric, 2)) as "CurrentMonthBal"')
-    //     ])
-    //     ->whereIn("Bl.ID", $accountNumbers)
-    //     // ->whereRaw('LENGTH("Bl"."ID") = ?', [8])
-    //     ->where('Bl.Audit', '=', '1')
-    //     ->where('Bl.GLYear', '=', $year)
-    //     ->where('Bl.GLMonth', '=', $month)
-        
-    //     // ✅ ត្រូវដាក់ Bl.Currency ចូលក្នុង groupBy ដែរព្រោះយើងបាន select វា
-    //     ->groupBy(
-    //         'Bl.ID', 
-    //         'Bl.GLYear', 
-    //         'Bl.GLMonth', 
-    //         // 'Bl.GLDay',
-    //         'Mp.ID', 
-    //         'Mp.Description', 
-    //         'Bl.Currency'
-    //     )
-    //     ->orderBy('Bl.ID', 'asc');
-    //     // ផ្នែក Search
-    //     $search = request()->input('search.value');
-    //     if (!empty($search)) {
-    //         $query->where(function ($q) use ($search) {
-    //             $q->where('Bl.ID', 'ilike', "%{$search}%")
-    //             ->orWhere('Mp.Description', 'ilike', "%{$search}%");
-    //         });
-    //     }
-
-    //     return [
-    //         "query" => $query,
-    //         "currencyRate" => $rate
-    //     ];
-    // }
     public static function getDataExSl($request, $type)
     {
         $dateInput = $request->get('date') ?? date('Y-m');

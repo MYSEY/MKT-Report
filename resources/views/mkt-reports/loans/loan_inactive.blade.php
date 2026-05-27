@@ -212,6 +212,8 @@
 
         function dataTables() {
             $('#loading-overlay').show();
+            var dynamicHeight = $(window).height() - 350;
+            if (dynamicHeight < 200) dynamicHeight = 200;
             if ($.fn.DataTable.isDataTable('#tbl-loan-inactive')) {
                 $('#tbl-loan-inactive').DataTable().clear().destroy();
             }
@@ -222,7 +224,7 @@
                 serverSide: true,
                 autoWidth: false, // បន្ថែមចំណុចនេះ ដើម្បីកុំឱ្យវាគណនា Style column លឿនពេក
                 scrollX: true,
-                // scrollY: '350px',
+                scrollY: dynamicHeight + 'px',
                 scroller: false,
                 order: [[1, 'asc']],
                 lengthMenu: [ 
@@ -297,7 +299,6 @@
                     { data: "Category", name: "Category" },
                     { data: "ContractOfficerID", name: "ContractOfficerID" },
                 ],
-                autoWidth: false,
                 drawCallback: function (settings) {
                     var api = this.api();
                     var rows = api.rows({ page: 'current' }).nodes();
