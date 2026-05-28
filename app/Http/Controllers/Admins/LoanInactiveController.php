@@ -26,16 +26,32 @@ class LoanInactiveController extends Controller
     public static function getDatas($request)
     {
         $search = $request->input('search.value');
-        $fromDate = $request->from_closedDate;
-        $toDate = $request->to_closedDate;
+        $fromDate = !empty($request->from_closedDate) 
+                    ? Carbon::createFromFormat('d-m-Y', $request->from_closedDate)->format('Y-m-d') 
+                    : null;
+        $toDate = !empty($request->to_closedDate) 
+                    ? Carbon::createFromFormat('d-m-Y', $request->to_closedDate)->format('Y-m-d') 
+                    : null;
         // ១. Query សម្រាប់ Table Closed
         $closedQuery = DB::connection('pgsql')->table('MKT_CLOSED_LOAN')
             ->select([
-                'Branch', 'ID', 'ContractCustomerID', 'Account', 'Currency', 
-                'ValueDate', 'ClosedDate', 'Disbursed', 
-                'InterestRate', 'Term', 'MaturityDate', 'LoanProduct', 
-                'Sector', 'Category', 'ContractOfficerID', 
-                'LoanStatus'
+                'Branch', 
+                'ID', 
+                'ContractCustomerID', 
+                'Account', 
+                'Currency', 
+                'ValueDate', 
+                'ClosedDate', 
+                'Disbursed', 
+                'InterestRate', 
+                'Term', 
+                'MaturityDate', 
+                'LoanProduct', 
+                'Sector', 
+                'Category', 
+                'ContractOfficerID', 
+                'LoanStatus',
+                'AssetClass'
             ]);
         if (!empty($request->branch_id)) {
             $closedQuery->where('Branch', $request->branch_id);
@@ -49,11 +65,23 @@ class LoanInactiveController extends Controller
         // ២. Query សម្រាប់ Table Active
         $activeLoans = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT as ACTIVE')
             ->select([
-                'Branch', 'ID', 'ContractCustomerID', 'Account', 'Currency', 
-                'ValueDate', DB::raw('NULL as "ClosedDate"'), 'Disbursed', 
-                'InterestRate', 'Term', 'MaturityDate', 'LoanProduct', 
-                'Sector', 'Category', 'ContractOfficerID', 
-                DB::raw("'Active' as \"LoanStatus\"")
+                'Branch', 
+                'ID', 
+                'ContractCustomerID', 
+                'Account', 
+                'Currency', 
+                'ValueDate', 
+                DB::raw('NULL as "ClosedDate"'), 
+                'Disbursed', 
+                'InterestRate', 
+                'Term', 
+                'MaturityDate', 
+                'LoanProduct', 
+                'Sector', 
+                'Category', 
+                'ContractOfficerID', 
+                DB::raw("'Active' as \"LoanStatus\""),
+                'AssetClass'
             ]);
 
         // *** បន្ថែមត្រង់នេះ៖ Filter Branch លើ Table Active ផ្ទាល់ ***
@@ -86,8 +114,13 @@ class LoanInactiveController extends Controller
             ->setBindings($combinedQuery->getBindings()) // ប្រើ setBindings ជំនួស mergeBindings ដើម្បីភាពច្បាស់លាស់
             ->leftJoin('MKT_CUSTOMER as CUST', 'CUST.ID', '=', 'combined.ContractCustomerID')
             ->leftJoin('MKT_LOAN_PRODUCT as prod', 'prod.ID', '=', 'combined.LoanProduct')
+            ->leftJoin('MKT_LOAN_AMENDMENT as amendment', function($join) {
+                $join->on('combined.ID', '=', 'amendment.LoanID')
+                    ->on('combined.ClosedDate', '=', 'amendment.AmendDate');
+            })
             ->select([
                 'combined.*',
+                'amendment.Reason',
                 DB::raw('TRIM("CUST"."LastNameEn") || \' \' || TRIM("CUST"."FirstNameEn") as "EnName"'),
                 DB::raw('TRIM("prod"."ID") || \' \' || TRIM("prod"."Description") as "ProdName"')
             ]);

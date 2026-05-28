@@ -99,6 +99,8 @@
                                 <th>Sector </th>
                                 <th>Category </th>
                                 <th>ContractOfficerID </th>
+                                <th>AssetClass </th>
+                                <th>Reason </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -298,6 +300,8 @@
                     { data: "Sector", name: "Sector" },
                     { data: "Category", name: "Category" },
                     { data: "ContractOfficerID", name: "ContractOfficerID" },
+                    { data: "AssetClass", name: "AssetClass" },
+                    { data: "Reason", name: "Reason" },
                 ],
                 drawCallback: function (settings) {
                     var api = this.api();
