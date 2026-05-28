@@ -15,6 +15,7 @@ use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 use App\Http\Controllers\Admins\InterestIncomeController;
 use App\Http\Controllers\Admins\LoanInactiveController;
+use App\Http\Controllers\Admins\LoanDisbursementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,7 +61,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('loan-inactive',[LoanInactiveController::class,'index']);
         // Route::get('loan-inactive/download',[LoanInactiveController::class,'export']);
         Route::get('loan-inactive/download',[LoanInactiveController::class,'exportInactive']);
-        
+
+        Route::get('loan-disbursement',[LoanDisbursementController::class,'index']);
 
     });
     Route::prefix('hr-report')->group(function () {
