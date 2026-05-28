@@ -256,8 +256,9 @@
                     },
                     { data: "Transaction", name: "Transaction" },
                     { 
-                        data: null,
-                        render: function () { return ""; }
+                        data: "LoanType",
+                        name: "LoanType"
+                        // render: function () { return ""; }
                     },
                 ],
                 
