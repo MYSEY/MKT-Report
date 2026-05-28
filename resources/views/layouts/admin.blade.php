@@ -133,6 +133,7 @@
                                     @if(Auth::user()->can('CO Performance View') 
                                         || Auth::user()->can('Loan Detail View')
                                         || Auth::user()->can('Loan Inactive View')
+                                        || Auth::user()->can('Loan Disbursement View')
                                         )
                                         <li class="{{ 
                                             Request::is('admin/mkt-report/loan/*') 
@@ -140,6 +141,8 @@
                                             Request::is('admin/mkt-report/co-performance') 
                                             || 
                                             Request::is('admin/mkt-report/loan-inactive')
+                                            ||
+                                            Request::is('admin/mkt-report/loan-disbursement')
                                             ? 'active open' : '' 
                                             }}"
                                             >
@@ -165,6 +168,13 @@
                                                     <li class="{{ Request::is('admin/mkt-report/loan-inactive') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/loan-inactive') }}">
                                                             <span class="nav-link-text">Loan Inactive Monitoring</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Loan Inactive View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/loan-disbursement') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/loan-disbursement') }}">
+                                                            <span class="nav-link-text">Loan Disbursement</span>
                                                         </a>
                                                     </li>
                                                 @endif
