@@ -32,40 +32,37 @@ class LoanDisbursementController extends Controller
 
         $query = DB::connection('pgsql')
             ->table('MKT_ACC_ENTRY')
+            ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.ID', '=', 'MKT_ACC_ENTRY.Reference')
             ->select([
-                'Branch', 
-                'Currency', 
-                'TransactionDate', 
-                'Reference', 
-                'Amount', 
-                'AmountAS', 
-                'Transaction'
+                'MKT_ACC_ENTRY.*',
+                'LC.LoanType'
             ])
-            ->where('Branch', '<>', '') 
-            ->where('Currency', '<>', '') 
-            ->where('Transaction', '=', '1')
-            ->where('Reference', 'like', 'LC%');
+            ->where('MKT_ACC_ENTRY.Branch', '<>', '') 
+            ->where('MKT_ACC_ENTRY.Currency', '<>', '') 
+            ->where('MKT_ACC_ENTRY.Transaction', '=', '1')
+            ->where('MKT_ACC_ENTRY.Reference', 'like', 'LC%');
         $query->when(!empty($request->branch_id) && $request->branch_id != 'all', function ($q) use ($request) {
-            return $q->where('Branch', $request->branch_id);
+            return $q->where('MKT_ACC_ENTRY.Branch', $request->branch_id);
         });
         $query->when(!empty($fromDate), function ($q) use ($fromDate) {
-            return $q->where('TransactionDate', '>=', $fromDate);
+            return $q->where('MKT_ACC_ENTRY.TransactionDate', '>=', $fromDate);
         });
         $query->when(!empty($toDate), function ($q) use ($toDate) {
-            return $q->where('TransactionDate', '<=', $toDate);
+            return $q->where('MKT_ACC_ENTRY.TransactionDate', '<=', $toDate);
         });
         $query->when(!empty($request->currency) && $request->currency != 'all', function ($q) use ($request) {
-            return $q->where('Currency', $request->currency);
+            return $q->where('MKT_ACC_ENTRY.Currency', $request->currency);
         });
 
         // === ប្រព័ន្ធស្វែងរកសកល (Global Search) ===
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('Branch', 'like', "%{$search}%")
-                ->orWhere('TransactionDate', 'like', "%{$search}%")
-                ->orWhere('Transaction', 'ilike', "%{$search}%")
-                ->orWhere('Currency', 'ilike', "%{$search}%")
-                ->orWhere('Reference', 'ilike', "%{$search}%");
+                $q->where('MKT_ACC_ENTRY.Branch', 'like', "%{$search}%")
+                ->orWhere('MKT_ACC_ENTRY.TransactionDate', 'like', "%{$search}%")
+                ->orWhere('MKT_ACC_ENTRY.Transaction', 'ilike', "%{$search}%")
+                ->orWhere('MKT_ACC_ENTRY.Currency', 'ilike', "%{$search}%")
+                ->orWhere('MKT_ACC_ENTRY.Reference', 'ilike', "%{$search}%")
+                ->orWhere('LC.LoanType', 'ilike', "%{$search}%");
             });
         }
 
