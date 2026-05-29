@@ -32,7 +32,7 @@
                             {{-- <option value="">Period</option> --}}
                             <option value=""></option>
                             <option value="current_month" selected>Current Month</option>
-                            <option value="current_previous_month">Current Previous Month</option>
+                            {{-- <option value="current_previous_month">Current Previous Month</option> --}}
                             <option value="current_previous_year">Current Previous Year</option>
                             <option value="current_year">Current Year</option>
                         </select>
@@ -61,9 +61,9 @@
                 <div class="col-sm-2 col-md-2">
                     <div class="form-group">
                         <select data-filter="currency" class="select2 form-control btn-filter" id="currency" data-select2-id="select2-data-2-c0n4" name="currency">
-                            <option value="" selected>All Currency</option>
-                            <option value="KHR" >KHR</option>
-                            <option value="USD">USD</option>
+                            <option value="" selected>Original Currency</option>
+                            <option value="KHR" >In KHR</option>
+                            <option value="USD">In USD</option>
                         </select>
                     </div>
                 </div>

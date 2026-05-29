@@ -30,6 +30,12 @@
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/formplugins/summernote/summernote.css')}}">
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/statistics/c3/c3.css')}}">
         <link rel="stylesheet" media="screen, print" href="{{asset('admins/css/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.css')}}">
+        <style>
+             .datepicker thead th.prev, .datepicker thead th.datepicker-switch, .datepicker thead th.next {
+        font-weight: 800 !important;
+        color: #212223 !important;
+    }
+        </style>
     </head>
     <body class="mod-bg-1">
         <!-- DOC: script to save and load page settings -->
@@ -171,7 +177,7 @@
                                                         </a>
                                                     </li>
                                                 @endif
-                                                @if(Auth::user()->can('Loan Inactive View'))
+                                                @if(Auth::user()->can('Loan Disbursement View'))
                                                     <li class="{{ Request::is('admin/mkt-report/loan-disbursement') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/loan-disbursement') }}">
                                                             <span class="nav-link-text">Loan Disbursement</span>
