@@ -95,22 +95,6 @@
                                 <div class="label">30%</div>
                             </div>
                         </div>
-                
-                        {{-- <div class="portfolio-title">TOTAL PORTFOLIO</div> --}}
-                
-                        {{-- <div class="bottom-section">
-                            <div class="currency">
-                                <div class="type">KHR</div>
-                                <div class="amount">{{ number_format($data->khr ?? 0, 0) }}</div>
-                            </div>
-                
-                            <div class="divider"></div>
-                
-                            <div class="currency">
-                                <div class="type">USD</div>
-                                <div class="amount">{{ number_format($data->usd ?? 0, 2) }}</div>
-                            </div>
-                        </div> --}}
                     </div>
                 </div>
             </div>
