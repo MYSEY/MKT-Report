@@ -15,11 +15,8 @@ use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 use App\Http\Controllers\Admins\InterestIncomeController;
 use App\Http\Controllers\Admins\LoanInactiveController;
-<<<<<<< Updated upstream
 use App\Http\Controllers\Admins\LoanDisbursementController;
-=======
 use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
->>>>>>> Stashed changes
 
 /*
 |--------------------------------------------------------------------------
