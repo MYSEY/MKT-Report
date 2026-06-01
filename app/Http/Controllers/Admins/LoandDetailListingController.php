@@ -48,18 +48,17 @@ class LoandDetailListingController extends Controller
         return view('loans.loan_detail',compact('branch', 'data', 'currency'));
     }
     public function download(Request $request){
-        $dataDate = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
-        $date = Carbon::parse($dataDate->SystemDate);
-        $currentTime = now()->setTimezone('Asia/Phnom_Penh');
-        $dateTime = $date->format('Y-m-d') . '-' . $currentTime->format('H-i');
-        $fileName = "Loan Detail Listing {$dateTime}.xlsx";
+        $dataDate = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
+        $date = Carbon::parse($dataDate->LastSystemDate);
+        $dateTime = $date->format('d-m-Y');
+        $dateCode = $date->format('Ymd');
+        $fileName = $dateCode ."-Loan Detail Listings as of {$dateTime}.xlsx";
         $query = self::getDatas($request);
         $data = $query->get();
         return Excel::download(new ExportLoanDetailListing($data), $fileName);
     }
     public static function getDatas($request)
     {
-        // 🔹 SubQuery: PD (latest DueDay per ID)
         $subQueryPD = DB::connection('pgsql')
             ->table(DB::raw('(
                 SELECT DISTINCT ON ("ID")
@@ -71,18 +70,16 @@ class LoandDetailListingController extends Controller
                 ORDER BY "ID", CAST("NumDayDue" AS INTEGER) DESC
             ) as PD'));
 
-        // 🔹 SubQuery: Last Payment (FIXED - no more correlated subquery)
         $subQueryACCENTR = DB::connection('pgsql')
             ->table('MKT_ACC_ENTRY')
             ->select(
                 'Account',
                 DB::raw('MAX("TransactionDate") AS "LastPaymentDate"')
             )
-            ->where('Amount', '>', 0)
-            ->whereIn('Transaction', ['6','7','10','11','13','25','27','40','52','53','54'])
-            ->groupBy('Account');
+        ->where('Amount', '>', 0)
+        ->whereIn('Transaction', ['6','7','10','11','13','25','27','40','52','53','54'])
+        ->groupBy('Account');
 
-        // 🔹 Main Query
         $query = DB::connection('pgsql')
             ->table('MKT_LOAN_CONTRACT as LC')
             ->select([
@@ -150,25 +147,18 @@ class LoandDetailListingController extends Controller
                 'LCh2.Charge as RegularCharge',
                 'POS.Description as CustomerOccupation',
                 'SD.RepMode as ScheduleType',
-
-                // ✅ FIXED: use joined subquery instead
                 'AE.LastPaymentDate'
             ])
-
-            // 🔹 JOIN optimized
             ->leftJoinSub($subQueryPD, 'PD', function ($join) {
                 $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
             })
-
             ->leftJoinSub($subQueryACCENTR, 'AE', function ($join) {
                 $join->on('AE.Account', '=', 'LC.Account');
             })
-
             ->leftJoin('MKT_LOAN_CHARGE as LCh1', function ($q) {
                 $q->on('LC.ID', '=', 'LCh1.ID')
                 ->where('LCh1.ChargeKey', 101);
             })
-
             ->leftJoin('MKT_LOAN_CHARGE as LCh2', function ($q) {
                 $q->on('LC.ID', '=', 'LCh2.ID')
                 ->where('LCh2.ChargeKey', 102);
@@ -185,7 +175,6 @@ class LoandDetailListingController extends Controller
             ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
             ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
 
-        // 🔹 Filters
         $query->when($request->branch_id, fn($q, $branch_id) =>
             $q->where('LC.Branch', $branch_id)
         );
@@ -194,7 +183,6 @@ class LoandDetailListingController extends Controller
             $q->where('LC.ID', 'ilike', "%{$LCID}%")
         );
 
-        // 🔹 Search (can be improved with trigram index)
         if ($searchValue = request()->input('search.value')) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('LC.Account', 'ilike', "%{$searchValue}%")
