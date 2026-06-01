@@ -149,31 +149,31 @@ class LoandDetailListingController extends Controller
                 'SD.RepMode as ScheduleType',
                 'AE.LastPaymentDate'
             ])
-            ->leftJoinSub($subQueryPD, 'PD', function ($join) {
-                $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
-            })
-            ->leftJoinSub($subQueryACCENTR, 'AE', function ($join) {
-                $join->on('AE.Account', '=', 'LC.Account');
-            })
-            ->leftJoin('MKT_LOAN_CHARGE as LCh1', function ($q) {
-                $q->on('LC.ID', '=', 'LCh1.ID')
-                ->where('LCh1.ChargeKey', 101);
-            })
-            ->leftJoin('MKT_LOAN_CHARGE as LCh2', function ($q) {
-                $q->on('LC.ID', '=', 'LCh2.ID')
-                ->where('LCh2.ChargeKey', 102);
-            })
+        ->leftJoinSub($subQueryPD, 'PD', function ($join) {
+            $join->whereRaw('"PD"."ID" = \'PD\' || "LC"."ID"');
+        })
+        ->leftJoinSub($subQueryACCENTR, 'AE', function ($join) {
+            $join->on('AE.Account', '=', 'LC.Account');
+        })
+        ->leftJoin('MKT_LOAN_CHARGE as LCh1', function ($q) {
+            $q->on('LC.ID', '=', 'LCh1.ID')
+            ->where('LCh1.ChargeKey', 101);
+        })
+        ->leftJoin('MKT_LOAN_CHARGE as LCh2', function ($q) {
+            $q->on('LC.ID', '=', 'LCh2.ID')
+            ->where('LCh2.ChargeKey', 102);
+        })
 
-            ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
-            ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
-            ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
-            ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
-            ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
-            ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
-            ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
-            ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
-            ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
-            ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
+        ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
+        ->leftJoin('MKT_SCHED_DEFINE as SD', 'LC.ID', '=', 'SD.ID')
+        ->leftJoin('MKT_POSITION as POS', 'POS.ID', '=', 'CUST.Position')
+        ->leftJoin('MKT_VILLAGE as VL', 'CUST.Village', '=', 'VL.ID')
+        ->leftJoin('MKT_COMMUNE as CM', 'CUST.Commune', '=', 'CM.ID')
+        ->leftJoin('MKT_DISTRICT as DS', 'CUST.District', '=', 'DS.ID')
+        ->leftJoin('MKT_PROVINCE as PR', 'CUST.Province', '=', 'PR.ID')
+        ->leftJoin('MKT_SECTOR as Sct', 'LC.Sector', '=', 'Sct.ID')
+        ->leftJoin('MKT_LOAN_COLLATERAL as LCol', 'LC.ID', '=', 'LCol.ID')
+        ->leftJoin('MKT_LOAN_PRODUCT as LPr', 'LC.LoanProduct', '=', 'LPr.ID');
 
         $query->when($request->branch_id, fn($q, $branch_id) =>
             $q->where('LC.Branch', $branch_id)
