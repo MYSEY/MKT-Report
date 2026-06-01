@@ -222,6 +222,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $event->sheet->getStyle('M:S')->getNumberFormat()->setFormatCode('#,##0.00');
                 $event->sheet->getStyle('AN:AO')->getNumberFormat()->setFormatCode('#,##0.00');
                 $event->sheet->getStyle('AW:BB')->getNumberFormat()->setFormatCode('#,##0.00');
+                $event->sheet->getDelegate()->setTitle('Loanlisting');
             },
         ];
     }

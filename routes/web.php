@@ -15,7 +15,11 @@ use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 use App\Http\Controllers\Admins\InterestIncomeController;
 use App\Http\Controllers\Admins\LoanInactiveController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\Admins\LoanDisbursementController;
+=======
+use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
+>>>>>>> Stashed changes
 
 /*
 |--------------------------------------------------------------------------
@@ -64,6 +68,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
         Route::get('loan-disbursement',[LoanDisbursementController::class,'index']);
 
+        
+        Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);
+        Route::post('veryfy/repayment/agent/import',[VeryfyRepaymentAgentController::class,'importVeryfyRepaymentAgent']);
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);

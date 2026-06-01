@@ -48,8 +48,8 @@ class LoandDetailListingController extends Controller
         return view('loans.loan_detail',compact('branch', 'data', 'currency'));
     }
     public function download(Request $request){
-        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
-        $date = Carbon::parse($data->SystemDate);
+        $dataDate = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
+        $date = Carbon::parse($dataDate->SystemDate);
         $currentTime = now()->setTimezone('Asia/Phnom_Penh');
         $dateTime = $date->format('Y-m-d') . '-' . $currentTime->format('H-i');
         $fileName = "Loan Detail Listing {$dateTime}.xlsx";
