@@ -33,7 +33,6 @@
                     <div class="card-header">
                         <span style="color: white;">Branch Productivity</span>
                     </div>
-                
                     <div class="card-body">
                         <div class="row mb-2">
                             <div class="col-md-6" style="text-align: left;">
