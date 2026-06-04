@@ -13,6 +13,7 @@ use App\Http\Controllers\Admins\LoandDetailListingController;
 use App\Http\Controllers\Admins\NetworkEmployeeController;
 use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
+use App\Http\Controllers\Admins\BranchCodeController;
 use App\Http\Controllers\Admins\InterestIncomeController;
 use App\Http\Controllers\Admins\LoanInactiveController;
 use App\Http\Controllers\Admins\LoanDisbursementController;
@@ -42,6 +43,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     });
     Route::prefix('configuration')->group(function () {
         Route::resource('interest-income', InterestIncomeController::class);
+        Route::resource('branch-code', BranchCodeController::class);
         Route::post('interest-income/import', [InterestIncomeController::class, 'import']);
     });
     Route::prefix('mkt-report')->group(function () {

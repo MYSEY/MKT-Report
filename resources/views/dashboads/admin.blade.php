@@ -72,7 +72,7 @@
                                 <div class="label"># PARs 30+</div>
                             </div>
                             <div class="col-md-6" style="text-align: right;">
-                                <div class="label">30%</div>
+                                <div class="label">{{ $finalParRate }}%</div>
                             </div>
                         </div>
                         <hr>
@@ -81,7 +81,7 @@
                                 <div class="label"># Profitble</div>
                             </div>
                             <div class="col-md-6" style="text-align: right;">
-                                <div class="label">30%</div>
+                                <div class="label">{{ $Profitble }}</div>
                             </div>
                         </div>
                         <hr>
@@ -90,7 +90,7 @@
                                 <div class="label"># NPL</div>
                             </div>
                             <div class="col-md-6" style="text-align: right;">
-                                <div class="label">30%</div>
+                                <div class="label">{{ $totalAssetClass }}</div>
                             </div>
                         </div>
                     </div>
