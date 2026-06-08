@@ -280,7 +280,7 @@
                                 </li>
                             @endif
 
-                            @if(Auth::user()->can('Interest Income View'))
+                            @if(Auth::user()->can('Interest Income View') || Auth::user()->can('Position View'))
                                 <li class="{{ Request::is('admin/configuration/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Configurations">
                                         <i class="fal fa-cog"></i>
@@ -291,6 +291,13 @@
                                             <li class="{{ Request::is('admin/configuration/interest-income') ? 'active' : '' }}">
                                                 <a href="{{ url('admin/configuration/interest-income') }}">
                                                     <span class="nav-link-text">Interest Income </span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(Auth::user()->can('Position View'))
+                                            <li class="{{ Request::is('admin/configuration/position') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/configuration/position') }}">
+                                                    <span class="nav-link-text">Position</span>
                                                 </a>
                                             </li>
                                         @endif
