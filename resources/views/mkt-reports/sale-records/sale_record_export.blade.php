@@ -20,6 +20,7 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ល.រ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">កាលបរិច្ឆេទ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ ប្រតិវេទន៍គយ ឬ លេខសក្ខីបត្របង្គរ*</th>
+            <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">CategoryID</th>
             <th colspan="4" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អ្នកទិញ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ប្រភេទផ្គត់ផ្គង់ទំនិញ<br>ឬសេវាកម្ម</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃ ជាប្រាក់រៀល</th>
@@ -30,6 +31,7 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">វិធីសាស្ត្រ<br>គណនេយ្យ</th>
         </tr>
         <tr style="background-color: #d9ead3; text-align: center;">
+            {{-- <th></th> --}}
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ប្រភេទ</th>
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខសម្គាល់</th>
             <th style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ឈ្មោះ (ខ្មែរ)</th>
@@ -42,6 +44,7 @@
                 <td align="center" style="border: 1px solid #000;">{{ $index + 1 }}</td>
                 <td align="center" style="border: 1px solid #000;">{{ $row->TransactionDate }}</td>
                 <td align="center" style="border: 1px solid #000;">11111</td>
+                <td align="center" style="border: 1px solid #000;">{{$row->CategoryID}}</td>
                 <td align="center" style="border: 1px solid #000;">2</td>
                 <td style="border: 1px solid #000;">{{ $row->Reference }}</td>
                 <td style="border: 1px solid #000;">{{ $row->KhName }}</td>
@@ -50,7 +53,7 @@
                 
                 {{-- ✅ បង្ហាញ Amount KHR --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Amount_KHR != 0 ? number_format($row->Amount_KHR) : '-' }}
+                    {{ $row->Amount_KHR != 0 ? number_format($row->Amount_KHR, 2) : '-' }}
                 </td>
 
                 {{-- ✅ បង្ហាញ Amount USD --}}
@@ -60,7 +63,7 @@
 
                 {{-- ✅ បង្ហាញ Total Amount KHR --}}
                 <td align="right" style="font-weight: bold; border: 1px solid #000;">
-                    {{ number_format($row->Total_Amount_KHR) }}
+                    {{ number_format($row->Total_Amount_KHR, 2) }}
                 </td>
 
                 {{-- ✅ បង្ហាញ Income Tax 1% --}}
@@ -75,11 +78,11 @@
     </tbody>
     <tfoot>
         <tr style="background-color: #f2f2f2; font-weight: bold;">
-            <td colspan="8" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+            <td colspan="9" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
 
             {{-- ✅ បូកសរុប Amount_KHR --}}
             <td align="right" style="border: 1px solid #000;">
-                {{ number_format($data->sum('Amount_KHR')) }}
+                {{ number_format($data->sum('Amount_KHR'),2) }}
             </td>
 
             {{-- ✅ បូកសរុប Amount_USD --}}
@@ -116,8 +119,10 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
         </tr>
         <tr>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>

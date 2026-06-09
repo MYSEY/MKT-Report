@@ -59,6 +59,7 @@
                                 <th rowspan="2">#</th>
                                 <th rowspan="2">Transaction_Date</th>
                                 <th rowspan="2">Inv_No</th>
+                                <th rowspan="2">CategoryID</th>
                                 <th colspan="4" class="text-center">Buyer</th> 
                                 <th rowspan="2">Type_of_Supply</th>
                                 <th rowspan="2">Amount_KHR</th>
@@ -79,7 +80,7 @@
                         </tbody>
                         <tfoot>
                             <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                <th colspan="8" style="text-align: right;">Total:</th>
+                                <th colspan="9" style="text-align: right;">Total:</th>
                                 <th id="sum_khr" class="text-right"></th>
                                 <th id="sum_usd" class="text-right"></th>
                                 <th id="sum_total_khr" class="text-right"></th>
@@ -196,6 +197,7 @@
                     },
                     { data: 'TransactionDate', name: 'j.TransactionDate', className: 'text-center' },
                     { data: null, render: () => 11111, className: 'text-center' },
+                    { data: 'CategoryID', name: 'j.CategoryID'},
                     { data: null, render: () => 2, className: 'text-center' },
                     { data: 'Reference', name: 'j.Reference' },
                     { data: 'KhName', name: 'CUST.LastNameKh' },
@@ -241,16 +243,16 @@
                     const parseNum = i => typeof i === 'string' ? i.replace(/[\$,៛,]/g, '') * 1 : typeof i === 'number' ? i : 0;
 
                     // បូកសរុបតាម Column (ប្រើ index 8, 9, 10, 11)
-                    const totalKHR = api.column(8, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalUSD = api.column(9, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalAll = api.column(10, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalTax = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalKHR = api.column(9, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalUSD = api.column(10, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalAll = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalTax = api.column(12, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
 
                     // បង្ហាញលទ្ធផលក្នុង Footer
-                    $(api.column(8).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
-                    $(api.column(9).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
-                    $(api.column(10).footer()).html(totalAll.toLocaleString() + ' ៛');
-                    $(api.column(11).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
+                    $(api.column(9).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
+                    $(api.column(10).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
+                    $(api.column(11).footer()).html(totalAll.toLocaleString() + ' ៛');
+                    $(api.column(12).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
                 }
             });
 
