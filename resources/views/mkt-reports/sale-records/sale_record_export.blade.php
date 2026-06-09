@@ -6,7 +6,7 @@
         </td>
     </tr>
     <tr><td colspan="14" style="text-align: center; font-weight: bold; font-size: 14pt;">
-        ប្រចំាខែ {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['month' => true]) }} ឆ្នំា {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['year' => true]) }}
+        ប្រចំាខែ{{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['month' => true]) }} ឆ្នំា{{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['year' => true]) }}
     </td></tr>
     <tr><td colspan="14" style="font-weight: bold;">នាមករណ៍សហគ្រាស : ខេមា មីក្រូហិរញ្ញវត្ថុ លីមីតធីត</td></tr>
     <tr><td colspan="14">អាស័យដ្ឋានៈផ្ទះលេខ១០១A ផ្លូវ 289 សង្កាត់បឹងកក់១ ខណ្ឌ ទួលគោក រាជធានី ភ្នំពេញ</td></tr>
@@ -21,6 +21,8 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">កាលបរិច្ឆេទ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ ប្រតិវេទន៍គយ ឬ លេខសក្ខីបត្របង្គរ*</th>
             <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">CategoryID</th>
+            <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">GL_KEYS</th>
+            <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">Currency</th>
             <th colspan="4" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អ្នកទិញ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ប្រភេទផ្គត់ផ្គង់ទំនិញ<br>ឬសេវាកម្ម</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">តម្លៃ ជាប្រាក់រៀល</th>
@@ -45,6 +47,8 @@
                 <td align="center" style="border: 1px solid #000;">{{ $row->TransactionDate }}</td>
                 <td align="center" style="border: 1px solid #000;">11111</td>
                 <td align="center" style="border: 1px solid #000;">{{$row->CategoryID}}</td>
+                <td style="border: 1px solid #000;">{{$row->GL_KEYS}}</td>
+                <td align="center" style="border: 1px solid #000;">{{$row->Currency}}</td>
                 <td align="center" style="border: 1px solid #000;">2</td>
                 <td style="border: 1px solid #000;">{{ $row->Reference }}</td>
                 <td style="border: 1px solid #000;">{{ $row->KhName }}</td>
@@ -78,7 +82,7 @@
     </tbody>
     <tfoot>
         <tr style="background-color: #f2f2f2; font-weight: bold;">
-            <td colspan="9" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+            <td colspan="11" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
 
             {{-- ✅ បូកសរុប Amount_KHR --}}
             <td align="right" style="border: 1px solid #000;">
@@ -120,8 +124,12 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
+            <td></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>

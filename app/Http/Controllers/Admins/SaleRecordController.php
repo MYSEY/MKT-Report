@@ -38,6 +38,7 @@ class SaleRecordController extends Controller
         $subQuery = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
         ->select([
             DB::raw('MAX("CategoryID") as "CategoryID"'),
+            DB::raw('MAX("GL_KEYS") as "GL_KEYS"'),
             'Reference',
             'Currency',
             DB::raw('MAX("TransactionDate") as "TransactionDate"'),
@@ -45,7 +46,7 @@ class SaleRecordController extends Controller
             DB::raw('SUM(CASE WHEN "DebitCredit" = \'Cr\' THEN "Amount" ELSE -"Amount" END) as "NetAmount"')
         ])
         ->whereBetween('TransactionDate', [$from_date, $to_date])
-        ->where('CategoryID', 'like', '5%')
+        ->where('GL_KEYS', 'like', '5%')
         ->groupBy('Reference', 'Currency');
 
         // ២. Main Query: រៀបចំ Column តាមរូបភាព Table របស់អ្នក
@@ -57,6 +58,7 @@ class SaleRecordController extends Controller
             'j.Currency',
             'j.NetAmount',
             'j.CategoryID',
+            'j.GL_KEYS',
             
             // ១. Amount KHR: បើជា KHR យក NetAmount បើមិនមែនយក 0
             DB::raw('CASE WHEN j."Currency" = \'KHR\' THEN j."NetAmount" ELSE 0 END as "Amount_KHR"'),
