@@ -37,6 +37,7 @@ class SaleRecordController extends Controller
         // ១. Sub-query: បូកសរុបបំបែកតាម Currency និង Reference
         $subQuery = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
         ->select([
+            DB::raw('MAX("CategoryID") as "CategoryID"'),
             'Reference',
             'Currency',
             DB::raw('MAX("TransactionDate") as "TransactionDate"'),
@@ -44,7 +45,7 @@ class SaleRecordController extends Controller
             DB::raw('SUM(CASE WHEN "DebitCredit" = \'Cr\' THEN "Amount" ELSE -"Amount" END) as "NetAmount"')
         ])
         ->whereBetween('TransactionDate', [$from_date, $to_date])
-        ->where('GL_KEYS', 'like', '5%')
+        ->where('CategoryID', 'like', '5%')
         ->groupBy('Reference', 'Currency');
 
         // ២. Main Query: រៀបចំ Column តាមរូបភាព Table របស់អ្នក
@@ -55,6 +56,7 @@ class SaleRecordController extends Controller
             'j.TransactionDate',
             'j.Currency',
             'j.NetAmount',
+            'j.CategoryID',
             
             // ១. Amount KHR: បើជា KHR យក NetAmount បើមិនមែនយក 0
             DB::raw('CASE WHEN j."Currency" = \'KHR\' THEN j."NetAmount" ELSE 0 END as "Amount_KHR"'),
@@ -86,10 +88,11 @@ class SaleRecordController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('j.Reference', 'ilike', "%{$search}%")
                 ->orWhere('CUST.LastNameEn', 'ilike', "%{$search}%")
-                ->orWhere('CUST.FirstNameEn', 'ilike', "%{$search}%");
+                ->orWhere('CUST.FirstNameEn', 'ilike', "%{$search}%")
+                ->orWhere('j.CategoryID', 'ilike', "%{$search}%");
             });
         }
-
+        // $query->where('j.CategoryID', '=', '5221101');
         return ["query" => $query, "currencyRate" => $rate];
     }
     public static function getDataDetails($request){
