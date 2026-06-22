@@ -11,31 +11,40 @@
     <div class="card mb-2">
         <div class="card-body">
             <div class="row filter-btn">
-                <div class="col-sm-4 col-md-4">
+                <div class="col-sm-3 col-md-3">
                     <div class="form-group">
                         <input type="text" 
-                            class="form-control datepicker_month btn-filter" 
+                            class="form-control datepicker_month" 
                             name="sale_date" 
                             id="sale_date" 
-                            value="{{ date('Y-m') }}"
+                            value=""
                             placeholder="mm/yyyy" 
                             readonly 
                             style="background-color: #fff;">
                     </div>
                 </div>
-                <div class="col-sm-8 col-md-8">
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <input type="text"  placeholder="GL Code" name="gl_code" class="form-control gl_code">
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <input type="text"  placeholder="Full Name" name="full_name"  class="form-control full_name">
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
                     <div class="float-right">
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" id="icon-search-download-reload">
+                            <span class="btn-txt"><i class="fal fa-search"></i></span>
+                            Search
+                            <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                        </button>
                         @if(Auth::user()->can('Sale Record Export'))
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                                 Excel Summary
-                            </button>
-
-                            <button type="button" class="btn btn-sm btn-success waves-effect waves-themed btn_excel_all mr-1">
-                                <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                <span id="btn-text-loading-excel-2" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel Details
                             </button>
                         @endif
                     </div>
@@ -59,8 +68,7 @@
                                 <th rowspan="2">#</th>
                                 <th rowspan="2">Transaction_Date</th>
                                 <th rowspan="2">Inv_No</th>
-                                <th rowspan="2">CategoryID</th>
-                                <th rowspan="2">GL_KEYS</th>
+                                <th rowspan="2">GL_Code</th>
                                 <th rowspan="2">Currency</th>
                                 <th colspan="4" class="text-center">Buyer</th> 
                                 <th rowspan="2">Type_of_Supply</th>
@@ -82,7 +90,7 @@
                         </tbody>
                         <tfoot>
                             <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                <th colspan="11" style="text-align: right;">Total:</th>
+                                <th colspan="10" style="text-align: right;">Total:</th>
                                 <th id="sum_khr" class="text-right"></th>
                                 <th id="sum_usd" class="text-right"></th>
                                 <th id="sum_total_khr" class="text-right"></th>
@@ -124,6 +132,8 @@
                     // ២. រៀបចំ Query String
                     let query = {
                         date: $('input[name="sale_date"]').val(),
+                        gl_code: $('input[name="gl_code"]').val(),
+                        full_name: $('input[name="full_name"]').val(),
                         // អ្នកអាចបន្ថែម search: $('input[type="search"]').val() បើចង់បាន
                     };
 
@@ -150,14 +160,11 @@
                 });
             });
             // Reload only (DON'T destroy/reinit)
-            $('.btn-filter').on('change', function() {
-                $(".currency_rate").text("");
-                $('#loading-overlay').hide();
-                $('#tbl-sale-record').DataTable().ajax.reload(null, false);
-                $(".currency_month").text($('input[name="sale_date"]').val());
+            $('.btn-search').on('click', function() {
+                dataTables();
             });
             // Initialize only once
-            dataTables();
+            // dataTables();
         });
 
         function dataTables() {
@@ -168,6 +175,7 @@
             }
            $('#tbl-sale-record').DataTable({
                 pageLength: 20,
+                searching: false,
                 destroy: true,
                 processing: true,
                 serverSide: true,
@@ -181,6 +189,8 @@
                     type: 'GET',
                     data: function (d) {
                         d.date = $('input[name="sale_date"]').val();
+                        d.gl_code = $('input[name="gl_code"]').val();
+                        d.full_name = $('input[name="full_name"]').val();
                     },
                     dataSrc: function (json) {
                         let currency = json.currency;
@@ -197,16 +207,18 @@
                         className: 'text-center',
                         render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
-                    { data: 'TransactionDate', name: 'j.TransactionDate', className: 'text-center' },
-                    { data: null, render: () => 11111, className: 'text-center' },
-                    { data: 'CategoryID', name: 'j.CategoryID'},
-                    { data: 'GL_KEYS', name: 'j.GL_KEYS' },
-                    { data: 'Currency', name: 'j.Currency' },
-                    { data: null, render: () => 2, className: 'text-center' },
-                    { data: 'Reference', name: 'j.Reference' },
-                    { data: 'KhName', name: 'CUST.LastNameKh' },
-                    { data: 'EnName', name: 'CUST.LastNameEn' },
-                    { data: null, render: () => 3, className: 'text-center' },
+                    { data: 'TransactionMonth', name: 'combined.TransactionMonth', className: 'text-center' },
+                    { data: null, render: () => 11111, className: 'text-center', orderable: false, searchable: false },
+                    { data: 'GLAcc', name: 'combined.GLAcc'},
+                    { data: 'Currency', name: 'combined.Currency' },
+                    { data: null, render: () => 2, className: 'text-center', orderable: false, searchable: false },
+                    { data: 'Reference', name: 'combined.Reference' },
+                    
+                    // 💡 កែសម្រួលត្រង់នេះ៖ ប្តូរពី CUST.LastNameKh មកជា cust.LastNameKh (អក្សរតូចដូចក្នុង Backend)
+                    { data: 'KhName', name: 'cust.LastNameKh' },
+                    { data: 'EnName', name: 'cust.LastNameEn' },
+                    
+                    { data: null, render: () => 3, className: 'text-center', orderable: false, searchable: false },
 
                     // Amount KHR
                     { 
@@ -236,8 +248,8 @@
                         className: 'text-right',
                         render: d => Math.round(d).toLocaleString() + ' ៛'
                     },
-                    { data: null, render: () => 'Loan Repayment' },
-                    { data: null, render: () => 0, className: 'text-center' },
+                    { data: null, render: () => 'Loan Repayment', orderable: false, searchable: false },
+                    { data: null, render: () => 0, className: 'text-center', orderable: false, searchable: false },
                 ],
 
                 footerCallback: function (row, data, start, end, display) {

@@ -20,7 +20,6 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ល.រ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">កាលបរិច្ឆេទ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ ប្រតិវេទន៍គយ ឬ លេខសក្ខីបត្របង្គរ*</th>
-            <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">CategoryID</th>
             <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">GL_KEYS</th>
             <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">Currency</th>
             <th colspan="4" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អ្នកទិញ</th>
@@ -44,10 +43,9 @@
         @foreach($data as $index => $row)
             <tr>
                 <td align="center" style="border: 1px solid #000;">{{ $index + 1 }}</td>
-                <td align="center" style="border: 1px solid #000;">{{ $row->TransactionDate }}</td>
+                <td align="center" style="border: 1px solid #000;">{{ $row->TransactionMonth }}</td>
                 <td align="center" style="border: 1px solid #000;">11111</td>
-                <td align="center" style="border: 1px solid #000;">{{$row->CategoryID}}</td>
-                <td style="border: 1px solid #000;">{{$row->GL_KEYS}}</td>
+                <td style="border: 1px solid #000;">{{$row->GLAcc}}</td>
                 <td align="center" style="border: 1px solid #000;">{{$row->Currency}}</td>
                 <td align="center" style="border: 1px solid #000;">2</td>
                 <td style="border: 1px solid #000;">{{ $row->Reference }}</td>
@@ -82,7 +80,7 @@
     </tbody>
     <tfoot>
         <tr style="background-color: #f2f2f2; font-weight: bold;">
-            <td colspan="11" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+            <td colspan="10" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
 
             {{-- ✅ បូកសរុប Amount_KHR --}}
             <td align="right" style="border: 1px solid #000;">
