@@ -23,7 +23,7 @@
                             style="background-color: #fff;">
                     </div>
                 </div>
-                <div class="col-sm-3 col-md-3">
+                <div class="col-sm-2 col-md-2">
                     <div class="form-group">
                         <input type="text"  placeholder="GL Code" name="gl_code" class="form-control gl_code">
                     </div>
@@ -36,7 +36,7 @@
                         <input type="text"  placeholder="LC" name="reference"  class="form-control reference">
                     </div>
                 </div>
-                <div class="col-sm-3 col-md-3">
+                <div class="col-sm-4 col-md-4">
                     <div class="float-right">
                         <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" id="icon-search-download-reload">
                             <span class="btn-txt"><i class="fal fa-search"></i></span>
@@ -47,7 +47,12 @@
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel Summary
+                                Excel GL
+                            </button>
+                              <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" data-btn="lc">
+                                <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
+                                <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                                Excel LC
                             </button>
                         @endif
                     </div>
@@ -120,6 +125,11 @@
                 });
             });
             $('.btn_excel').on('click', function() {
+                const actionBTN = $(this).data("btn");
+                let btn_export = "";
+                if (actionBTN == "lc") {
+                    btn_export = true;
+                }
                 let table = $('#tbl-sale-record').DataTable();
                 let pageInfo = table.page.info();
                 let start = pageInfo.start;
@@ -127,11 +137,10 @@
 
                 let date = $('input[name="sale_date"]').val() || '';
                 let gl_code = $('input[name="gl_code"]').val() || '';
-                let full_name = $('input[name="full_name"]').val() || '';
                 let reference = $('input[name="reference"]').val() || '';
 
                 let exportUrl = '{{ url("admin/mkt-report/sale-record/download") }}' + 
-                    `?date=${date}&gl_code=${gl_code}&full_name=${full_name}&reference=${reference}` +
+                    `?date=${date}&gl_code=${gl_code}&reference=${reference}&lc=${btn_export}` +
                     `&start=${start}&length=${length}`;
                 window.location.href = exportUrl;
             });
@@ -158,7 +167,10 @@
                 scrollY: '350px',
                 scroller: false,
                 order: [[1, 'desc']],
-                lengthMenu: [ [20, 25, 50, 100], [10, 25, 50, 100] ],
+                lengthMenu: [ 
+                    [20, 25, 50, 100, -1],
+                    [20, 25, 50, 100, "All"]
+                ],
                 ajax: {
                     url: '{{ URL("admin/mkt-report/sale-record") }}',
                     type: 'GET',
