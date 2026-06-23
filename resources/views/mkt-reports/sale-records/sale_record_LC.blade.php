@@ -11,7 +11,7 @@
     <tr><td colspan="14" style="font-weight: bold;">នាមករណ៍សហគ្រាស : ខេមា មីក្រូហិរញ្ញវត្ថុ លីមីតធីត</td></tr>
     <tr><td colspan="14">អាស័យដ្ឋានៈផ្ទះលេខ១០១A ផ្លូវ 289 សង្កាត់បឹងកក់១ ខណ្ឌ ទួលគោក រាជធានី ភ្នំពេញ</td></tr>
     <tr>
-        <td colspan="12">គណនីសហគ្រាស​​​ :  L001-10​7008408</td>
+        <td colspan="11">គណនីសហគ្រាស​​​ :  L001-10​7008408</td>
         <td style="font-weight: bold; text-align: right;">អត្រាប្តូរប្រាក់</td>
         <td style="font-weight: bold; text-align: center;">{{$currency}}៛ </td>
     </tr>
@@ -20,7 +20,6 @@
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ល.រ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">កាលបរិច្ឆេទ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">លេខវិក្កយបត្រ ប្រតិវេទន៍គយ ឬ លេខសក្ខីបត្របង្គរ*</th>
-            <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">GL_KEYS</th>
             <th rowspan="2"style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">Currency</th>
             <th colspan="4" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">អ្នកទិញ</th>
             <th rowspan="2" style="border: 1px solid #000; text-align: center; background-color: #f2f2f2; font-weight: bold;">ប្រភេទផ្គត់ផ្គង់ទំនិញ<br>ឬសេវាកម្ម</th>
@@ -45,7 +44,6 @@
                 <td align="center" style="border: 1px solid #000;">{{ $index + 1 }}</td>
                 <td align="center" style="border: 1px solid #000;">{{ $row->JN_Day . '-' . \Carbon\Carbon::parse($row->TransactionMonth)->format('m-Y') }}</td>
                 <td align="center" style="border: 1px solid #000;">11111</td>
-                <td style="border: 1px solid #000;">{{$row->GLAcc}}</td>
                 <td align="center" style="border: 1px solid #000;">{{$row->Currency}}</td>
                 <td align="center" style="border: 1px solid #000;">2</td>
                 <td style="border: 1px solid #000;">{{ $row->Reference }}</td>
@@ -80,7 +78,7 @@
     </tbody>
     <tfoot>
         <tr style="background-color: #f2f2f2; font-weight: bold;">
-            <td colspan="10" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
+            <td colspan="9" style="border: 1px solid #000; text-align: right;">សរុបរួម:</td>
 
             {{-- ✅ បូកសរុប Amount_KHR --}}
             <td align="right" style="border: 1px solid #000;">
@@ -123,10 +121,8 @@
             <td></td>
             <td></td>
             <td></td>
-            <td></td>
         </tr>
         <tr>
-            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -141,7 +137,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="5" style="text-align: center">
+            <td colspan="4" style="text-align: center">
                 <span>អនុញ្ញាតដោយ</span>
             </td>
 
@@ -154,7 +150,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="5" style="text-align: center">
+            <td colspan="4" style="text-align: center">
                 <span>អគ្គនាយកប្រតិបត្តិ</span>
             </td>
 

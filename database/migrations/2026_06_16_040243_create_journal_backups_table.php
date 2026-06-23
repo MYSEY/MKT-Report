@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('journal_backups', function (Blueprint $table) {
             $table->id();
             $table->string('TransactionMonth', 7)->nullable(); 
+            $table->string('JN_Day')->nullable(); 
             $table->string('GLAcc', 50)->nullable();     
             $table->string('CategoryID', 50)->nullable(); 
             $table->string('Currency', 10)->nullable();  

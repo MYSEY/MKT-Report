@@ -27,6 +27,7 @@ class SaleRecordController extends Controller
         $from_date = date('Y-m-01', $time);
         $to_date = date('Y-m-t', $time);
         $gl_code = $request->get('gl_code');
+        $lc_group = $request->get('lc');
         $reference = $request->get('reference');
 
         // ទាញយកអត្រាប្ដូរប្រាក់ពី pgsql
@@ -42,13 +43,36 @@ class SaleRecordController extends Controller
             ->where('TransactionMonth', $dateInput);
             
         if (!empty($gl_code)) {
-            $backupExistsQuery->where('GLAcc', 'like', '%'. $gl_code . '%');
+            $backupExistsQuery->where('GLAcc', 'like', $gl_code . '%');
         }
         if (!empty($reference)) {
-            $backupExistsQuery->where('Reference' , 'like', '%'. $reference . '%');
+            $backupExistsQuery->where('Reference' , 'like', $reference . '%');
         }
         
         if ($backupExistsQuery->clone()->exists()) {
+            if (!empty($lc_group)) {
+                $backupExistsQuery->select([
+                    'Reference',
+                    'TransactionMonth',
+                    
+                    // 💡 ធ្វើការបូកសរុប (SUM) ទៅលើ Column ទឹកប្រាក់នីមួយៗ
+                    DB::raw('SUM(Amount_KHR) as Amount_KHR'),
+                    DB::raw('SUM(Amount_USD) as Amount_USD'),
+                    DB::raw('SUM(Total_Amount_KHR) as Total_Amount_KHR'),
+                    DB::raw('SUM(Income_Tax) as Income_Tax'),
+                    
+                    // 💡 សម្រាប់ Column ជាអក្សរផ្សេងៗ ត្រូវប្រើ MAX() ដើម្បីកុំឱ្យវាទាស់ជាមួយ Group By
+                    DB::raw('MAX(GLAcc) as GLAcc'),
+                    DB::raw('MAX(JN_Day) as JN_Day'),
+                    DB::raw('MAX(Currency) as Currency'),
+                    DB::raw('MAX(KhName) as KhName'),
+                    DB::raw('MAX(EnName) as EnName'),
+                    DB::raw('MAX(Transaction) as Transaction'),
+                    DB::raw('MAX(UserReference) as UserReference'),
+                    DB::raw('MAX(Module) as Module')
+                ])
+                ->groupBy('Reference', 'TransactionMonth');
+            }
             return [
                 "query" => $backupExistsQuery, 
                 "combinedSubQuery" => DB::table('journal_backups')->where('TransactionMonth', $dateInput), 
@@ -178,9 +202,10 @@ class SaleRecordController extends Controller
 
                 $khName = $cust ? trim($cust->LastNameKh) . ' ' . trim($cust->FirstNameKh) : 'N/A';
                 $enName = $cust ? trim($cust->LastNameEn) . ' ' . trim($cust->FirstNameEn) : 'N/A';
-
+                $lastDay = Carbon::parse($row->TransactionMonth)->endOfMonth()->format('d');
                 $backupData[] = [
                     'TransactionMonth'    => $row->TransactionMonth,
+                    'JN_Day'              => $lastDay,
                     'GLAcc'               => $row->GLAcc,
                     'Currency'            => $row->Currency,
                     'Reference'           => $row->Reference,
@@ -209,15 +234,51 @@ class SaleRecordController extends Controller
             }
         }
 
-        $journalBackups = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
-        $combinedTotal  = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
+        // 💡 ជំហានកែសម្រួល៖ បង្កើត Base Query មួយរួមគ្នាសម្រាប់យកទៅប្រើប្រាស់ទាំង Rows និង Footer
+        $baseBackupFinalQuery = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
+
         if (!empty($gl_code)) {
-            $journalBackups->where('GLAcc', 'like', '%'. $gl_code.'%');
-            $combinedTotal->where('GLAcc', 'like', '%'. $gl_code.'%');
+            $baseBackupFinalQuery->where('GLAcc', 'like', $gl_code . '%');
         }
         if (!empty($reference)) {
-            $journalBackups->where('Reference', 'like', '%'. $reference.'%');
-            $combinedTotal->where('Reference', 'like', '%'. $reference.'%');
+            $baseBackupFinalQuery->where('Reference', 'like', $reference . '%');
+        }
+        // 💡 បន្ថែមការ Filter តាម Search Text របស់ DataTables ដើម្បីឱ្យ Footer រត់ត្រូវលេខជានិច្ច
+        // if (!empty($search_text)) {
+        //     $baseBackupFinalQuery->where(function ($q) use ($search_text) {
+        //         $q->where('Reference', 'like', '%' . $search_text . '%')
+        //           ->orWhere('KhName', 'like', '%' . $search_text . '%')
+        //           ->orWhere('EnName', 'like', '%' . $search_text . '%');
+        //     });
+        // }
+
+        // 💡 ប្រើប្រាស់ ->clone() បំបែកចេញជា ២ Queries ដាច់ដោយឡែកពីគ្នា
+        $journalBackups = $baseBackupFinalQuery->clone();
+        $combinedTotal  = $baseBackupFinalQuery->clone(); // សម្រាប់បូកសរុប Footer (មាន Filter ពេញលេញ)
+
+        // 💡 ឆែកលក្ខខណ្ឌ Group By ទៅលើ Rows (លក្ខខណ្ឌ Filters ទាំងអស់នៅតែរក្សាទុកដដែល ១០០%)
+        if (!empty($lc_group)) {
+            $journalBackups->select([
+                'Reference',
+                'TransactionMonth',
+                
+                // 💡 ធ្វើការបូកសរុប (SUM) ទៅលើ Column ទឹកប្រាក់នីមួយៗ
+                DB::raw('SUM(Amount_KHR) as Amount_KHR'),
+                DB::raw('SUM(Amount_USD) as Amount_USD'),
+                DB::raw('SUM(Total_Amount_KHR) as Total_Amount_KHR'),
+                DB::raw('SUM(Income_Tax) as Income_Tax'),
+                
+                // 💡 សម្រាប់ Column ជាអក្សរផ្សេងៗ ត្រូវប្រើ MAX() ដើម្បីកុំឱ្យវាទាស់ជាមួយ Group By
+                DB::raw('MAX(GLAcc) as GLAcc'),
+                DB::raw('MAX(JN_Day) as JN_Day'),
+                DB::raw('MAX(Currency) as Currency'),
+                DB::raw('MAX(KhName) as KhName'),
+                DB::raw('MAX(EnName) as EnName'),
+                DB::raw('MAX(Transaction) as Transaction'),
+                DB::raw('MAX(UserReference) as UserReference'),
+                DB::raw('MAX(Module) as Module')
+            ])
+            ->groupBy('Reference', 'TransactionMonth');
         }
 
         return [
@@ -235,20 +296,26 @@ class SaleRecordController extends Controller
         if (request()->ajax()) {
             $get = self::getDatas($request);
             $baseQuery = $get['query'];
+            $lc_group = $request->get('lc'); // 💡 ចាប់យក lc មកឆែកលក្ខគណ្ឌ Count
 
-            // គណនា recordsTotal និង recordsFiltered ផ្ទាល់ពី Query (លឿនបំផុតក្រោម ០.១ វិនាទី)
-            $recordsTotal = $baseQuery->clone()->count();
+            // 💡 កែសម្រួល៖ គណនា Count ឱ្យត្រឹមត្រូវ ទោះជាមានការប្រើប្រាស់ Group By ក៏ដោយ
+            if (!empty($lc_group)) {
+                $recordsTotal = $baseQuery->clone()->get()->count();
+            } else {
+                $recordsTotal = $baseQuery->clone()->count();
+            }
             $recordsFiltered = $recordsTotal;
 
             $start = intval(request()->input('start', 0));
             $limit = intval(request()->input('length', 20));
             
-            // ទាញយកទិន្នន័យ ២០ ជួរដែលមានទាំងឈ្មោះ KhName និង EnName រួចជាស្រេចនៅក្នុង Backup Table
-            $data = $baseQuery
-                ->orderBy('GLAcc', 'desc')
-                ->offset($start)
-                ->limit($limit)
-                ->get();
+            // 💡 កែសម្រួល៖ ឆែកលក្ខខណ្ឌ ប្រសិនបើមិនមែនជា "All" (-1) ទើបដាក់ Offset និង Limit
+            if ($limit != -1) {
+                $baseQuery->offset($start)->limit($limit);
+            }
+
+            // ទាញយកទិន្នន័យដែលមានទាំងឈ្មោះ KhName និង EnName រួចជាស្រេចនៅក្នុង Backup Table
+            $data = $baseQuery->orderBy('GLAcc', 'desc')->get();
 
             return response()->json([
                 'draw'            => intval(request()->input('draw')),
@@ -261,19 +328,35 @@ class SaleRecordController extends Controller
 
         return view('mkt-reports.sale-records.sale-record');
     }
+
     public function exportExcel(Request $request) {
         ini_set('memory_limit', '-1'); 
         set_time_limit(0);
+
         $get = self::getDatas($request);
         $queryBuilder = $get["query"];
         $currency = $get["currencyRate"];
         $date = $request->get('date') ?? date('Y-m');
+        
         $start = $request->get('start', 0);
         $length = $request->get('length', 20);
-        $paginatedData = $queryBuilder->offset($start)->limit($length)->get();
-        $currentPage = ($start / $length) + 1;
-        $fileName = 'Sale_Record_Page_' . $currentPage . '_' . $date . '.xlsx';
-        return Excel::download(new ExportSaleRecord($paginatedData, $date, $currency, null), $fileName);
+        $lc_group = $request->get('lc');
+
+        // 💡 កែសម្រួល៖ ឆែកលក្ខខណ្ឌ Pagination សម្រាប់ Export ការពារ Error "Division by zero" ពេលរើស "All"
+        if ($length != -1) {
+            $queryBuilder->offset($start)->limit($length);
+            $currentPage = ($start / $length) + 1;
+            $pageStr = '_Page_' . $currentPage;
+        } else {
+            $pageStr = '_All_Records';
+        }
+
+        $paginatedData = $queryBuilder->get();
+
+        $templateName = !empty($lc_group) ? 'Group_By_LC' : 'Group_By_GL';
+        $fileName = 'Sale_Record_' . $templateName . $pageStr . '_' . $date . '.xlsx';
+
+        return Excel::download(new ExportSaleRecord($paginatedData, $date, $currency, $lc_group), $fileName);
     }
 
     public static function getDataDetails($request){
