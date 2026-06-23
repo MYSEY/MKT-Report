@@ -27,6 +27,7 @@ class SaleRecordController extends Controller
         $from_date = date('Y-m-01', $time);
         $to_date = date('Y-m-t', $time);
         $gl_code = $request->get('gl_code');
+        $reference = $request->get('reference');
 
         // ទាញយកអត្រាប្ដូរប្រាក់ពី pgsql
         $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
@@ -41,14 +42,10 @@ class SaleRecordController extends Controller
             ->where('TransactionMonth', $dateInput);
             
         if (!empty($gl_code)) {
-            $backupExistsQuery->where('GLAcc', $gl_code);
+            $backupExistsQuery->where('GLAcc', 'like', '%'. $gl_code . '%');
         }
-        if (!empty($search_text)) {
-            $backupExistsQuery->where(function ($q) use ($search_text) {
-                $q->where('Reference', 'like', '%' . $search_text . '%')
-                ->orWhere('KhName', 'like', '%' . $search_text . '%')
-                ->orWhere('EnName', 'like', '%' . $search_text . '%');
-            });
+        if (!empty($reference)) {
+            $backupExistsQuery->where('Reference' , 'like', '%'. $reference . '%');
         }
         
         if ($backupExistsQuery->clone()->exists()) {
@@ -82,6 +79,9 @@ class SaleRecordController extends Controller
         if (!empty($gl_code)) {
             $queryJN->where('glmd.ID', $gl_code);
         }
+        if (!empty($reference)) {
+            $queryJN->where('jn.Reference', $reference);
+        }
         $queryJN->groupBy('jn.Reference', 'glmd.ID', 'jn.Currency');
 
         // ២. Query សម្រាប់តារាង MKT_AIR_JOURNAL (រក្សាទុក connection('pgsql'))
@@ -105,6 +105,9 @@ class SaleRecordController extends Controller
 
         if (!empty($gl_code)) {
             $queryAIR->where('glmd.ID', $gl_code);
+        }
+        if (!empty($reference)) {
+            $queryAIR->where('air.Reference', $reference);
         }
         $queryAIR->groupBy('air.Reference', 'glmd.ID', 'air.Currency');
             
@@ -205,9 +208,21 @@ class SaleRecordController extends Controller
                 }
             }
         }
+
+        $journalBackups = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
+        $combinedTotal  = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
+        if (!empty($gl_code)) {
+            $journalBackups->where('GLAcc', 'like', '%'. $gl_code.'%');
+            $combinedTotal->where('GLAcc', 'like', '%'. $gl_code.'%');
+        }
+        if (!empty($reference)) {
+            $journalBackups->where('Reference', 'like', '%'. $reference.'%');
+            $combinedTotal->where('Reference', 'like', '%'. $reference.'%');
+        }
+
         return [
-            "query" => DB::table('journal_backups')->where('TransactionMonth', $dateInput),
-            "combinedSubQuery" => DB::table('journal_backups')->where('TransactionMonth', $dateInput),
+            "query" => $journalBackups,
+            "combinedSubQuery" => $combinedTotal,
             "currencyRate" => $rate,
             "is_from_backup" => true
         ];
@@ -247,15 +262,18 @@ class SaleRecordController extends Controller
         return view('mkt-reports.sale-records.sale-record');
     }
     public function exportExcel(Request $request) {
-        //*** (យ៉ាងហោច RAM 8GB ឡើងទៅ) **/
         ini_set('memory_limit', '-1'); 
         set_time_limit(0);
-
         $get = self::getDatas($request);
-        $data = $get["query"]->get();
+        $queryBuilder = $get["query"];
         $currency = $get["currencyRate"];
         $date = $request->get('date') ?? date('Y-m');
-        return Excel::download(new ExportSaleRecord($data, $date, $currency,null), 'Sale_Record_'.$date.'.xlsx');
+        $start = $request->get('start', 0);
+        $length = $request->get('length', 20);
+        $paginatedData = $queryBuilder->offset($start)->limit($length)->get();
+        $currentPage = ($start / $length) + 1;
+        $fileName = 'Sale_Record_Page_' . $currentPage . '_' . $date . '.xlsx';
+        return Excel::download(new ExportSaleRecord($paginatedData, $date, $currency, null), $fileName);
     }
 
     public static function getDataDetails($request){

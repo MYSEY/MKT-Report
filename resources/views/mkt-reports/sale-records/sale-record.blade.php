@@ -29,8 +29,11 @@
                     </div>
                 </div>
                 <div class="col-sm-3 col-md-3">
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <input type="text"  placeholder="Full Name" name="full_name"  class="form-control full_name">
+                    </div> --}}
+                    <div class="form-group">
+                        <input type="text"  placeholder="LC" name="reference"  class="form-control reference">
                     </div>
                 </div>
                 <div class="col-sm-3 col-md-3">
@@ -116,54 +119,26 @@
                     todayHighlight: true
                 });
             });
-            $(document).ready(function() {
-                // បង្កើត Function រួមសម្រាប់ Handle ការ Export
-                function handleExport(btnElement, urlPath) {
-                    let $thisBtn = $(btnElement);
-                    let $allButtons = $('.btn_excel, .btn_excel_all');
-                    
-                    // ១. Disable button ទាំងពីរ និងបង្ហាញ Loading
-                    $allButtons.prop('disabled', true).addClass('disabled');
-                    
-                    // លាក់ icon ដើម និងបង្ហាញ icon spinner (ប្រើ selector ឱ្យចំ span ដែលអ្នកមាន)
-                    $allButtons.find('.btn-text-excel').hide();
-                    $allButtons.find('span[id^="btn-text-loading-excel"]').show();
+            $('.btn_excel').on('click', function() {
+                let table = $('#tbl-sale-record').DataTable();
+                let pageInfo = table.page.info();
+                let start = pageInfo.start;
+                let length = pageInfo.length;
 
-                    // ២. រៀបចំ Query String
-                    let query = {
-                        date: $('input[name="sale_date"]').val(),
-                        gl_code: $('input[name="gl_code"]').val(),
-                        full_name: $('input[name="full_name"]').val(),
-                        // អ្នកអាចបន្ថែម search: $('input[type="search"]').val() បើចង់បាន
-                    };
+                let date = $('input[name="sale_date"]').val() || '';
+                let gl_code = $('input[name="gl_code"]').val() || '';
+                let full_name = $('input[name="full_name"]').val() || '';
+                let reference = $('input[name="reference"]').val() || '';
 
-                    // ៣. បញ្ជូនទៅកាន់ URL
-                    let url = "{{ url('/') }}/" + urlPath + "?" + $.param(query);
-                    window.location = url;
-
-                    // ៤. កំណត់ឱ្យ Buttons ដើរវិញក្រោយពេល ១០ វិនាទី (ព្រោះ window.location គ្មាន callback ទេ)
-                    setTimeout(function() {
-                        $allButtons.prop('disabled', false).removeClass('disabled');
-                        $allButtons.find('.btn-text-excel').show();
-                        $allButtons.find('span[id^="btn-text-loading-excel"]').hide();
-                    }, 10000); 
-                }
-
-                // ចាប់ Event ពេលចុចលើ "Excel to Template"
-                $(".btn_excel").on("click", function() {
-                    handleExport(this, 'admin/mkt-report/sale-record/download');
-                });
-
-                // ចាប់ Event ពេលចុចលើ "Excel Not Template"
-                $(".btn_excel_all").on("click", function() {
-                    handleExport(this, 'admin/mkt-report/sale-record/downloads');
-                });
+                let exportUrl = '{{ url("admin/mkt-report/sale-record/download") }}' + 
+                    `?date=${date}&gl_code=${gl_code}&full_name=${full_name}&reference=${reference}` +
+                    `&start=${start}&length=${length}`;
+                window.location.href = exportUrl;
             });
-            // Reload only (DON'T destroy/reinit)
+
             $('.btn-search').on('click', function() {
                 dataTables();
             });
-            // Initialize only once
             // dataTables();
         });
 
@@ -191,6 +166,8 @@
                         d.date = $('input[name="sale_date"]').val();
                         d.gl_code = $('input[name="gl_code"]').val();
                         d.full_name = $('input[name="full_name"]').val();
+                        d.reference = $('input[name="reference"]').val();
+                        
                     },
                     dataSrc: function (json) {
                         let currency = json.currency;

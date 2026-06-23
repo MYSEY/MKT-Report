@@ -55,22 +55,22 @@
                 
                 {{-- ✅ បង្ហាញ Amount KHR --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Amount_KHR != 0 ? number_format($row->Amount_KHR, 2) : '-' }}
+                    {{ $row->Amount_KHR != 0 ? number_format($row->Amount_KHR, 2) : 0 }}
                 </td>
 
                 {{-- ✅ បង្ហាញ Amount USD --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ $row->Amount_USD != 0 ? number_format($row->Amount_USD, 2) : '-' }}
+                    {{ $row->Amount_USD != 0 ? number_format($row->Amount_USD, 2) : 0 }}
                 </td>
 
                 {{-- ✅ បង្ហាញ Total Amount KHR --}}
                 <td align="right" style="font-weight: bold; border: 1px solid #000;">
-                    {{ number_format($row->Total_Amount_KHR, 2) }}
+                    {{ $row->Total_Amount_KHR !=0 ? number_format($row->Total_Amount_KHR, 2) : 0 }}
                 </td>
 
                 {{-- ✅ បង្ហាញ Income Tax 1% --}}
                 <td align="right" style="border: 1px solid #000;">
-                    {{ number_format(round($row->Income_Tax)) }}
+                    {{ $row->Income_Tax != 0 ? number_format(round($row->Income_Tax)) : 0 }}
                 </td>
                 
                 <td style="border: 1px solid #000;">Loan Repayment</td>
@@ -136,17 +136,16 @@
             <td></td>
             <td></td>
             <td></td>
-            <td></td>
             <td colspan="6"style="text-align: center">
                 <span>រាជធានីភ្នំពេញ, ថ្ងៃទី......... ខែ......... ឆ្នាំ២០២៦</span>
             </td>
         </tr>
         <tr>
-            <td colspan="4" style="text-align: center">
+            <td colspan="5" style="text-align: center">
                 <span>អនុញ្ញាតដោយ</span>
             </td>
 
-            <td colspan="4" style="text-align: center">
+            <td colspan="5" style="text-align: center">
                 <span>ពិនិត្យដោយ</span>
             </td>
 
@@ -155,11 +154,11 @@
             </td>
         </tr>
         <tr>
-            <td colspan="4" style="text-align: center">
+            <td colspan="5" style="text-align: center">
                 <span>អគ្គនាយកប្រតិបត្តិ</span>
             </td>
 
-            <td colspan="4" style="text-align: center">
+            <td colspan="5" style="text-align: center">
                 <span>នាយិកានាយកដ្ឋានគណនេយ្យ និងហិរញ្ញវត្ថុ</span>
             </td>
 
