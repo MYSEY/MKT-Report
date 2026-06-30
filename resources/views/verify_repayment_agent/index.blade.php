@@ -2,23 +2,25 @@
 @section('content')
     <div class="row mb-2">
         <div class="col-md-6">
-            <h3 class="">Veryfy Repayment Agent Report</h3>
+            <h3 class="">Verify Repayment Agent Report</h3>
         </div>
         <div class="col-md-6" style="text-align: right;">
-            <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Veryfy</a>
+            <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Verify</a>
+            <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
+            <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download To Branch</a>
         </div>
     </div>
     {!! Toastr::message() !!}
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Veryfy Repayment Agent Report
+                Verify Repayment Agent Report
             </h2>
         </div>
         <div class="panel-container show">
             <div class="panel-content">
                 <div class="table-responsive">
-                    <table id="tbl-tmg-reports" class="table table-bordered table-hover table-striped">
+                    <table id="tbl_veryfy_repayment_agent" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
                                 <th class="text-center">Branch</th>
@@ -56,58 +58,12 @@
 @section('script')
     <script>
         $(function(){
-            $(".btn_excel").on("click", function() {
-                let query = {
-                    branch_id: ""
-                };
-                var url = "{{URL::to('admin/hr-report/tmg/download')}}?" + $.param(query)
-                window.location = url;
+            $("#downloadToMorakot").on("click", function () {
+                window.location = "{{ URL::to('admin/mkt-report/veryfy/repayment/agent/download/morakot') }}";
             });
-            // $(".upload_file_data").on("click", function() {
-            //     if ($('#result_file').val() == "") {
-            //         $("#thanLess").text("Please select a xls,xlsx and csv file and size less then 1MB").css("color", "red");
-            //         $(".thanLess").show();
-            //         return false;
-            //     }
-            //     var file_data = $('#result_file').prop('files')[0];
-            //     var fileName = file_data['name'];
-            //     var form_data = new FormData();
-            //     var fileExtension = fileName.split('.').pop();
-            //     var fileSize = file_data['size'];
-            //     form_data.append('file', file_data);
-            //     form_data.append('exchange_rate', exchange_rate);
-            //     form_data.append('date', date);
-            //     form_data.append('_token', "{{ csrf_token() }}");
-            //     if (fileExtension == "xls" || fileExtension == "xlsx" || fileExtension == "csv" && fileSize < 1048576) {
-
-            //         $(".upload_file_data").prop('disabled', true);
-            //         $(".btn-hidden-show").hide();
-            //         $(".btn-impot-loading").css('display', 'block');
-
-            //         $("#modal-import").modal("show");
-            //         $.ajax({
-            //             type: 'POST',
-            //             url: "{{ url('admin/mkt-report/veryfy/repayment/agent/import') }}",
-            //             data: form_data,
-            //             contentType: false,
-            //             cache: false,
-            //             processData: false,
-            //             success: function(data) {
-            //                 if (data.mg == 'success') {
-            //                     $("#modal-import").modal("hide");
-            //                     toastr.success('Data has been save success');
-            //                     window.location.replace("{{ URL('admin/asset') }}");
-            //                 }
-            //             },error: function(xhr, status, error) {
-            //                 Swal.fire("Error!", "An error occurred while processing your request. Please try again.","error");
-            //             },
-            //         });
-            //     }else{
-            //         $("#thanLess").text("Please select a xls,xlsx and csv file and size less then 1MB").css("color", "red");
-            //         $(".thanLess").show();
-            //     }
-            // });
-
+            $("#downloadToBranch").on("click", function () {
+                window.location = "{{ URL::to('admin/mkt-report/veryfy/repayment/agent/download/branch') }}";
+            });
 
             $(".upload_file_data").on("click", function () {
                 if ($('#result_file').val() == "") {
@@ -126,8 +82,7 @@
                 form_data.append('_token', "{{ csrf_token() }}");
 
                 // FIX CONDITION
-                if ((fileExtension == "xls" || fileExtension == "xlsx" || fileExtension == "csv") && fileSize < 1048576
-                ) {
+                if ((fileExtension == "xls" || fileExtension == "xlsx" || fileExtension == "csv") && fileSize < 1048576) {
                     $(".upload_file_data").prop('disabled', true);
                     $(".btn-hidden-show").hide();
                     $(".btn-impot-loading").show();
@@ -140,22 +95,19 @@
                         cache: false,
                         processData: false,
                         success: function (data) {
-                            if (data.mg == 'success') {
-                                $("#modal-import").modal("hide");
-                                toastr.success('Verify completed successfully');
-                                window.location.reload();
-                            }
+                            $("#modal-import").modal("hide");
+                            $(".upload_file_data").prop('disabled', false);
+                            $(".btn-hidden-show").show();
+                            $(".btn-impot-loading").hide();
+                            toastr.success('Verify completed successfully');
+                            dataTables();
                         },
                         error: function (xhr, status, error) {
                             $("#modal-import").modal("hide");
                             $(".upload_file_data").prop('disabled', false);
                             $(".btn-hidden-show").show();
                             $(".btn-impot-loading").hide();
-                            Swal.fire(
-                                "Error!",
-                                "An error occurred while processing your request.",
-                                "error"
-                            );
+                            Swal.fire("Error!","An error occurred while processing your request.","error");
                         }
                     });
                 } else {
@@ -163,58 +115,122 @@
                     $(".thanLess").show();
                 }
             });
-
-            // Initialize only once
-            // dataTables();
         });
 
-        // function dataTables() {
-        //     $('#loading-overlay').show();
-        //     // Check if DataTable instance exists, then destroy it
-        //     if ($.fn.DataTable.isDataTable('#tbl-tmg-reports')) {
-        //         $('#tbl-tmg-reports').DataTable().clear().destroy();
-        //     }
-        //     $('#tbl-tmg-reports').DataTable({
-        //         pageLength: 20,
-        //         destroy: true,
-        //         processing: true,
-        //         serverSide: true,
-        //         // scrollX: true,
-        //         scrollY: '350px',
-        //         scroller: false,
-        //         order: [[1, 'asc']], // តម្រៀបតាមឈ្មោះខេត្ត ដើម្បីងាយស្រួល Merge
-        //         lengthMenu: [ [20, 25, 50, 100], [10, 25, 50, 100] ],
-        //         ajax: {
-        //             url: '{{ URL("admin/hr-report/tmg") }}',
-        //             type: 'GET',
-        //             dataSrc: function (json) {
-        //                 return json.data;
-        //             }
-        //         },
-        //         columns: [
-        //             {
-        //                 data: null,
-        //                 name: 'id',
-        //                 orderable: false,
-        //                 searchable: false,
-        //                 className: 'text-center',
-        //                 render: function (data, type, row, meta) {
-        //                     return meta.row + meta.settings._iDisplayStart + 1;
-        //                 }
-        //             },
-        //             { data: 'employee_name_kh', name: 'employee_name_kh' },
-        //             { data: 'position_name_kh', name: 'position_name_kh' },
-        //             { data: 'branch_name_kh', name: 'branch_name_kh' },
-        //         ],
-                
-        //     });
-        //     $('#tbl-tmg-reports').on('processing.dt', function (e, settings, processing) {
-        //         if (processing) {
-        //             $('#loading-overlay').show();
-        //         } else {
-        //             $('#loading-overlay').hide();
-        //         }
-        //     });
-        // }
+        function dataTables() {
+            if ($.fn.DataTable.isDataTable('#tbl_veryfy_repayment_agent')) {
+                $('#tbl_veryfy_repayment_agent').DataTable().destroy();
+            }
+            $('#tbl_veryfy_repayment_agent').DataTable({
+                pageLength: 10,
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                order: [[0, 'desc']],
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
+                ajax: {
+                    url: '{{ URL("admin/mkt-report/veryfy/repayment/agent") }}',
+                    type: 'GET',
+                    data: function (d) {
+                        d.date = $('#date').val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'Branch',
+                        name: 'Branch',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    { 
+                        data: 'DrAccount', 
+                        name: 'DrAccount',
+                    },
+                    { 
+                        data: 'DrCategory', 
+                        name: 'DrCategory',
+                    },
+                    { 
+                        data: 'DrCurrency', 
+                        name: 'DrCurrency',
+                    },
+                    { 
+                        data: 'CrAccount', 
+                        name: 'CrAccount',
+                    },
+                    { 
+                        data: 'CrCategory', 
+                        name: 'CrCategory',
+                    },
+                    { 
+                        data: 'CrCurrency', 
+                        name: 'CrCurrency',
+                    },
+                    { 
+                        data: 'Amount', 
+                        name: 'Amount',
+                    },
+                    { 
+                        data: 'LCYAmount', 
+                        name: 'LCYAmount',
+                    },
+                    { 
+                        data: 'ExchangeRate', 
+                        name: 'ExchangeRate',
+                    },
+                    { 
+                        data: 'Transaction', 
+                        name: 'Transaction',
+                    },
+                    { 
+                        data: 'TranDate', 
+                        name: 'TranDate',
+                    },
+                    { 
+                        data: 'Reference', 
+                        name: 'Reference',
+                    },
+                    { 
+                        data: 'Note', 
+                        name: 'Note',
+                    },
+                    {
+                        data: 'DrGLKey', 
+                        name: 'DrGLKey',
+                    },
+                    { 
+                        data: 'CrGLKey', 
+                        name: 'CrGLKey',
+                    },
+                    { 
+                        data: 'Module', 
+                        name: 'Module',
+                    },
+                    { 
+                        data: 'Officer', 
+                        name: 'Officer',
+                    },
+                    { 
+                        data: 'DisbursementList', 
+                        name: 'DisbursementList',
+                    },
+                    { 
+                        data: 'TargetBranch', 
+                        name: 'TargetBranch',
+                    },
+                    { 
+                        data: 'TargetBranchDrCr', 
+                        name: 'TargetBranchDrCr',
+                    },
+                ],
+            });
+            $('#tbl_veryfy_repayment_agent').on('processing.dt', function (e, settings, processing) {
+                if (processing) {
+                    $('#loading-overlay').show();
+                } else {
+                    $('#loading-overlay').hide();
+                }
+            });
+        }
     </script>
 @endsection

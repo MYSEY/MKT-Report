@@ -19,6 +19,7 @@ use App\Http\Controllers\Admins\PositionController;
 use App\Http\Controllers\Admins\LoanInactiveController;
 use App\Http\Controllers\Admins\LoanDisbursementController;
 use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
+use App\Http\Controllers\Admins\PdfToExcelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);
         Route::post('veryfy/repayment/agent/import',[VeryfyRepaymentAgentController::class,'importVeryfyRepaymentAgent']);
+        Route::get('veryfy/repayment/agent/download/morakot',[VeryfyRepaymentAgentController::class,'downloadToMorakot']);
+        Route::get('veryfy/repayment/agent/download/branch',[VeryfyRepaymentAgentController::class,'downloadToBranch']);
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);
@@ -80,4 +83,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('tmg',[TMGController::class,'index']);
         Route::get('tmg/download',[TMGController::class,'exportExcel'])->name('hr-reports.TMG_report');
     });
+
+    Route::get('/pdf-to-excel', [PdfToExcelController::class, 'index'])->name('pdf-to-excel.index');
+    Route::post('/pdf-to-excel/convert', [PdfToExcelController::class, 'convert'])->name('pdf-to-excel.convert');
 });

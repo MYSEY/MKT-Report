@@ -301,6 +301,11 @@
                                                 </a>
                                             </li>
                                         @endif
+                                        <li class="{{ Request::is('admin/configuration/branch-code') ? 'active' : '' }}">
+                                            <a href="{{ url('admin/configuration/branch-code') }}">
+                                                <span class="nav-link-text">Branch</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                             @endif
