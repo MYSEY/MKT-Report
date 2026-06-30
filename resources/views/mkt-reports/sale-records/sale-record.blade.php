@@ -2,7 +2,7 @@
 @section('content')
     <div class="row">
         <div class="col-md-4">
-            <h3 class="">Sale Records</h3>
+            <h3 class="">Sale Record AS</h3>
             <h5 class=""><strong>As of month:</strong> <span class="currency_month">{{ date('Y-m') }}</span></h5>
             <h6><strong>Currency:</strong> <span class="currency_rate"></span></h6>
         </div>
@@ -11,7 +11,7 @@
     <div class="card mb-2">
         <div class="card-body">
             <div class="row filter-btn">
-                <div class="col-sm-3 col-md-3">
+                <div class="col-sm-2 col-md-2">
                     <div class="form-group">
                         <input type="text" 
                             class="form-control datepicker_month" 
@@ -25,13 +25,22 @@
                 </div>
                 <div class="col-sm-2 col-md-2">
                     <div class="form-group">
-                        <input type="text"  placeholder="GL Code" name="gl_code" class="form-control gl_code">
+                        <select class="select2 form-control btn-filter filter-branch" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
+                            <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
+                            @foreach ($branchs as $item)
+                                <option value="{{ $item->ID }}">
+                                    {{ $item->ID }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
-                <div class="col-sm-3 col-md-3">
-                    {{-- <div class="form-group">
-                        <input type="text"  placeholder="Full Name" name="full_name"  class="form-control full_name">
-                    </div> --}}
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <input type="text"  placeholder="Category ID" name="category_id" class="form-control category_id">
+                    </div>
+                </div>
+                <div class="col-sm-2 col-md-2">
                     <div class="form-group">
                         <input type="text"  placeholder="LC" name="reference"  class="form-control reference">
                     </div>
@@ -47,12 +56,7 @@
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel GL
-                            </button>
-                              <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" data-btn="lc">
-                                <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel LC
+                                Excel
                             </button>
                         @endif
                     </div>
@@ -64,7 +68,7 @@
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Sale Records
+                Sale Record AS
             </h2>
         </div>
          <div class="panel-container show">
@@ -73,32 +77,29 @@
                     <table id="tbl-sale-record" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
-                                <th rowspan="2">#</th>
-                                <th rowspan="2">Transaction_Date</th>
-                                <th rowspan="2">Inv_No</th>
-                                <th rowspan="2">GL_Code</th>
-                                <th rowspan="2">Currency</th>
-                                <th colspan="4" class="text-center">Buyer</th> 
-                                <th rowspan="2">Type_of_Supply</th>
-                                <th rowspan="2">Amount_KHR</th>
-                                <th rowspan="2">Amount_USD</th>
-                                <th rowspan="2">Total_Amount_KHR</th>
-                                <th rowspan="2">Income_Tax_Rate_1%</th>
-                                <th rowspan="2">Description</th>
-                                <th rowspan="2">Acc_Method*</th>
-                            </tr>
-                            <tr>
-                                <th>Type</th>
+                                <th>#</th>
+                                <th>TransactionDate</th>
+                                <th>Branch</th>
+                                <th>CategoryID</th>
+                                <th>Currency</th>
+                                <th>LoanType</th>
                                 <th>ID</th>
                                 <th>Name_KH</th>
                                 <th>Name_EN</th>
+                                <th>Type_of_Supply</th>
+                                <th>Amount_KHR</th>
+                                <th>Amount_USD</th>
+                                <th>Total_Amount_KHR</th>
+                                <th>Income_Tax_Rate_1%</th>
+                                <th>Description</th>
+                                <th>Acc_Method*</th>
                             </tr>
                         </thead>
                         <tbody>
                         </tbody>
                         <tfoot>
-                            <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                <th colspan="10" style="text-align: right;">Total:</th>
+                            <tr>
+                                <th colspan="10" class="text-right" style="text-align: right;">Total:</th>
                                 <th id="sum_khr" class="text-right"></th>
                                 <th id="sum_usd" class="text-right"></th>
                                 <th id="sum_total_khr" class="text-right"></th>
@@ -136,11 +137,12 @@
                 let length = pageInfo.length;
 
                 let date = $('input[name="sale_date"]').val() || '';
-                let gl_code = $('input[name="gl_code"]').val() || '';
+                let category_id = $('input[name="category_id"]').val() || '';
                 let reference = $('input[name="reference"]').val() || '';
+                let branch_id = $('select[name="branch_id"]').val();
 
                 let exportUrl = '{{ url("admin/mkt-report/sale-record/download") }}' + 
-                    `?date=${date}&gl_code=${gl_code}&reference=${reference}&lc=${btn_export}` +
+                    `?date=${date}&category_id=${category_id}&reference=${reference}&branch_id=${branch_id}&lc=${btn_export}` +
                     `&start=${start}&length=${length}`;
                 window.location.href = exportUrl;
             });
@@ -176,14 +178,16 @@
                     type: 'GET',
                     data: function (d) {
                         d.date = $('input[name="sale_date"]').val();
-                        d.gl_code = $('input[name="gl_code"]').val();
+                        d.category_id = $('input[name="category_id"]').val();
                         d.full_name = $('input[name="full_name"]').val();
                         d.reference = $('input[name="reference"]').val();
+                        d.branch_id = $('select[name="branch_id"]').val();
                         
                     },
                     dataSrc: function (json) {
                         let currency = json.currency;
                         $(".currency_rate").text(currency+"៛");
+                        $(".currency_month").text($('input[name="sale_date"]').val());
                         return json.data;
                     }
                 },
@@ -196,41 +200,54 @@
                         className: 'text-center',
                         render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
-                    { data: 'TransactionMonth', name: 'combined.TransactionMonth', className: 'text-center' },
-                    { data: null, render: () => 11111, className: 'text-center', orderable: false, searchable: false },
-                    { data: 'GLAcc', name: 'combined.GLAcc'},
-                    { data: 'Currency', name: 'combined.Currency' },
-                    { data: null, render: () => 2, className: 'text-center', orderable: false, searchable: false },
-                    { data: 'Reference', name: 'combined.Reference' },
+                    { 
+                        data: 'TransactionMonth', 
+                        name: 'air.TransactionMonth', 
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            if (!data) return '-';
+                            let parts = data.split('-'); 
+                            let year = parseInt(parts[0], 10);
+                            let month = parseInt(parts[1], 10);
+                            // 💡 ល្បិចរកថ្ងៃចុងក្រោយ៖ កំណត់ថ្ងៃទី 0 នៃខែបន្ទាប់ (month) វានឹងធ្លាក់មកថ្ងៃចុងក្រោយនៃខែបច្ចុប្បន្នវិញ
+                            let lastDate = new Date(year, month, 0).getDate(); 
+                            return String(lastDate).padStart(2, '0')+ '-' + String(month).padStart(2, '0') +'-'+ year;
+                        }
+                    },
+                    {data: 'Branch', name:'air.Branch'},
+                    { data: 'CategoryID', name: 'air.CategoryID'},
+                    { data: 'Currency', name: 'air.Currency' },
+                    { data: 'Description', name: 'ld.Description' },
+                    { data: 'Reference', name: 'air.Reference' },
                     
                     // 💡 កែសម្រួលត្រង់នេះ៖ ប្តូរពី CUST.LastNameKh មកជា cust.LastNameKh (អក្សរតូចដូចក្នុង Backend)
-                    { data: 'KhName', name: 'cust.LastNameKh' },
-                    { data: 'EnName', name: 'cust.LastNameEn' },
+                    { data: 'KhName', name: 'cm.LastNameKh' },
+                    { data: 'EnName', name: 'cm.LastNameEn' },
                     
                     { data: null, render: () => 3, className: 'text-center', orderable: false, searchable: false },
 
-                    // Amount KHR
+                    // // Amount KHR
                     { 
                         data: 'Amount_KHR', 
                         name: 'Amount_KHR', 
                         className: 'text-right',
                         render: d => d != 0 ? Number(d).toLocaleString() + ' ៛' : '-'
                     },
-                    // Amount USD
+                    // // Amount USD
                     { 
                         data: 'Amount_USD', 
                         name: 'Amount_USD', 
                         className: 'text-right',
                         render: d => d != 0 ? '$ ' + Number(d).toLocaleString(undefined, {minimumFractionDigits: 2}) : '-'
                     },
-                    // Total Amount KHR
+                    // // Total Amount KHR
                     { 
                         data: 'Total_Amount_KHR', 
                         name: 'Total_Amount_KHR', 
                         className: 'text-right font-weight-bold',
                         render: d => Number(d).toLocaleString() + ' ៛'
                     },
-                    // Income Tax 1%
+                    // // Income Tax 1%
                     { 
                         data: 'Income_Tax', 
                         name: 'Income_Tax', 
@@ -244,20 +261,20 @@
                 footerCallback: function (row, data, start, end, display) {
                     const api = this.api();
 
-                    // Function ជំនួយសម្រាប់ដកក្បៀស និងប្តូរជាលេខ
-                    const parseNum = i => typeof i === 'string' ? i.replace(/[\$,៛,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                    // 💡 មុខងារជំនួយសម្រាប់បំប្លែងតម្លៃទៅជាលេខទោលសុទ្ធ (Raw Number) យកមកគណនាផ្ទាល់ភ្លាមៗ
+                    const parseNum = i => typeof i === 'number' ? i : (i ? parseFloat(i) : 0);
 
-                    // បូកសរុបតាម Column (ប្រើ index 8, 9, 10, 11)
-                    const totalKHR = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalUSD = api.column(12, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalAll = api.column(13, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalTax = api.column(14, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    // 💡 បូកសរុបតាម Column នីមួយៗ (ផ្អែកលើ Data Index 10, 11, 12, 13)
+                    const totalKHR   = api.column(10, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalUSD   = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalMount = api.column(12, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalTax   = api.column(13, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
 
-                    // បង្ហាញលទ្ធផលក្នុង Footer
-                    $(api.column(11).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
-                    $(api.column(12).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
-                    $(api.column(13).footer()).html(totalAll.toLocaleString() + ' ៛');
-                    $(api.column(14).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
+                    // 💡 ជួសជុល៖ បោះទិន្នន័យចូលទៅក្នុង <th> តាមរយៈ ID ផ្ទាល់ ដាច់ខាតមិនវង្វេងជួរឡើយ
+                    $('#sum_khr').html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
+                    $('#sum_usd').html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
+                    $('#sum_total_khr').html(totalMount != 0 ? totalMount.toLocaleString() + ' ៛' : '-');
+                    $('#sum_tax').html(totalTax != 0 ? Math.round(totalTax).toLocaleString() + ' ៛' : '-');
                 }
             });
 

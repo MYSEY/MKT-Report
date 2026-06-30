@@ -33,7 +33,7 @@ class ExportSaleRecord implements FromView, WithEvents
     }
     public function view(): View
     {
-        $name_file = $this->type ? "mkt-reports.sale-records.sale_record_LC" : "mkt-reports.sale-records.sale_record_export";
+        $name_file = "mkt-reports.sale-records.sale_record_export";
         if ($this->type == "2" || $this->type == "1") {
             $name_file = "mkt-reports.sale-records.sale_record_ExCs_export";
         }
@@ -70,6 +70,8 @@ class ExportSaleRecord implements FromView, WithEvents
                     'L' => 15,
                     'M' => 15,
                     'N' => 15,
+                    'O' => 15,
+                    'P' => 15,
                 ];
 
                 foreach ($widths as $col => $width) {
