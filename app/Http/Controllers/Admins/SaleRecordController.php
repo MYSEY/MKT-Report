@@ -26,72 +26,339 @@ class SaleRecordController extends Controller
         $time = strtotime($dateInput);
         $from_date = date('Y-m-01', $time);
         $to_date = date('Y-m-t', $time);
+        $gl_code = $request->get('gl_code');
+        $lc_group = $request->get('lc');
+        $reference = $request->get('reference');
 
+        // ទាញយកអត្រាប្ដូរប្រាក់ពី pgsql
         $currencyRate = DB::connection('pgsql')->table('MKT_CURRENCY_HIST as ch')
             ->where('ch.Authorizeon', 'like', $dateInput.'%')
             ->where('ch.ID', 'like', 'USD%')
             ->orderBy('ch.Curr', 'desc')
             ->first();
-        $rate = $currencyRate ? $currencyRate->OtherRate1 : 4000;
+        $rate = $currencyRate ? floatval($currencyRate->OtherRate1) : 4000;
 
-        // ១. Sub-query: បូកសរុបបំបែកតាម Currency និង Reference
-        $subQuery = DB::connection('pgsql')->table('MKT_AIR_JOURNAL')
-        ->select([
-            'Reference',
-            'Currency',
-            DB::raw('MAX("TransactionDate") as "TransactionDate"'),
-            // គណនា Net Amount (Cr - Dr)
-            DB::raw('SUM(CASE WHEN "DebitCredit" = \'Cr\' THEN "Amount" ELSE -"Amount" END) as "NetAmount"')
-        ])
-        ->whereBetween('TransactionDate', [$from_date, $to_date])
-        ->where('GL_KEYS', 'like', '5%')
-        ->groupBy('Reference', 'Currency');
-
-        // ២. Main Query: រៀបចំ Column តាមរូបភាព Table របស់អ្នក
-        $query = DB::connection('pgsql')->table(DB::raw("({$subQuery->toSql()}) as j"))
-        ->mergeBindings($subQuery) 
-        ->select([
-            'j.Reference',
-            'j.TransactionDate',
-            'j.Currency',
-            'j.NetAmount',
+        // 💡 ជំហានទី ១៖ ឆែកមើលក្នុងតារាង journal_backups នៅលើ Database Default (ដក connection('pgsql') ចេញ)
+        $backupExistsQuery = DB::table('journal_backups')
+            ->where('TransactionMonth', $dateInput);
             
-            // ១. Amount KHR: បើជា KHR យក NetAmount បើមិនមែនយក 0
-            DB::raw('CASE WHEN j."Currency" = \'KHR\' THEN j."NetAmount" ELSE 0 END as "Amount_KHR"'),
-
-            // ២. Amount USD: បើជា USD យក NetAmount បើមិនមែនយក 0
-            DB::raw('CASE WHEN j."Currency" = \'USD\' THEN j."NetAmount" ELSE 0 END as "Amount_USD"'),
-
-            // ៣. Total Amount KHR: (Amount_USD * rate) + Amount_KHR
-            DB::raw("CASE 
-                WHEN j.\"Currency\" = 'USD' THEN j.\"NetAmount\" * $rate 
-                ELSE j.\"NetAmount\" 
-            END as \"Total_Amount_KHR\""),
-
-            // ៤. Income Tax Rate 1%: Total_Amount_KHR * 0.01
-            DB::raw("(CASE 
-                WHEN j.\"Currency\" = 'USD' THEN j.\"NetAmount\" * $rate 
-                ELSE j.\"NetAmount\" 
-            END) * 0.01 as \"Income_Tax\""),
-
-            DB::raw('TRIM("CUST"."LastNameKh") || \' \' || TRIM("CUST"."FirstNameKh") as "KhName"'),
-            DB::raw('TRIM("CUST"."LastNameEn") || \' \' || TRIM("CUST"."FirstNameEn") as "EnName"')
-        ])
-        ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.ID', '=', 'j.Reference')
-        ->leftJoin('MKT_CLOSED_LOAN as CL', 'CL.ID', '=', 'j.Reference')
-        ->leftJoin('MKT_CUSTOMER as CUST', 'CUST.ID', '=', DB::raw('COALESCE("LC"."ContractCustomerID", "CL"."ContractCustomerID")'));
-        // Search logic
-        $search = request()->input('search.value');
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('j.Reference', 'ilike', "%{$search}%")
-                ->orWhere('CUST.LastNameEn', 'ilike', "%{$search}%")
-                ->orWhere('CUST.FirstNameEn', 'ilike', "%{$search}%");
-            });
+        if (!empty($gl_code)) {
+            $backupExistsQuery->where('GLAcc', 'like', $gl_code . '%');
+        }
+        if (!empty($reference)) {
+            $backupExistsQuery->where('Reference' , 'like', $reference . '%');
+        }
+        
+        if ($backupExistsQuery->clone()->exists()) {
+            if (!empty($lc_group)) {
+                $backupExistsQuery->select([
+                    'Reference',
+                    'TransactionMonth',
+                    
+                    // 💡 ធ្វើការបូកសរុប (SUM) ទៅលើ Column ទឹកប្រាក់នីមួយៗ
+                    DB::raw('SUM(Amount_KHR) as Amount_KHR'),
+                    DB::raw('SUM(Amount_USD) as Amount_USD'),
+                    DB::raw('SUM(Total_Amount_KHR) as Total_Amount_KHR'),
+                    DB::raw('SUM(Income_Tax) as Income_Tax'),
+                    
+                    // 💡 សម្រាប់ Column ជាអក្សរផ្សេងៗ ត្រូវប្រើ MAX() ដើម្បីកុំឱ្យវាទាស់ជាមួយ Group By
+                    DB::raw('MAX(GLAcc) as GLAcc'),
+                    DB::raw('MAX(JN_Day) as JN_Day'),
+                    DB::raw('MAX(Currency) as Currency'),
+                    DB::raw('MAX(KhName) as KhName'),
+                    DB::raw('MAX(EnName) as EnName'),
+                    DB::raw('MAX(Transaction) as Transaction'),
+                    DB::raw('MAX(UserReference) as UserReference'),
+                    DB::raw('MAX(Module) as Module')
+                ])
+                ->groupBy('Reference', 'TransactionMonth');
+            }
+            return [
+                "query" => $backupExistsQuery, 
+                "combinedSubQuery" => DB::table('journal_backups')->where('TransactionMonth', $dateInput), 
+                "currencyRate" => $rate, 
+                "is_from_backup" => true
+            ];
         }
 
-        return ["query" => $query, "currencyRate" => $rate];
+        // ១. Query សម្រាប់តារាង MKT_JOURNAL (រក្សាទុក connection('pgsql') ព្រោះជាតារាងផ្សាយផ្ទាល់)
+        $queryJN = DB::connection('pgsql')->table('MKT_JOURNAL as jn')
+            ->join('MKT_GL_MAPPING_DE as glmd', 'glmd.ConsolKey', '=', 'jn.GL_KEYS')
+            ->leftJoin('MKT_TRANSACTION as t', 't.ID', '=', 'jn.Transaction')
+            ->select([
+                DB::raw("'{$dateInput}' as \"TransactionMonth\""),
+                'jn.Reference', 
+                DB::raw('SUM(CASE WHEN jn."DebitCredit" = \'Cr\' THEN jn."Amount" ELSE -jn."Amount" END) as "NetAmount"'),
+                'glmd.ID as GLAcc',
+                'jn.Currency',
+                DB::raw('MAX(jn."Transaction" || \' - \' || t."Description") as "Transaction"'),
+                DB::raw('MAX(jn."UserReference") as "UserReference"'),
+                DB::raw('MAX(jn."LCYAmount") as "LCYAmount"'),
+                DB::raw('MAX(jn."LCYPrevBalance") as "LCYPrevBalance"'),
+                DB::raw('MAX(jn."Module") as "Module"')
+            ])
+            ->whereBetween('jn.TransactionDate', [$from_date, $to_date])
+            ->where('jn.Reference', 'like', 'LC%');
+
+        if (!empty($gl_code)) {
+            $queryJN->where('glmd.ID', $gl_code);
+        }
+        if (!empty($reference)) {
+            $queryJN->where('jn.Reference', $reference);
+        }
+        $queryJN->groupBy('jn.Reference', 'glmd.ID', 'jn.Currency');
+
+        // ២. Query សម្រាប់តារាង MKT_AIR_JOURNAL (រក្សាទុក connection('pgsql'))
+        $queryAIR = DB::connection('pgsql')->table('MKT_AIR_JOURNAL as air')
+            ->join('MKT_GL_MAPPING_DE as glmd', 'glmd.ConsolKey', '=', 'air.GL_KEYS')
+            ->leftJoin('MKT_TRANSACTION as t', 't.ID', '=', 'air.Transaction')
+            ->select([
+                DB::raw("'{$dateInput}' as \"TransactionMonth\""),
+                'air.Reference', 
+                DB::raw('SUM(CASE WHEN air."DebitCredit" = \'Cr\' THEN air."Amount" ELSE -air."Amount" END) as "NetAmount"'),
+                'glmd.ID as GLAcc',
+                'air.Currency',
+                DB::raw('MAX(air."Transaction" || \' - \' || t."Description") as "Transaction"'),
+                DB::raw('MAX(air."UserReference") as "UserReference"'),
+                DB::raw('MAX(air."LCYAmount") as "LCYAmount"'),
+                DB::raw('MAX(air."LCYPrevBalance") as "LCYPrevBalance"'),
+                DB::raw('MAX(air."Module") as "Module"')
+            ])
+            ->whereBetween('air.TransactionDate', [$from_date, $to_date])
+            ->where('air.Reference', 'like', 'LC%');
+
+        if (!empty($gl_code)) {
+            $queryAIR->where('glmd.ID', $gl_code);
+        }
+        if (!empty($reference)) {
+            $queryAIR->where('air.Reference', $reference);
+        }
+        $queryAIR->groupBy('air.Reference', 'glmd.ID', 'air.Currency');
+            
+        // ៣. រួមបញ្ចូលតារាងទាំងពីរ
+        $combinedSubQuery = $queryJN->unionAll($queryAIR);
+
+        // ៤. Main Query ស្រោបពីលើ Subquery ដើម
+        $finalResult = DB::connection('pgsql')
+            ->table(DB::raw("({$combinedSubQuery->toSql()}) as combined"))
+            ->select([
+                'combined.Reference',
+                DB::raw('SUM(combined."NetAmount") as "TotalNetAmount"'),
+                DB::raw('SUM(CASE WHEN combined."Currency" = \'KHR\' THEN combined."NetAmount" ELSE 0 END) as "Amount_KHR"'),
+                DB::raw('SUM(CASE WHEN combined."Currency" = \'USD\' THEN combined."NetAmount" ELSE 0 END) as "Amount_USD"'),
+                DB::raw("SUM(CASE WHEN combined.\"Currency\" = 'USD' THEN combined.\"NetAmount\" * {$rate} ELSE combined.\"NetAmount\" END) as \"Total_Amount_KHR\""),
+                DB::raw("SUM(CASE WHEN combined.\"Currency\" = 'USD' THEN combined.\"NetAmount\" * {$rate} ELSE combined.\"NetAmount\" END) * 0.01 as \"Income_Tax\""),
+                
+                'combined.TransactionMonth',
+                'combined.GLAcc',
+                'combined.Currency',
+                DB::raw('MAX(combined."Transaction") as "Transaction"'),
+                DB::raw('MAX(combined."UserReference") as "UserReference"'),
+                DB::raw('SUM(combined."LCYAmount") as "TotalLCYAmount"'),          
+                DB::raw('SUM(combined."LCYPrevBalance") as "TotalLCYPrevBalance"'),  
+                DB::raw('MAX(combined."Module") as "Module"'),
+            ])
+            ->groupBy('combined.Reference', 'combined.TransactionMonth', 'combined.GLAcc', 'combined.Currency');
+
+        $finalResult->mergeBindings($combinedSubQuery);
+
+        // 💡 ជំហានទី ៣៖ ទាញទិន្នន័យពី pgsql មកផ្គុំឈ្មោះអតិថិជន រួចយកទៅរក្សាទុកក្នុង Database Default
+        $liveData = $finalResult->get();
+
+        if ($liveData->isNotEmpty()) {
+            $references = $liveData->pluck('Reference')->unique()->toArray();
+
+            // ទាញយក Customer ID ពី pgsql
+            $activeLoans = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT')->whereIn('ID', $references)->pluck('ContractCustomerID', 'ID');
+            $closedLoans = DB::connection('pgsql')->table('MKT_CLOSED_LOAN')->whereIn('ID', $references)->pluck('ContractCustomerID', 'ID');
+            $customerIds = $activeLoans->merge($closedLoans)->filter()->unique()->toArray();
+
+            // ស្វែងរកឈ្មោះពីតារាង Customer របស់ pgsql
+            $customers = DB::connection('pgsql')->table('MKT_CUSTOMER')->whereIn('ID', $customerIds)
+                ->select('ID', 'LastNameKh', 'FirstNameKh', 'LastNameEn', 'FirstNameEn')->get()->keyBy('ID');
+            // 💡 ១. ទៅទាញយក Record ដែលមានស្រាប់នៅក្នុងខែនេះមកសិន ដើម្បីយកមកធ្វើជាបញ្ជីស្កេនឆែក (Pluck Unique Keys)
+            $existingRecords = DB::table('journal_backups')
+                ->where('TransactionMonth', $dateInput) // $dateInput មកពីផ្នែកខាងលើនៃ getDatas()
+                ->select('TransactionMonth', 'Reference', 'GLAcc')
+                ->get()
+                ->map(function ($item) {
+                    // បង្កើតកូនសោររួមគ្នា (Unique Key Combo) សម្រាប់សម្គាល់ Record ម្នាក់ៗ
+                    return "{$item->TransactionMonth}_{$item->Reference}_{$item->GLAcc}";
+                })
+                ->toArray();
+
+            $backupData = [];
+            $now = now();
+
+            foreach ($liveData as $row) {
+                // Unique Key សម្រាប់ Row នីមួយៗដែលទាញបានពី Live Data
+                $currentKey = "{$row->TransactionMonth}_{$row->Reference}_{$row->GLAcc}";
+                if (in_array($currentKey, $existingRecords)) {
+                    continue; 
+                }
+
+                $custId = $activeLoans->get($row->Reference) ?? $closedLoans->get($row->Reference);
+                $cust = $customers->get($custId);
+
+                $khName = $cust ? trim($cust->LastNameKh) . ' ' . trim($cust->FirstNameKh) : 'N/A';
+                $enName = $cust ? trim($cust->LastNameEn) . ' ' . trim($cust->FirstNameEn) : 'N/A';
+                $lastDay = Carbon::parse($row->TransactionMonth)->endOfMonth()->format('d');
+                $backupData[] = [
+                    'TransactionMonth'    => $row->TransactionMonth,
+                    'JN_Day'              => $lastDay,
+                    'GLAcc'               => $row->GLAcc,
+                    'Currency'            => $row->Currency,
+                    'Reference'           => $row->Reference,
+                    'KhName'              => $khName,
+                    'EnName'              => $enName,
+                    'Amount_KHR'          => $row->Amount_KHR,
+                    'Amount_USD'          => $row->Amount_USD,
+                    'Total_Amount_KHR'    => $row->Total_Amount_KHR,
+                    'Income_Tax'          => $row->Income_Tax,
+                    'CategoryID'          => $row->CategoryID ?? null,
+                    'Module'              => $row->Module ?? null,
+                    'Transaction'         => $row->Transaction ?? null,
+                    'UserReference'       => $row->UserReference ?? '',
+                    'TotalLCYAmount'      => $row->TotalLCYAmount ?? 0,      
+                    'TotalLCYPrevBalance' => $row->TotalLCYPrevBalance ?? 0, 
+                    'created_at'          => $now,
+                    'updated_at'          => $now
+                ];
+            }
+
+            // 💡 ៤. បញ្ជូនតែទិន្នន័យណាដែលថ្មីស្រឡាង (មិនទាន់មានក្នុង DB) ទៅ insert តែប៉ុណ្ណោះ
+            if (!empty($backupData)) {
+                foreach (array_chunk($backupData, 100) as $chunk) {
+                    DB::table('journal_backups')->insert($chunk);
+                }
+            }
+        }
+
+        // 💡 ជំហានកែសម្រួល៖ បង្កើត Base Query មួយរួមគ្នាសម្រាប់យកទៅប្រើប្រាស់ទាំង Rows និង Footer
+        $baseBackupFinalQuery = DB::table('journal_backups')->where('TransactionMonth', $dateInput);
+
+        if (!empty($gl_code)) {
+            $baseBackupFinalQuery->where('GLAcc', 'like', $gl_code . '%');
+        }
+        if (!empty($reference)) {
+            $baseBackupFinalQuery->where('Reference', 'like', $reference . '%');
+        }
+        // 💡 បន្ថែមការ Filter តាម Search Text របស់ DataTables ដើម្បីឱ្យ Footer រត់ត្រូវលេខជានិច្ច
+        // if (!empty($search_text)) {
+        //     $baseBackupFinalQuery->where(function ($q) use ($search_text) {
+        //         $q->where('Reference', 'like', '%' . $search_text . '%')
+        //           ->orWhere('KhName', 'like', '%' . $search_text . '%')
+        //           ->orWhere('EnName', 'like', '%' . $search_text . '%');
+        //     });
+        // }
+
+        // 💡 ប្រើប្រាស់ ->clone() បំបែកចេញជា ២ Queries ដាច់ដោយឡែកពីគ្នា
+        $journalBackups = $baseBackupFinalQuery->clone();
+        $combinedTotal  = $baseBackupFinalQuery->clone(); // សម្រាប់បូកសរុប Footer (មាន Filter ពេញលេញ)
+
+        // 💡 ឆែកលក្ខខណ្ឌ Group By ទៅលើ Rows (លក្ខខណ្ឌ Filters ទាំងអស់នៅតែរក្សាទុកដដែល ១០០%)
+        if (!empty($lc_group)) {
+            $journalBackups->select([
+                'Reference',
+                'TransactionMonth',
+                
+                // 💡 ធ្វើការបូកសរុប (SUM) ទៅលើ Column ទឹកប្រាក់នីមួយៗ
+                DB::raw('SUM(Amount_KHR) as Amount_KHR'),
+                DB::raw('SUM(Amount_USD) as Amount_USD'),
+                DB::raw('SUM(Total_Amount_KHR) as Total_Amount_KHR'),
+                DB::raw('SUM(Income_Tax) as Income_Tax'),
+                
+                // 💡 សម្រាប់ Column ជាអក្សរផ្សេងៗ ត្រូវប្រើ MAX() ដើម្បីកុំឱ្យវាទាស់ជាមួយ Group By
+                DB::raw('MAX(GLAcc) as GLAcc'),
+                DB::raw('MAX(JN_Day) as JN_Day'),
+                DB::raw('MAX(Currency) as Currency'),
+                DB::raw('MAX(KhName) as KhName'),
+                DB::raw('MAX(EnName) as EnName'),
+                DB::raw('MAX(Transaction) as Transaction'),
+                DB::raw('MAX(UserReference) as UserReference'),
+                DB::raw('MAX(Module) as Module')
+            ])
+            ->groupBy('Reference', 'TransactionMonth');
+        }
+
+        return [
+            "query" => $journalBackups,
+            "combinedSubQuery" => $combinedTotal,
+            "currencyRate" => $rate,
+            "is_from_backup" => true
+        ];
     }
+    public function index(Request $request) {
+        if (!$this->denyPermission('Sale Record View')) {
+            return view('page.access_page');
+        }
+
+        if (request()->ajax()) {
+            $get = self::getDatas($request);
+            $baseQuery = $get['query'];
+            $lc_group = $request->get('lc'); // 💡 ចាប់យក lc មកឆែកលក្ខគណ្ឌ Count
+
+            // 💡 កែសម្រួល៖ គណនា Count ឱ្យត្រឹមត្រូវ ទោះជាមានការប្រើប្រាស់ Group By ក៏ដោយ
+            if (!empty($lc_group)) {
+                $recordsTotal = $baseQuery->clone()->get()->count();
+            } else {
+                $recordsTotal = $baseQuery->clone()->count();
+            }
+            $recordsFiltered = $recordsTotal;
+
+            $start = intval(request()->input('start', 0));
+            $limit = intval(request()->input('length', 20));
+            
+            // 💡 កែសម្រួល៖ ឆែកលក្ខខណ្ឌ ប្រសិនបើមិនមែនជា "All" (-1) ទើបដាក់ Offset និង Limit
+            if ($limit != -1) {
+                $baseQuery->offset($start)->limit($limit);
+            }
+
+            // ទាញយកទិន្នន័យដែលមានទាំងឈ្មោះ KhName និង EnName រួចជាស្រេចនៅក្នុង Backup Table
+            $data = $baseQuery->orderBy('GLAcc', 'desc')->get();
+
+            return response()->json([
+                'draw'            => intval(request()->input('draw')),
+                'recordsTotal'    => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered, 
+                'data'            => $data,
+                'currency'        => $get["currencyRate"]
+            ]);
+        }
+
+        return view('mkt-reports.sale-records.sale-record');
+    }
+
+    public function exportExcel(Request $request) {
+        ini_set('memory_limit', '-1'); 
+        set_time_limit(0);
+
+        $get = self::getDatas($request);
+        $queryBuilder = $get["query"];
+        $currency = $get["currencyRate"];
+        $date = $request->get('date') ?? date('Y-m');
+        
+        $start = $request->get('start', 0);
+        $length = $request->get('length', 20);
+        $lc_group = $request->get('lc');
+
+        // 💡 កែសម្រួល៖ ឆែកលក្ខខណ្ឌ Pagination សម្រាប់ Export ការពារ Error "Division by zero" ពេលរើស "All"
+        if ($length != -1) {
+            $queryBuilder->offset($start)->limit($length);
+            $currentPage = ($start / $length) + 1;
+            $pageStr = '_Page_' . $currentPage;
+        } else {
+            $pageStr = '_All_Records';
+        }
+
+        $paginatedData = $queryBuilder->get();
+
+        $templateName = !empty($lc_group) ? 'Group_By_LC' : 'Group_By_GL';
+        $fileName = 'Sale_Record_' . $templateName . $pageStr . '_' . $date . '.xlsx';
+
+        return Excel::download(new ExportSaleRecord($paginatedData, $date, $currency, $lc_group), $fileName);
+    }
+
     public static function getDataDetails($request){
         $dateInput = $request->get('date') ?? date('Y-m');
         $time = strtotime($dateInput);
@@ -332,50 +599,7 @@ class SaleRecordController extends Controller
         $branchs = self::getBranchs();
         return view('mkt-reports.trial-balances.index', compact('branchs'));
     }
-    public function index(Request $request) {
-        if (!$this->denyPermission('Sale Record View')) {
-            return view('page.access_page');
-        }
-        if (request()->ajax()) {
-            $get = self::getDatas($request);
-            
-            // ✅ វិធីរាប់ចំនួន Record សរុបឱ្យត្រឹមត្រូវសម្រាប់ Group By (PostgreSQL)
-            $totalQuery = DB::connection('pgsql')->table(DB::raw("({$get['query']->toSql()}) as sub"))
-                            ->mergeBindings($get['query']); 
-            $recordsTotal = $totalQuery->count();
-            $recordsFiltered = $recordsTotal; 
 
-            $start = intval(request()->input('start', 0));
-            $limit = intval(request()->input('length', 20));
-
-            // ✅ ទាញយកទិន្នន័យតាមកម្រិត (Limit/Offset)
-            $data = $get["query"]
-                    ->orderBy('j.Reference', 'desc')
-                    ->offset($start)
-                    ->limit($limit)
-                    ->get();
-            
-            return response()->json([
-                'draw' => intval(request()->input('draw')),
-                'recordsTotal' => $recordsTotal,
-                'recordsFiltered' => $recordsFiltered, 
-                'data' => $data,
-                'currency' => $get["currencyRate"]
-            ]);
-        }
-        return view('mkt-reports.sale-records.sale-record');
-    }
-    public function exportExcel(Request $request) {
-        //*** (យ៉ាងហោច RAM 8GB ឡើងទៅ) **/
-        ini_set('memory_limit', '-1'); 
-        set_time_limit(0);
-
-        $get = self::getDatas($request);
-        $data = $get["query"]->get();
-        $currency = $get["currencyRate"];
-        $date = $request->get('date') ?? date('Y-m');
-        return Excel::download(new ExportSaleRecord($data, $date, $currency,null), 'Sale_Record_'.$date.'.xlsx');
-    }
     public function exportExcelAll(Request $request) 
     {
         ini_set('memory_limit', '2048M');

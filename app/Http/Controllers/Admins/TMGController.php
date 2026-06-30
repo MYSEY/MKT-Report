@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\HasRolePermission;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TMGExport;
+use App\Models\Position;
 
 class TMGController extends Controller
 {
@@ -17,24 +18,12 @@ class TMGController extends Controller
         $this->applyRolePermissions('TMG Report');
     }
     public static function condition() {
-        return function ($query) {
-            // ១. កំណត់តំណែងដែលត្រូវបង្ហាញ
-            $query->whereIn("positions.name_english", [
-                'Chief Executive Officer',
-                'Acting Chief Executive Officer',
-                'Head of Accounting and Finance Department',
-                'Deputy Head of Accounting and Finance Department', 
-                'Deputy Head of Accounting and Finance Department Treasury Unit', 
-                'Head of Credit Department', 
-                'Deputy Head of Credit Department',
-                'Head of Internal Audit Department', 
-                'Deputy Head of Internal Audit Department',
-                'Head of Information Technology Department',
-                'Deputy Head of Information Technology Department',
-                'Head of Business Development Department', 
-                'Head of HR and Admin Department',
-                'Deputy Head of HR and Admin Department',
-            ]);
+        $positionArray = Position::where("type", "2")->pluck('position_id')->toArray();
+        return function ($query) use ($positionArray) {
+            $positions = !empty($positionArray) ? $positionArray : [0];
+
+            // ៣. កំណត់តំណែងដែលត្រូវបង្ហាញ (ប្រើ $positions ដែលជា Array ធម្មតា)
+            $query->whereIn("users.position_id", $positions);
 
             // ២. កំណត់ Status បុគ្គលិក
             $query->where(function($q) {

@@ -11,31 +11,48 @@
     <div class="card mb-2">
         <div class="card-body">
             <div class="row filter-btn">
-                <div class="col-sm-4 col-md-4">
+                <div class="col-sm-3 col-md-3">
                     <div class="form-group">
                         <input type="text" 
-                            class="form-control datepicker_month btn-filter" 
+                            class="form-control datepicker_month" 
                             name="sale_date" 
                             id="sale_date" 
-                            value="{{ date('Y-m') }}"
+                            value=""
                             placeholder="mm/yyyy" 
                             readonly 
                             style="background-color: #fff;">
                     </div>
                 </div>
-                <div class="col-sm-8 col-md-8">
+                <div class="col-sm-2 col-md-2">
+                    <div class="form-group">
+                        <input type="text"  placeholder="GL Code" name="gl_code" class="form-control gl_code">
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    {{-- <div class="form-group">
+                        <input type="text"  placeholder="Full Name" name="full_name"  class="form-control full_name">
+                    </div> --}}
+                    <div class="form-group">
+                        <input type="text"  placeholder="LC" name="reference"  class="form-control reference">
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4">
                     <div class="float-right">
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" id="icon-search-download-reload">
+                            <span class="btn-txt"><i class="fal fa-search"></i></span>
+                            Search
+                            <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                        </button>
                         @if(Auth::user()->can('Sale Record Export'))
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel Summary
+                                Excel GL
                             </button>
-
-                            <button type="button" class="btn btn-sm btn-success waves-effect waves-themed btn_excel_all mr-1">
+                              <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" data-btn="lc">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                <span id="btn-text-loading-excel-2" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                                Excel Details
+                                <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                                Excel LC
                             </button>
                         @endif
                     </div>
@@ -59,6 +76,8 @@
                                 <th rowspan="2">#</th>
                                 <th rowspan="2">Transaction_Date</th>
                                 <th rowspan="2">Inv_No</th>
+                                <th rowspan="2">GL_Code</th>
+                                <th rowspan="2">Currency</th>
                                 <th colspan="4" class="text-center">Buyer</th> 
                                 <th rowspan="2">Type_of_Supply</th>
                                 <th rowspan="2">Amount_KHR</th>
@@ -79,7 +98,7 @@
                         </tbody>
                         <tfoot>
                             <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                <th colspan="8" style="text-align: right;">Total:</th>
+                                <th colspan="10" style="text-align: right;">Total:</th>
                                 <th id="sum_khr" class="text-right"></th>
                                 <th id="sum_usd" class="text-right"></th>
                                 <th id="sum_total_khr" class="text-right"></th>
@@ -105,56 +124,31 @@
                     todayHighlight: true
                 });
             });
-            $(document).ready(function() {
-                // បង្កើត Function រួមសម្រាប់ Handle ការ Export
-                function handleExport(btnElement, urlPath) {
-                    let $thisBtn = $(btnElement);
-                    let $allButtons = $('.btn_excel, .btn_excel_all');
-                    
-                    // ១. Disable button ទាំងពីរ និងបង្ហាញ Loading
-                    $allButtons.prop('disabled', true).addClass('disabled');
-                    
-                    // លាក់ icon ដើម និងបង្ហាញ icon spinner (ប្រើ selector ឱ្យចំ span ដែលអ្នកមាន)
-                    $allButtons.find('.btn-text-excel').hide();
-                    $allButtons.find('span[id^="btn-text-loading-excel"]').show();
-
-                    // ២. រៀបចំ Query String
-                    let query = {
-                        date: $('input[name="sale_date"]').val(),
-                        // អ្នកអាចបន្ថែម search: $('input[type="search"]').val() បើចង់បាន
-                    };
-
-                    // ៣. បញ្ជូនទៅកាន់ URL
-                    let url = "{{ url('/') }}/" + urlPath + "?" + $.param(query);
-                    window.location = url;
-
-                    // ៤. កំណត់ឱ្យ Buttons ដើរវិញក្រោយពេល ១០ វិនាទី (ព្រោះ window.location គ្មាន callback ទេ)
-                    setTimeout(function() {
-                        $allButtons.prop('disabled', false).removeClass('disabled');
-                        $allButtons.find('.btn-text-excel').show();
-                        $allButtons.find('span[id^="btn-text-loading-excel"]').hide();
-                    }, 10000); 
+            $('.btn_excel').on('click', function() {
+                const actionBTN = $(this).data("btn");
+                let btn_export = "";
+                if (actionBTN == "lc") {
+                    btn_export = true;
                 }
+                let table = $('#tbl-sale-record').DataTable();
+                let pageInfo = table.page.info();
+                let start = pageInfo.start;
+                let length = pageInfo.length;
 
-                // ចាប់ Event ពេលចុចលើ "Excel to Template"
-                $(".btn_excel").on("click", function() {
-                    handleExport(this, 'admin/mkt-report/sale-record/download');
-                });
+                let date = $('input[name="sale_date"]').val() || '';
+                let gl_code = $('input[name="gl_code"]').val() || '';
+                let reference = $('input[name="reference"]').val() || '';
 
-                // ចាប់ Event ពេលចុចលើ "Excel Not Template"
-                $(".btn_excel_all").on("click", function() {
-                    handleExport(this, 'admin/mkt-report/sale-record/downloads');
-                });
+                let exportUrl = '{{ url("admin/mkt-report/sale-record/download") }}' + 
+                    `?date=${date}&gl_code=${gl_code}&reference=${reference}&lc=${btn_export}` +
+                    `&start=${start}&length=${length}`;
+                window.location.href = exportUrl;
             });
-            // Reload only (DON'T destroy/reinit)
-            $('.btn-filter').on('change', function() {
-                $(".currency_rate").text("");
-                $('#loading-overlay').hide();
-                $('#tbl-sale-record').DataTable().ajax.reload(null, false);
-                $(".currency_month").text($('input[name="sale_date"]').val());
+
+            $('.btn-search').on('click', function() {
+                dataTables();
             });
-            // Initialize only once
-            dataTables();
+            // dataTables();
         });
 
         function dataTables() {
@@ -165,6 +159,7 @@
             }
            $('#tbl-sale-record').DataTable({
                 pageLength: 20,
+                searching: false,
                 destroy: true,
                 processing: true,
                 serverSide: true,
@@ -172,12 +167,19 @@
                 scrollY: '350px',
                 scroller: false,
                 order: [[1, 'desc']],
-                lengthMenu: [ [20, 25, 50, 100], [10, 25, 50, 100] ],
+                lengthMenu: [ 
+                    [20, 25, 50, 100, -1],
+                    [20, 25, 50, 100, "All"]
+                ],
                 ajax: {
                     url: '{{ URL("admin/mkt-report/sale-record") }}',
                     type: 'GET',
                     data: function (d) {
                         d.date = $('input[name="sale_date"]').val();
+                        d.gl_code = $('input[name="gl_code"]').val();
+                        d.full_name = $('input[name="full_name"]').val();
+                        d.reference = $('input[name="reference"]').val();
+                        
                     },
                     dataSrc: function (json) {
                         let currency = json.currency;
@@ -194,13 +196,18 @@
                         className: 'text-center',
                         render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1
                     },
-                    { data: 'TransactionDate', name: 'j.TransactionDate', className: 'text-center' },
-                    { data: null, render: () => 11111, className: 'text-center' },
-                    { data: null, render: () => 2, className: 'text-center' },
-                    { data: 'Reference', name: 'j.Reference' },
-                    { data: 'KhName', name: 'CUST.LastNameKh' },
-                    { data: 'EnName', name: 'CUST.LastNameEn' },
-                    { data: null, render: () => 3, className: 'text-center' },
+                    { data: 'TransactionMonth', name: 'combined.TransactionMonth', className: 'text-center' },
+                    { data: null, render: () => 11111, className: 'text-center', orderable: false, searchable: false },
+                    { data: 'GLAcc', name: 'combined.GLAcc'},
+                    { data: 'Currency', name: 'combined.Currency' },
+                    { data: null, render: () => 2, className: 'text-center', orderable: false, searchable: false },
+                    { data: 'Reference', name: 'combined.Reference' },
+                    
+                    // 💡 កែសម្រួលត្រង់នេះ៖ ប្តូរពី CUST.LastNameKh មកជា cust.LastNameKh (អក្សរតូចដូចក្នុង Backend)
+                    { data: 'KhName', name: 'cust.LastNameKh' },
+                    { data: 'EnName', name: 'cust.LastNameEn' },
+                    
+                    { data: null, render: () => 3, className: 'text-center', orderable: false, searchable: false },
 
                     // Amount KHR
                     { 
@@ -230,8 +237,8 @@
                         className: 'text-right',
                         render: d => Math.round(d).toLocaleString() + ' ៛'
                     },
-                    { data: null, render: () => 'Loan Repayment' },
-                    { data: null, render: () => 0, className: 'text-center' },
+                    { data: null, render: () => 'Loan Repayment', orderable: false, searchable: false },
+                    { data: null, render: () => 0, className: 'text-center', orderable: false, searchable: false },
                 ],
 
                 footerCallback: function (row, data, start, end, display) {
@@ -241,16 +248,16 @@
                     const parseNum = i => typeof i === 'string' ? i.replace(/[\$,៛,]/g, '') * 1 : typeof i === 'number' ? i : 0;
 
                     // បូកសរុបតាម Column (ប្រើ index 8, 9, 10, 11)
-                    const totalKHR = api.column(8, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalUSD = api.column(9, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalAll = api.column(10, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
-                    const totalTax = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalKHR = api.column(11, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalUSD = api.column(12, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalAll = api.column(13, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
+                    const totalTax = api.column(14, { page: 'current' }).data().reduce((a, b) => parseNum(a) + parseNum(b), 0);
 
                     // បង្ហាញលទ្ធផលក្នុង Footer
-                    $(api.column(8).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
-                    $(api.column(9).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
-                    $(api.column(10).footer()).html(totalAll.toLocaleString() + ' ៛');
-                    $(api.column(11).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
+                    $(api.column(11).footer()).html(totalKHR != 0 ? totalKHR.toLocaleString() + ' ៛' : '-');
+                    $(api.column(12).footer()).html(totalUSD != 0 ? '$ ' + totalUSD.toLocaleString(undefined, {minimumFractionDigits: 2}) : '-');
+                    $(api.column(13).footer()).html(totalAll.toLocaleString() + ' ៛');
+                    $(api.column(14).footer()).html(Math.round(totalTax).toLocaleString() + ' ៛');
                 }
             });
 

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admins\SaleRecordController;
 use App\Http\Controllers\Admins\TMGController;
 use App\Http\Controllers\Admins\BranchCodeController;
 use App\Http\Controllers\Admins\InterestIncomeController;
+use App\Http\Controllers\Admins\PositionController;
 use App\Http\Controllers\Admins\LoanInactiveController;
 use App\Http\Controllers\Admins\LoanDisbursementController;
 use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
@@ -45,6 +46,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::resource('interest-income', InterestIncomeController::class);
         Route::resource('branch-code', BranchCodeController::class);
         Route::post('interest-income/import', [InterestIncomeController::class, 'import']);
+        Route::resource('position', PositionController::class);
     });
     Route::prefix('mkt-report')->group(function () {
         Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);

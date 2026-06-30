@@ -6,7 +6,7 @@
         </td>
     </tr>
     <tr><td colspan="10" style="text-align: center; font-weight: bold; font-size: 14pt;">
-        ប្រចំាខែ {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['month' => true]) }} ឆ្នំា {{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['year' => true]) }}
+        ប្រចំាខែ{{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['month' => true]) }} ឆ្នំា{{ \App\Helpers\KhmerDateHelper::formatDate($date, 'km', ['year' => true]) }}
     </td></tr>
     <tr><td colspan="10" style="font-weight: bold;">នាមករណ៍សហគ្រាស : ខេមា មីក្រូហិរញ្ញវត្ថុ លីមីតធីត</td></tr>
     <tr><td colspan="10">អាស័យដ្ឋានៈផ្ទះលេខ១០១A ផ្លូវ 289 សង្កាត់បឹងកក់១ ខណ្ឌ ទួលគោក រាជធានី ភ្នំពេញ</td></tr>
@@ -68,15 +68,15 @@
                 @endif
 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">
-                    {{ number_format($row->AmountKHR,2) . ' ៛' }}
+                    {{ number_format($row->AmountKHR,3) . ' ៛' }}
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">
-                    {{ number_format($row->AmountUSD,2) .' $'}}
+                    {{ number_format($row->AmountUSD,3) .' $'}}
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px; font-weight: bold;">
-                    {{ number_format($row->TotalAmountKHR) }} ៛
+                    {{ number_format($row->TotalAmountKHR,3) }} ៛
                 </td>
                 
                 <td align="right" style="border: 1px solid #000; padding-right: 5px;">

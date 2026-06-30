@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Province;
 use App\Exports\NetworkEmployeeExport;
+use App\Models\Position;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -89,6 +90,8 @@ class NetworkEmployeeController extends Controller
 
     public static function getDatas($request)
     {
+        $positionArray = Position::where("type", "1")->pluck('position_id')->toArray();
+        $positionString = !empty($positionArray) ? implode(',', $positionArray) : '0';
         $query = DB::connection('mysqlhrconnection')->table('provinces')
             ->leftJoin('branchs', 'provinces.code', '=', 'branchs.current_province')
             ->leftJoin('users', 'branchs.id', '=', 'users.branch_id')
@@ -120,14 +123,7 @@ class NetworkEmployeeController extends Controller
                 DB::raw("IFNULL(SUM(CASE WHEN options.name_english = 'Female' THEN 1 ELSE 0 END), 0) as female"),
                 DB::raw("COUNT(users.id) as total"),
                 // --- ផ្នែកថ្មី៖ រាប់តែ CO Positions ---
-                DB::raw("IFNULL(SUM(CASE WHEN positions.name_english IN (
-                    'Junior Credit Officer',
-                    'Credit Officer',
-                    'Senior Credit Officer',
-                    'Junior Relationship Officer, Digital Lending', 
-                    'Relationship Officer, Digital Lending', 
-                    'Relationship Officer, Digital Lending'
-                ) THEN 1 ELSE 0 END), 0) as co_count")
+                DB::raw("IFNULL(SUM(CASE WHEN positions.id IN (" . $positionString . ") THEN 1 ELSE 0 END), 0) as co_count")
             ])
             ->groupBy(
                 'provinces.id', 
