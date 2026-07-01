@@ -217,7 +217,7 @@
                                                 @if(Auth::user()->can('Sale Record View'))
                                                     <li class="{{ Request::is('admin/mkt-report/sale-record') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/sale-record') }}">
-                                                            <span class="nav-link-text">Sale Record</span>
+                                                            <span class="nav-link-text">Sale Record AS</span>
                                                         </a>
                                                     </li>
                                                 @endif
