@@ -192,6 +192,7 @@
                                         || Auth::user()->can('Sale Record Exemption View')
                                         || Auth::user()->can('Sale Record Console View')
                                         || Auth::user()->can('Trial Balance View')
+                                        || Auth::user()->can('Veryfy Repayment Agent Report View')
                                         )
                                         <li class="{{
                                             Request::is('admin/mkt-report/sale-record')
@@ -201,6 +202,8 @@
                                             Request::is('admin/mkt-report/sale-record-console')
                                             || 
                                             Request::is('admin/mkt-report/trial-balance')
+                                            ||
+                                            Request::is('admin/mkt-report/veryfy/repayment/agent')
                                             ? 'active open' : '' 
                                             }}">
                                             <a href="javascript:void(0);" title="Accounting Reports" data-filter-tags="pages accounting">
@@ -232,6 +235,13 @@
                                                     <li class="{{ Request::is('admin/mkt-report/sale-record-console') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/sale-record-console') }}">
                                                             <span class="nav-link-text">Sale Record Console</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Veryfy Repayment Agent Report View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/veryfy/repayment/agent') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/veryfy/repayment/agent') }}">
+                                                            <span class="nav-link-text">Veryfy Repayment By Agent</span>
                                                         </a>
                                                     </li>
                                                 @endif

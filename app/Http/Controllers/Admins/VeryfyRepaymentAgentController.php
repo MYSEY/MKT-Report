@@ -166,26 +166,37 @@ class VeryfyRepaymentAgentController extends Controller
                 $DrCategory        = $configeAgent[$uploadedAgent] ?? null;
                 $CrAccount         = 'DD' . mb_substr($uploadedAccount, 0, -2);
                 $Currency          = DB::connection('pgsql')->table('MKT_CURRENCY')->where('ID', $uploadedCurrency)->first();
-                $ExchangeRate      = $Currency->MidRate ?? null;
+                if ($uploadedCurrency=='USD') {
+                    $ExchangeRate = 1;
+                }else {
+                    $ExchangeRate = $request->exchange_rate;
+                }
+                // $ExchangeRate      = $Currency->MidRate ?? null;
                 $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
 
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 // ✅ System full name from DB
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
+               
                 // ✅ Check all 4 conditions if account found
-                if ($loan) {
-                    $mobile1 = $loan->Mobile1 ?? '';
-                    $mobile2 = $loan->Mobile2 ?? '';
-                    $nameMatch     = $uploadedName !== '' && (stripos($loanFullName, $uploadedName) !== false || stripos($uploadedName, $loanFullName) !== false);
-                    $phoneMatch    = $uploadedPhone !== '' && (str_contains($mobile1, $uploadedPhone) || str_contains($mobile2, $uploadedPhone));
-                    $matchCurrency = $uploadedCurrency !== '' && str_contains($loan->Currency, $uploadedCurrency);
+                // if ($loan) {
+                //     $mobile1 = $loan->Mobile1 ?? '';
+                //     $mobile2 = $loan->Mobile2 ?? '';
+                //     $nameMatch     = $uploadedName !== '' && (stripos($loanFullName, $uploadedName) !== false || stripos($uploadedName, $loanFullName) !== false);
+                //     $phoneMatch    = $uploadedPhone !== '' && (str_contains($mobile1, $uploadedPhone) || str_contains($mobile2, $uploadedPhone));
+                //     $matchCurrency = $uploadedCurrency !== '' && str_contains($loan->Currency, $uploadedCurrency);
 
-                    // ✅ If any condition fails, treat as not found
-                    if (!$nameMatch || !$phoneMatch || !$matchCurrency) {
-                        $loan = null;
-                    }
+                //     // ✅ If any condition fails, treat as not found
+                //     if (!$nameMatch || !$phoneMatch || !$matchCurrency) {
+                //         $loan = null;
+                //     }
+                // }
+
+                if ($loanFullName !== '') {
+                    $fullName = $loanFullName;
+                }else {
+                    $fullName = '(Error: )';
                 }
-
                 if (!$loan) {
                     // ✅ Branch: show #N/A for missing fields
                     $branchResults[] = [
@@ -217,23 +228,23 @@ class VeryfyRepaymentAgentController extends Controller
                         'Officer'     => '#N/A',
                         'ClientTel'   => '#N/A',
                     ];
-
+                    
                     // ✅ Morakot: keep as normal
                     $results[] = [
-                        'Branch'           => '#N/A',
+                        'Branch'           => '#VALUE!',
                         'DrAccount'        => '',
-                        'DrCategory'       => $DrCategory,
-                        'DrCurrency'       => $uploadedCurrency,
+                        'DrCategory'       => '#VALUE!',
+                        'DrCurrency'       => '0',
                         'CrAccount'        => $CrAccount,
                         'CrCategory'       => '3852204',
-                        'CrCurrency'       => $uploadedCurrency,
-                        'Amount'           => $uploadedAmount,
-                        'LCYAmount'        => $uploadedLCYAmount,
-                        'ExchangeRate'     => $ExchangeRate,
+                        'CrCurrency'       => '0',
+                        'Amount'           => '0',
+                        'LCYAmount'        => '#N/A',
+                        'ExchangeRate'     => '#N/A',
                         'Transaction'      => 40,
                         'TranDate'         => $request->date,
                         'Reference'        => $loanFullName,
-                        'Note'             => $uploadedAgent . ' ' . $loanFullName,
+                        'Note'             => $uploadedAgent . ' ' . $fullName,
                         'DrGLKey'          => '',
                         'CrGLKey'          => '',
                         'Module'           => 'FT',
@@ -274,7 +285,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'Transaction'      => 40,
                     'TranDate'         => $request->date,
                     'Reference'        => $loanFullName,
-                    'Note'             => $uploadedAgent . ' ' . $loanFullName,
+                    'Note'             => $uploadedAgent . ' ' . $fullName,
                     'DrGLKey'          => '',
                     'CrGLKey'          => '',
                     'Module'           => 'FT',
@@ -331,7 +342,7 @@ class VeryfyRepaymentAgentController extends Controller
             return back()->with('error', 'No data to download. Please import a file first.');
         }
 
-        $fileName = 'Morakot_' . date('Ymd_His') . '.xlsx';
+        $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new MorakotExport($results), $fileName);
     }
 

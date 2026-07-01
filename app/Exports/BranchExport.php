@@ -9,7 +9,6 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
@@ -33,47 +32,52 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
             $grouped[$branch][] = $row;
         }
 
-        foreach ($grouped as $branch => $items) {
+        // ✅ Separate #N/A from normal branches
+        $naItems      = $grouped['#N/A'] ?? [];
+        $normalGroups = array_filter($grouped, fn($key) => $key !== '#N/A', ARRAY_FILTER_USE_KEY);
+
+        // ✅ Render normal branches first
+        foreach ($normalGroups as $branch => $items) {
             foreach ($items as $item) {
                 $rows[] = [
-                    $item['Branch']      ?? '',  // A
-                    $item['DrAccount']   ?? '',  // B
-                    $item['DrCategory']  ?? '',  // C
-                    $item['DrCurrency']  ?? '',  // D
-                    $item['CrAccount']   ?? '',  // E
-                    $item['CrCategory']  ?? '',  // F
-                    $item['CrCurrency']  ?? '',  // G
-                    $item['Amount']      ?? 0,   // H
-                    $item['LDNumber']    ?? '',  // I
-                    $item['CCY']         ?? '',  // J
-                    $item['KHName']      ?? '',  // K
-                    $item['Outstanding'] ?? 0,   // L
-                    $item['TotaArr']     ?? 0,   // M
-                    $item['PricipalArr'] ?? 0,   // N
-                    $item['InteresArr']  ?? 0,   // O
-                    $item['PenaltyArr']  ?? 0,   // P
-                    $item['ChargeArr']   ?? 0,   // Q
-                    $item['DateCol']     ?? '',  // R
-                    $item['TotalCol']    ?? 0,   // S
-                    $item['Principal']   ?? 0,   // T
-                    $item['Interest']    ?? 0,   // U
-                    $item['Charge']      ?? 0,   // V
-                    $item['LoanProduct'] ?? '',  // W
-                    $item['Note']        ?? '',  // X
-                    $item['Agent']       ?? '',  // Y
-                    $item['Officer']     ?? '',  // Z
-                    $item['ClientTel']   ?? '',  // AA
+                    $item['Branch']      ?? '',
+                    $item['DrAccount']   ?? '',
+                    $item['DrCategory']  ?? '',
+                    $item['DrCurrency']  ?? '',
+                    $item['CrAccount']   ?? '',
+                    $item['CrCategory']  ?? '',
+                    $item['CrCurrency']  ?? '',
+                    $item['Amount']      ?? 0,
+                    $item['LDNumber']    ?? '',
+                    $item['CCY']         ?? '',
+                    $item['KHName']      ?? '',
+                    $item['Outstanding'] ?? 0,
+                    $item['TotaArr']     ?? 0,
+                    $item['PricipalArr'] ?? 0,
+                    $item['InteresArr']  ?? 0,
+                    $item['PenaltyArr']  ?? 0,
+                    $item['ChargeArr']   ?? 0,
+                    $item['DateCol']     ?? '',
+                    $item['TotalCol']    ?? 0,
+                    $item['Principal']   ?? 0,
+                    $item['Interest']    ?? 0,
+                    $item['Charge']      ?? 0,
+                    $item['LoanProduct'] ?? '',
+                    $item['Note']        ?? '',
+                    $item['Agent']       ?? '',
+                    $item['Officer']     ?? '',
+                    $item['ClientTel']   ?? '',
                 ];
             }
 
-            // ✅ Branch subtotal — sum Amount only
+            // ✅ Branch subtotal
             $numericItems = array_filter($items, fn($i) => $i['Outstanding'] !== '#N/A');
             $rows[] = [
-                $branch . ' Total', // A
-                '', '', '', '', '', '',                                // B-G
-                array_sum(array_column($numericItems, 'Amount')),      // H
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', // I-V
-                '', '', '', '', '',                                    // W-AA
+                $branch . ' Total',
+                '', '', '', '', '', '',
+                array_sum(array_column($numericItems, 'Amount')),
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '',
             ];
         }
 
@@ -100,20 +104,64 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
 
         // ✅ Grand Total row
         $rows[] = [
-            'Grand Total', '', '', '', '', '', '',              // A-G
-            array_sum(array_column($allNumeric, 'Amount')),     // H
-            '', '', '', '', '', '', '', '', '', '', '', '', '', '', // I-V
-            '', '', '', '', '',                                 // W-AA
+            'Grand Total', '', '', '', '', '', '',
+            array_sum(array_column($allNumeric, 'Amount')),
+            '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+            '', '', '', '', '',
         ];
 
         // ✅ Empty row
         $rows[] = array_fill(0, 27, '');
 
+        // ✅ #N/A rows after Grand Total and before Agent
+        if (!empty($naItems)) {
+            foreach ($naItems as $item) {
+                $rows[] = [
+                    $item['Branch']      ?? '',
+                    $item['DrAccount']   ?? '',
+                    $item['DrCategory']  ?? '',
+                    $item['DrCurrency']  ?? '',
+                    $item['CrAccount']   ?? '',
+                    $item['CrCategory']  ?? '',
+                    $item['CrCurrency']  ?? '',
+                    $item['Amount']      ?? 0,
+                    $item['LDNumber']    ?? '',
+                    $item['CCY']         ?? '',
+                    $item['KHName']      ?? '',
+                    $item['Outstanding'] ?? 0,
+                    $item['TotaArr']     ?? 0,
+                    $item['PricipalArr'] ?? 0,
+                    $item['InteresArr']  ?? 0,
+                    $item['PenaltyArr']  ?? 0,
+                    $item['ChargeArr']   ?? 0,
+                    $item['DateCol']     ?? '',
+                    $item['TotalCol']    ?? 0,
+                    $item['Principal']   ?? 0,
+                    $item['Interest']    ?? 0,
+                    $item['Charge']      ?? 0,
+                    $item['LoanProduct'] ?? '',
+                    $item['Note']        ?? '',
+                    $item['Agent']       ?? '',
+                    $item['Officer']     ?? '',
+                    $item['ClientTel']   ?? '',
+                ];
+            }
+
+            // ✅ #N/A Total row
+            $rows[] = [
+                '#N/A Total',
+                '', '', '', '', '', '',
+                0,
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '',
+            ];
+        }
+
+        // ✅ Empty row
+        $rows[] = array_fill(0, 27, '');
+
         // ✅ Agent summary header
-        $rows[] = array_merge(
-            ['Agent', 'KHR', 'USD'],
-            array_fill(0, 24, '')
-        );
+        $rows[] = array_merge(['Agent', 'KHR', 'USD'], array_fill(0, 24, ''));
 
         // ✅ Agent summary rows
         foreach ($this->agentGrouped as $agent => $amounts) {
@@ -162,17 +210,17 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
     public function columnFormats(): array
     {
         return [
-            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Amount
-            'L' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Outstanding
-            'M' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // TotaArr
-            'N' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // PricipalArr
-            'O' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // InteresArr
-            'P' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // PenaltyArr
-            'Q' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // ChargeArr
-            'S' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // TotalCol
-            'T' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Principal
-            'U' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Interest
-            'V' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Charge
+            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'L' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'M' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'N' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'O' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'P' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'Q' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'S' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'T' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'U' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
+            'V' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
         ];
     }
 
@@ -181,11 +229,11 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
         $lastRow    = $sheet->getHighestRow();
         $lastColumn = 'AA';
 
-        // ✅ Set Arial Narrow size 8 for entire sheet
+        // ✅ Set Arial Narrow size 9 for entire sheet
         $sheet->getStyle('A1:' . $lastColumn . $lastRow)->applyFromArray([
             'font' => [
                 'name' => 'Arial Narrow',
-                'size' => 8,
+                'size' => 9,
             ],
         ]);
 
@@ -194,7 +242,7 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
             'font' => [
                 'name' => 'Arial Narrow',
                 'bold' => true,
-                'size' => 8,
+                'size' => 9,
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -202,48 +250,51 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
             ],
         ]);
 
-        // ✅ Data rows
+        // ✅ Data rows styling
         for ($i = 2; $i <= $lastRow; $i++) {
             $cellValue = (string) $sheet->getCell('A' . $i)->getValue();
 
             if ($cellValue === 'Grand Total') {
-                // Grand Total row — bold only
                 $sheet->getStyle('A' . $i . ':' . $lastColumn . $i)->applyFromArray([
                     'font' => [
                         'name' => 'Arial Narrow',
                         'bold' => true,
-                        'size' => 8,
+                        'size' => 9,
+                    ],
+                ]);
+            } elseif ($cellValue === '#N/A Total') {
+                $sheet->getStyle('A' . $i . ':' . $lastColumn . $i)->applyFromArray([
+                    'font' => [
+                        'name' => 'Arial Narrow',
+                        'bold' => true,
+                        'size' => 9,
                     ],
                 ]);
             } elseif ($cellValue === 'Agent') {
-                // Agent summary header — bold only
                 $sheet->getStyle('A' . $i . ':C' . $i)->applyFromArray([
                     'font' => [
                         'name' => 'Arial Narrow',
                         'bold' => true,
-                        'size' => 8,
+                        'size' => 9,
                     ],
                 ]);
             } elseif (isset($this->agentGrouped[$cellValue])) {
-                // Agent data rows — bold only
                 $sheet->getStyle('A' . $i . ':C' . $i)->applyFromArray([
                     'font' => [
                         'name' => 'Arial Narrow',
                         'bold' => true,
-                        'size' => 8,
+                        'size' => 9,
                     ],
                 ]);
             } elseif (str_ends_with($cellValue, ' Total')) {
-                // Branch subtotal row — bold only
                 $sheet->getStyle('A' . $i . ':' . $lastColumn . $i)->applyFromArray([
                     'font' => [
                         'name' => 'Arial Narrow',
                         'bold' => true,
-                        'size' => 8,
+                        'size' => 9,
                     ],
                 ]);
             } else {
-                // Border for data rows
                 $sheet->getStyle('A' . $i . ':' . $lastColumn . $i)->applyFromArray([
                     'borders' => [
                         'allBorders' => [

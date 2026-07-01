@@ -89,17 +89,23 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
 
     public function styles(Worksheet $sheet): array
     {
-        $lastRow = count($this->results) + 1;
-        // Header style
-        $sheet->getStyle('A1:U1')->applyFromArray([
+        $lastRow    = count($this->results) + 1;
+        $lastColumn = 'U';
+
+        // ✅ Set Arial Narrow size 8 for entire sheet
+        $sheet->getStyle('A1:' . $lastColumn . $lastRow)->applyFromArray([
             'font' => [
-                'bold'  => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size'  => 11,
+                'name' => 'Arial Narrow',
+                'size' => 10,
             ],
-            'fill' => [
-                'fillType'   => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '2E75B6'],
+        ]);
+
+        // ✅ Header style (bold, centered, no fill)
+        $sheet->getStyle('A1:' . $lastColumn . '1')->applyFromArray([
+            'font' => [
+                'name' => 'Arial Narrow',
+                'bold' => true,
+                'size' => 10,
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -107,8 +113,8 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
             ],
         ]);
 
-        // Data rows style
-        $sheet->getStyle('A2:U' . $lastRow)->applyFromArray([
+        // ✅ Data rows — border only, no fill colors
+        $sheet->getStyle('A2:' . $lastColumn . $lastRow)->applyFromArray([
             'alignment' => [
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
@@ -120,20 +126,9 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
             ],
         ]);
 
-        // Alternating row colors
-        for ($i = 2; $i <= $lastRow; $i++) {
-            if ($i % 2 === 0) {
-                $sheet->getStyle('A' . $i . ':U' . $i)->applyFromArray([
-                    'fill' => [
-                        'fillType'   => Fill::FILL_SOLID,
-                        'startColor' => ['rgb' => 'EBF3FB'],
-                    ],
-                ]);
-            }
-        }
-        // Freeze header row
+        // ✅ Freeze header row
         $sheet->freezePane('A2');
-        // Row height for header
+        // ✅ Row height for header
         $sheet->getRowDimension(1)->setRowHeight(20);
         return [];
     }

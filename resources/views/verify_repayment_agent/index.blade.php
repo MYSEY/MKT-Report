@@ -2,10 +2,10 @@
 @section('content')
     <div class="row mb-2">
         <div class="col-md-6">
-            <h3 class="">Verify Repayment Agent Report</h3>
+            <h3 class="">Veryfy Repayment Agent Report</h3>
         </div>
         <div class="col-md-6" style="text-align: right;">
-            <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Verify</a>
+            <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Veryfy</a>
             <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
             <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download To Branch</a>
         </div>
@@ -14,7 +14,7 @@
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Verify Repayment Agent Report
+                Veryfy Repayment Agent Report
             </h2>
         </div>
         <div class="panel-container show">
