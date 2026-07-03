@@ -75,12 +75,12 @@ class VeryfyRepaymentAgentController extends Controller
         $rows        = $data[0];
         $branchCodes = BranchCode::pluck('code', 'abbreviations');
 
+        // ✅ Query 1: Loan + Customer + PastDue
         $loans = DB::connection('pgsql')
             ->table('MKT_LOAN_CONTRACT as LC')
             ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
             ->leftJoin('MKT_LOAN_PRODUCT as LP', 'LC.LoanProduct', '=', 'LP.ID')
             ->leftJoin('MKT_PAST_DUE as PD', 'LC.ID', '=', 'PD.LoanID')
-            ->leftJoin('MKT_REP_SCHEDULE as REP', 'PD.LoanID', '=', 'REP.LoanID')
             ->select([
                 'LC.ID as LDNumber',
                 'LC.ContractCustomerID',
@@ -111,19 +111,20 @@ class VeryfyRepaymentAgentController extends Controller
                 'PD.TotChargeDueAS as ChargeArr',
                 'PD.Category',
                 'PD.Currency as ArrCurrency',
-                'REP.LoanID',
-                'REP.CollectionDate',
-                'REP.Principal',
-                'REP.Interest',
-                'REP.Charge',
-                'REP.Balance',
-                'REP.Curr',
-                'REP.RepStatus',
                 'LP.Description as LoanProduct',
             ])
         ->get();
 
-        // Build lookup: finalAccount => loan record
+        $startDate = date('Y-m-01', strtotime($request->date)); // first day of month
+        $endDate   = date('Y-m-t', strtotime($request->date));  // last day of month
+
+        $repSchedules = DB::connection('pgsql')
+        ->table('MKT_REP_SCHEDULE')
+        ->select(['LoanID', 'CollectionDate', 'Principal', 'Interest', 'Charge', 'Balance', 'Curr', 'RepStatus'])
+        ->whereBetween('CollectionDate', [$startDate, $endDate])->get()
+        ->keyBy('LoanID');
+
+        // ✅ Build loanLookup (same as Excel K column formula)
         $loanLookup = [];
         foreach ($loans as $loan) {
             $account = $loan->Account;
@@ -134,7 +135,7 @@ class VeryfyRepaymentAgentController extends Controller
             } else {
                 $suffix = substr($account, -6);
             }
-            $finalAccount              = $suffix . ($branchCodes[$loan->Branch] ?? '');
+            $finalAccount   = $suffix . ($branchCodes[$loan->Branch] ?? '');
             $loanLookup[$finalAccount] = $loan;
         }
 
@@ -143,12 +144,6 @@ class VeryfyRepaymentAgentController extends Controller
             'TUME' => '2789103',
             'AMKR' => '2789104',
             'ACLB' => '2789106',
-        ];
-
-        $repStatusMap = [
-            0 => 'Arrears',
-            1 => 'Due Date',
-            2 => 'Prepaid',
         ];
 
         $results       = [];
@@ -160,45 +155,56 @@ class VeryfyRepaymentAgentController extends Controller
                 $uploadedName     = trim($row[1] ?? '');
                 $uploadedPhone    = trim($row[2] ?? '');
                 $uploadedCurrency = trim($row[3] ?? '');
-                $uploadedAmount   = trim($row[4] ?? '');
+                $uploadedAmount   = (float) trim($row[4] ?? 0);
                 $uploadedAgent    = trim($row[6] ?? '');
-
-                $DrCategory        = $configeAgent[$uploadedAgent] ?? null;
-                $CrAccount         = 'DD' . mb_substr($uploadedAccount, 0, -2);
-                $Currency          = DB::connection('pgsql')->table('MKT_CURRENCY')->where('ID', $uploadedCurrency)->first();
-                if ($uploadedCurrency=='USD') {
+                $DrCategory = $configeAgent[$uploadedAgent] ?? null;
+                
+                if ($uploadedCurrency === 'USD') {
                     $ExchangeRate = 1;
-                }else {
-                    $ExchangeRate = $request->exchange_rate;
+                } else {
+                    $ExchangeRate = round($request->exchange_rate, 16);
                 }
-                // $ExchangeRate      = $Currency->MidRate ?? null;
-                $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
-
+                $uploadedLCYAmount = round($uploadedAmount * $ExchangeRate, 5);
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
-                // ✅ System full name from DB
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
-               
-                // ✅ Check all 4 conditions if account found
-                // if ($loan) {
-                //     $mobile1 = $loan->Mobile1 ?? '';
-                //     $mobile2 = $loan->Mobile2 ?? '';
-                //     $nameMatch     = $uploadedName !== '' && (stripos($loanFullName, $uploadedName) !== false || stripos($uploadedName, $loanFullName) !== false);
-                //     $phoneMatch    = $uploadedPhone !== '' && (str_contains($mobile1, $uploadedPhone) || str_contains($mobile2, $uploadedPhone));
-                //     $matchCurrency = $uploadedCurrency !== '' && str_contains($loan->Currency, $uploadedCurrency);
-
-                //     // ✅ If any condition fails, treat as not found
-                //     if (!$nameMatch || !$phoneMatch || !$matchCurrency) {
-                //         $loan = null;
-                //     }
-                // }
-
                 if ($loanFullName !== '') {
                     $fullName = $loanFullName;
                 }else {
                     $fullName = '(Error: )';
                 }
+
+                $rep    = $loan ? ($repSchedules[$loan->LDNumber] ?? null) : null;
+                $collectionDate = $rep->CollectionDate ?? null;
+                $principal      = $rep->Principal ?? 0;
+                $interest       = $rep->Interest ?? 0;
+                $charge         = $rep->Charge ?? 0;
+                $totalCol       = $principal + $interest + $charge;
+                $CrAccount  = $loan->Account ?? '#N/A';
                 if (!$loan) {
-                    // ✅ Branch: show #N/A for missing fields
+                    $results[] = [
+                        'Branch'           => '#VALUE!',
+                        'DrAccount'        => '',
+                        'DrCategory'       => '#VALUE!',
+                        'DrCurrency'       => '0',
+                        'CrAccount'        => $CrAccount,
+                        'CrCategory'       => '3852204',
+                        'CrCurrency'       => '0',
+                        'Amount'           => '0',
+                        'LCYAmount'        => '#N/A',
+                        'ExchangeRate'     => '#N/A',
+                        'Transaction'      => 40,
+                        'TranDate'         => $request->date,
+                        'Reference'        => $loanFullName,
+                        'Note'             => $uploadedAgent . ' ' . $fullName,
+                        'DrGLKey'          => '',
+                        'CrGLKey'          => '',
+                        'Module'           => 'FT',
+                        'Officer'          => '',
+                        'DisbursementList' => '',
+                        'TargetBranch'     => 'HQ',
+                        'TargetBranchDrCr' => 'Dr',
+                    ];
+
                     $branchResults[] = [
                         'Branch'      => '#N/A',
                         'DrAccount'   => '#N/A',
@@ -228,41 +234,14 @@ class VeryfyRepaymentAgentController extends Controller
                         'Officer'     => '#N/A',
                         'ClientTel'   => '#N/A',
                     ];
-                    
-                    // ✅ Morakot: keep as normal
-                    $results[] = [
-                        'Branch'           => '#VALUE!',
-                        'DrAccount'        => '',
-                        'DrCategory'       => '#VALUE!',
-                        'DrCurrency'       => '0',
-                        'CrAccount'        => $CrAccount,
-                        'CrCategory'       => '3852204',
-                        'CrCurrency'       => '0',
-                        'Amount'           => '0',
-                        'LCYAmount'        => '#N/A',
-                        'ExchangeRate'     => '#N/A',
-                        'Transaction'      => 40,
-                        'TranDate'         => $request->date,
-                        'Reference'        => $loanFullName,
-                        'Note'             => $uploadedAgent . ' ' . $fullName,
-                        'DrGLKey'          => '',
-                        'CrGLKey'          => '',
-                        'Module'           => 'FT',
-                        'Officer'          => '',
-                        'DisbursementList' => '',
-                        'TargetBranch'     => 'HQ',
-                        'TargetBranchDrCr' => 'Dr',
-                    ];
                     continue;
                 }
 
-                // ✅ Note condition based on amounts and collection date
-                $totaArr        = $loan->TotaArr ?? 0;
-                $pricipalArr    = $loan->PricipalArr ?? 0;
-                $chargeArr      = $loan->ChargeArr ?? 0;
-                $collectionDate = $loan->CollectionDate ?? null;
+                $PricipalArr     = $loan->PricipalArr ?? 0;
+                $InteresArr = $loan->InteresArr ?? 0;
+                $chargeArr   = $loan->ChargeArr ?? 0;
 
-                if (($totaArr + $pricipalArr + $chargeArr) > 0) {
+                if (($PricipalArr + $InteresArr + $chargeArr) > 0) {
                     $note = 'Arrears';
                 } elseif ($collectionDate == $request->date) {
                     $note = 'Due Date';
@@ -270,7 +249,6 @@ class VeryfyRepaymentAgentController extends Controller
                     $note = 'Prepaid';
                 }
 
-                // ✅ Morakot result
                 $results[] = [
                     'Branch'           => $loan->Branch,
                     'DrAccount'        => '',
@@ -281,7 +259,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'CrCurrency'       => $uploadedCurrency,
                     'Amount'           => $uploadedAmount,
                     'LCYAmount'        => $uploadedLCYAmount,
-                    'ExchangeRate'     => $ExchangeRate,
+                    'ExchangeRate'     => number_format($ExchangeRate, 5, '.', ''),
                     'Transaction'      => 40,
                     'TranDate'         => $request->date,
                     'Reference'        => $loanFullName,
@@ -295,7 +273,6 @@ class VeryfyRepaymentAgentController extends Controller
                     'TargetBranchDrCr' => 'Dr',
                 ];
 
-                // ✅ Branch result — clean fields only (no Morakot fields)
                 $branchResults[] = [
                     'Branch'      => $loan->Branch,
                     'DrAccount'   => '',
@@ -308,40 +285,35 @@ class VeryfyRepaymentAgentController extends Controller
                     'LDNumber'    => $loan->LDNumber,
                     'CCY'         => $uploadedCurrency,
                     'KHName'      => $loanFullName,
-                    'Outstanding' => $loan->Disbursed,
+                    'Outstanding' => $loan->OutstandingAmountAS,
                     'TotaArr'     => $loan->TotaArr,
                     'PricipalArr' => $loan->PricipalArr,
                     'InteresArr'  => $loan->InteresArr,
                     'PenaltyArr'  => $loan->PenaltyArr,
                     'ChargeArr'   => $loan->ChargeArr,
-                    'DateCol'     => $loan->CollectionDate,
-                    'TotalCol'    => ($loan->Charge ?? 0) + ($loan->Principal ?? 0) + ($loan->Interest ?? 0),
-                    'Principal'   => $loan->Principal,
-                    'Interest'    => $loan->Interest,
-                    'Charge'      => $loan->Charge,
+                    'DateCol'     => $collectionDate,
+                    'TotalCol'    => $totalCol,
+                    'Principal'   => $principal,
+                    'Interest'    => $interest,
+                    'Charge'      => $charge,
                     'LoanProduct' => $loan->LoanProduct,
                     'Note'        => $note,
                     'Agent'       => $uploadedAgent,
                     'Officer'     => $loan->Officer,
-                    'ClientTel'   => trim($loan->Mobile1 . ' ' . $loan->Mobile2),
+                    'ClientTel'   => trim(($loan->Mobile1 ?? '') . ' ' . ($loan->Mobile2 ?? '')),
                 ];
             }
         }
-
-        // ✅ Save branchResults to session
         session(['veryfy_results_branch' => $branchResults]);
-
         return $results;
     }
 
     public function downloadToMorakot(Request $request)
     {
         $results = session('veryfy_results', []);
-
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new MorakotExport($results), $fileName);
     }
@@ -349,11 +321,9 @@ class VeryfyRepaymentAgentController extends Controller
     public function downloadToBranch(Request $request)
     {
         $results = session('veryfy_results_branch', []);
-
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-
         $fileName = 'Branch_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new BranchExport($results), $fileName);
     }

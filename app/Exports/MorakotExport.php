@@ -80,13 +80,13 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
 
     public function columnFormats(): array
     {
-        return [
-            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Amount
-            'I' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // LCYAmount
-            // 'J' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // ExchangeRate
-        ];
+        // return [
+        //     'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // Amount
+        //     'I' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // LCYAmount
+        //     // 'J' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2, // ExchangeRate
+        // ];
+        return []; // ✅ no formatting
     }
-
     public function styles(Worksheet $sheet): array
     {
         $lastRow    = count($this->results) + 1;
