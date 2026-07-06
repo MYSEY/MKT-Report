@@ -58,6 +58,20 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     $(document).ready(function () {
+        $("#result_file").prop('disabled', true);
+        // Listen for changes on exchange_rate input
+        $("#exchange_rate").on('input keyup change', function () {
+            var value = $(this).val().trim();
+            var parts = value.split('.');
+            var decimalPart = parts[1] || ''; // digits after the decimal point
+
+            if (decimalPart.length === 18) {
+                $("#result_file").prop('disabled', false);
+            } else {
+                $("#result_file").prop('disabled', true);
+            }
+        });
+
         let today = new Date();
         let year = today.getFullYear();
         let month = String(today.getMonth() + 1).padStart(2, '0');

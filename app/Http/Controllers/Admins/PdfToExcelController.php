@@ -14,6 +14,7 @@ class PdfToExcelController extends Controller
     {
         return view('pdf.pdf-to-excel');
     }
+
     public function convert(Request $request)
     {
         $request->validate([
@@ -38,14 +39,16 @@ class PdfToExcelController extends Controller
             }
         }
 
-        // A transaction line starts with "Mon DD, YYYY" followed by the first part of the description
-        $dateStartPattern = '/^([A-Z][a-z]{2}\s+\d{2},\s+\d{4})\s+(.*)$/';
+        // Transaction starts with "Mon DD, YYYY" + description
+        // EXCLUDE lines where date is followed by a TIME (e.g. "03:50 PM")
+        // because those are continuation lines from wrapped description, NOT new transactions
+        $dateStartPattern = '/^([A-Z][a-z]{2}\s+\d{2},\s+\d{4})\s+(?!\d{2}:\d{2}\s+(?:AM|PM))(.+)$/';
 
-        // Amount line patterns (after normalizing tabs to spaces).
-        // Currency can be KHR or USD, so we capture it dynamically instead of hardcoding.
+        // Amount line patterns (after normalizing tabs to spaces)
+        // Currency captured dynamically (KHR or USD)
         // Pattern A: "3,700.00 KHR KHR 8,063.53 KHR"  -> Money In filled
         $patternA = '/^([\d,]+\.\d{2}) (KHR|USD)\s*(?:KHR|USD)\s+([\d,]+\.\d{2}) (KHR|USD)$/';
-        // Pattern B: "KHR 5,000.00 KHR 3,063.53 KHR"   -> Money Out filled
+        // Pattern B: "KHR 5,000.00 KHR 3,063.53 KHR"  -> Money Out filled
         $patternB = '/^(?:KHR|USD)\s*([\d,]+\.\d{2}) (KHR|USD)\s+([\d,]+\.\d{2}) (KHR|USD)$/';
 
         $skipContains = [
@@ -94,25 +97,25 @@ class PdfToExcelController extends Controller
                 $rawNext = $allLines[$i];
                 $next    = trim($rawNext);
 
-                if ($next === '') { $i++; continue; }
-                if ($shouldSkip($next)) { $i++; continue; }
+                if ($next === '')          { $i++; continue; }
+                if ($shouldSkip($next))    { $i++; continue; }
                 if (preg_match($dateStartPattern, $next)) break;
 
-                // Normalize tabs/multi-spaces to single space for pattern matching
+                // Normalize tabs + multi-spaces to single space
                 $normalized = preg_replace('/\s+/', ' ', str_replace("\t", ' ', $next));
 
                 if (preg_match($patternA, $normalized, $ma)) {
-                    $moneyIn  = $ma[1] . ' ' . $ma[2];
-                    $moneyOut = $ma[2]; // currency-only, matches PDF empty-column style
-                    $balance  = $ma[3] . ' ' . $ma[4];
+                    $moneyIn  = $ma[1] . ' ' . $ma[2]; // e.g. "3,700.00 KHR"
+                    $moneyOut = $ma[2];                 // currency only e.g. "KHR"
+                    $balance  = $ma[3] . ' ' . $ma[4]; // e.g. "8,063.53 KHR"
                     $i++;
                     continue;
                 }
 
                 if (preg_match($patternB, $normalized, $mb)) {
-                    $moneyIn  = $mb[2]; // currency-only, matches PDF empty-column style
-                    $moneyOut = $mb[1] . ' ' . $mb[2];
-                    $balance  = $mb[3] . ' ' . $mb[4];
+                    $moneyIn  = $mb[2];                 // currency only e.g. "KHR"
+                    $moneyOut = $mb[1] . ' ' . $mb[2]; // e.g. "5,000.00 KHR"
+                    $balance  = $mb[3] . ' ' . $mb[4]; // e.g. "3,063.53 KHR"
                     $i++;
                     continue;
                 }
