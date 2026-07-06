@@ -5,9 +5,13 @@
             <h3 class="">Veryfy Repayment Agent Report</h3>
         </div>
         <div class="col-md-6" style="text-align: right;">
-            <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Veryfy</a>
-            <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
-            <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download To Branch</a>
+            @if(Auth::user()->can('Veryfy Repayment Agent Report Import'))
+                <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Veryfy</a>
+            @endif
+            @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
+                <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
+                <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download To Branch</a>
+            @endif
         </div>
     </div>
     {!! Toastr::message() !!}

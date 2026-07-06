@@ -7,11 +7,18 @@ use Illuminate\Http\Request;
 use App\Models\BranchCode;
 use App\Exports\MorakotExport;
 use App\Exports\BranchExport;
+use App\Traits\HasRolePermission;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 
 class VeryfyRepaymentAgentController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Veryfy Repayment Agent Report');
+    }
     public function index(Request $request)
     {
         if (request()->ajax()) {
