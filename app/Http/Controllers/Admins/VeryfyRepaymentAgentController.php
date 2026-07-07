@@ -30,13 +30,11 @@ class VeryfyRepaymentAgentController extends Controller
                     'data'            => []
                 ]);
             }
-
             $results         = session('veryfy_results', []);
             $recordsFiltered = count($results);
             $start           = intval($request->start ?? 0);
             $length          = intval($request->length ?? 10);
             $data            = array_slice($results, $start, $length);
-
             return response()->json([
                 'draw'            => intval($request->draw),
                 'recordsTotal'    => $recordsFiltered,
@@ -50,23 +48,19 @@ class VeryfyRepaymentAgentController extends Controller
     public function importVeryfyRepaymentAgent(Request $request)
     {
         $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
-
         $results       = self::processing($request);
         // ✅ Read branchResults from session (set inside processing())
         $branchResults = session('veryfy_results_branch', []);
-
         $total     = count($results);
         // ✅ Count matched/unmatched from branchResults which has Reason field
         $matched   = count(array_filter($branchResults, fn($r) => empty($r['Reason'])));
         $unmatched = count(array_filter($branchResults, fn($r) => !empty($r['Reason'])));
-
         session([
             'veryfy_results'   => $results,
             'veryfy_total'     => $total,
             'veryfy_matched'   => $matched,
             'veryfy_unmatched' => $unmatched,
         ]);
-
         return response()->json([
             'success'   => true,
             'total'     => $total,
