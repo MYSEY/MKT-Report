@@ -36,7 +36,7 @@
                             <label for="">Import :</label>
                         </div>
                         <div class="col-md-9">
-                            <input type="file" class="form-control" name="result_file" id="result_file" accept=".xls, .xlsx, .csv">
+                            <input type="file" class="form-control" name="result_file" id="result_file">
                         </div>
                     </div>
                 </div>
