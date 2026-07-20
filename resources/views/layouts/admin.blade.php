@@ -884,6 +884,13 @@
                         templates: controls,
                         format: "dd-mm-yyyy"
                     });
+                    $('.formatDatepicker').datepicker(
+                    {
+                        todayHighlight: true,
+                        orientation: "bottom left",
+                        templates: controls,
+                        format: "yyyy-mm-dd"
+                    });
 
 
                     $('.select2').select2();

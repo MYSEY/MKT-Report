@@ -2,11 +2,11 @@
 @section('content')
     <div class="row mb-2">
         <div class="col-md-6">
-            <h3 class="">Veryfy Repayment Agent Report</h3>
+            <h3 class="">Verify Repayment Agent Report</h3>
         </div>
         <div class="col-md-6" style="text-align: right;">
             @if(Auth::user()->can('Veryfy Repayment Agent Report Import'))
-                <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Veryfy</a>
+                <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Verify</a>
             @endif
             @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
                 <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
@@ -18,7 +18,7 @@
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Veryfy Repayment Agent Report
+                Verify Repayment Agent Report
             </h2>
         </div>
         <div class="panel-container show">

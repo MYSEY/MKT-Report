@@ -27,7 +27,7 @@
                     <div class="row mb-2">
                         <div class="col-md-3">Date :</div>
                         <div class="col-md-9">
-                            <input type="date" class="form-control" id="date">
+                            <input type="text" class="form-control formatDatepicker" id="date">
                             <small>YYYY-MM-DD</small>
                         </div>
                     </div>
@@ -72,11 +72,13 @@
             }
         });
 
-        let today = new Date();
-        let year = today.getFullYear();
-        let month = String(today.getMonth() + 1).padStart(2, '0');
-        let day = String(today.getDate()).padStart(2, '0');
-        let formatDate = year + '-' + month + '-' + day;
-        $('#date').val(formatDate);
+        document.getElementById('date').addEventListener('change', function () {
+            const val = this.value; // yyyy-mm-dd
+            if (val) {
+                const [yyyy, mm, dd] = val.split('-');
+                const yy = yyyy.slice(2); // last 2 digits
+                document.getElementById('dateFormatted').textContent = `${yy}-${mm}-${dd}`;
+            }
+        });
     });
 </script>

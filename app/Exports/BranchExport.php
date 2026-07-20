@@ -27,55 +27,73 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
         $rows    = [];
         $grouped = [];
 
+        // ✅ Group by branch then currency
         foreach ($this->results as $row) {
-            $branch = $row['Branch'] ?? 'Unknown';
-            $grouped[$branch][] = $row;
+            $branch   = $row['Branch'] ?? 'Unknown';
+            $currency = $row['DrCurrency'] ?? '';
+            $grouped[$branch][$currency][] = $row;
         }
 
         // ✅ Separate #N/A from normal branches
         $naItems      = $grouped['#N/A'] ?? [];
         $normalGroups = array_filter($grouped, fn($key) => $key !== '#N/A', ARRAY_FILTER_USE_KEY);
 
-        // ✅ Render normal branches first
-        foreach ($normalGroups as $branch => $items) {
-            foreach ($items as $item) {
-                $rows[] = [
-                    $item['Branch']      ?? '',
-                    $item['DrAccount']   ?? '',
-                    $item['DrCategory']  ?? '',
-                    $item['DrCurrency']  ?? '',
-                    $item['CrAccount']   ?? '',
-                    $item['CrCategory']  ?? '',
-                    $item['CrCurrency']  ?? '',
-                    $item['Amount']      ?? 0,
-                    $item['LDNumber']    ?? '',
-                    $item['CCY']         ?? '',
-                    $item['KHName']      ?? '',
-                    $item['Outstanding'] ?? 0,
-                    $item['TotaArr']     ?? 0,
-                    $item['PricipalArr'] ?? 0,
-                    $item['InteresArr']  ?? 0,
-                    $item['PenaltyArr']  ?? 0,
-                    $item['ChargeArr']   ?? 0,
-                    $item['DateCol']     ?? '',
-                    $item['TotalCol']    ?? 0,
-                    $item['Principal']   ?? 0,
-                    $item['Interest']    ?? 0,
-                    $item['Charge']      ?? 0,
-                    $item['LoanProduct'] ?? '',
-                    $item['Note']        ?? '',
-                    $item['Agent']       ?? '',
-                    $item['Officer']     ?? '',
-                    $item['ClientTel']   ?? '',
-                ];
-            }
+        // ✅ Helper to render item row
+        $renderItem = fn($item) => [
+            $item['Branch']      ?? '',
+            $item['DrAccount']   ?? '',
+            $item['DrCategory']  ?? '',
+            $item['DrCurrency']  ?? '',
+            $item['CrAccount']   ?? '',
+            $item['CrCategory']  ?? '',
+            $item['CrCurrency']  ?? '',
+            $item['Amount']      ?? 0,
+            $item['LDNumber']    ?? '',
+            $item['CCY']         ?? '',
+            $item['KHName']      ?? '',
+            $item['Outstanding'] ?? 0,
+            $item['TotaArr']     ?? 0,
+            $item['PricipalArr'] ?? 0,
+            $item['InteresArr']  ?? 0,
+            $item['PenaltyArr']  ?? 0,
+            $item['ChargeArr']   ?? 0,
+            $item['DateCol']     ?? '',
+            $item['TotalCol']    ?? 0,
+            $item['Principal']   ?? 0,
+            $item['Interest']    ?? 0,
+            $item['Charge']      ?? 0,
+            $item['LoanProduct'] ?? '',
+            $item['Note']        ?? '',
+            $item['Agent']       ?? '',
+            $item['Officer']     ?? '',
+            $item['ClientTel']   ?? '',
+        ];
 
-            // ✅ Branch subtotal
-            $numericItems = array_filter($items, fn($i) => $i['Outstanding'] !== '#N/A');
+        // ✅ Render KHR branches first
+        foreach ($normalGroups as $branch => $currencies) {
+            if (!isset($currencies['KHR'])) continue;
+            $items = $currencies['KHR'];
+            foreach ($items as $item) {
+                $rows[] = $renderItem($item);
+            }
             $rows[] = [
-                $branch . ' Total',
-                '', '', '', '', '', '',
-                array_sum(array_column($numericItems, 'Amount')),
+                $branch . ' Total', '', '', '', '', '', '',
+                array_sum(array_column($items, 'Amount')),
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+                '', '', '', '', '',
+            ];
+        }
+
+        // ✅ Render USD branches after
+        foreach ($normalGroups as $branch => $currencies) {
+            if (!isset($currencies['USD'])) continue;
+            $items = $currencies['USD'];
+            foreach ($items as $item) {
+                $rows[] = $renderItem($item);
+            }
+            $rows[] = [
+                $branch . ' Total', '', '', '', '', '', '',
+                array_sum(array_column($items, 'Amount')),
                 '', '', '', '', '', '', '', '', '', '', '', '', '', '',
                 '', '', '', '', '',
             ];
@@ -102,7 +120,7 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
         // ✅ Empty row
         $rows[] = array_fill(0, 27, '');
 
-        // ✅ Grand Total row
+        // ✅ Grand Total — sum ALL currencies in one row
         $rows[] = [
             'Grand Total', '', '', '', '', '', '',
             array_sum(array_column($allNumeric, 'Amount')),
@@ -115,39 +133,11 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
 
         // ✅ #N/A rows after Grand Total and before Agent
         if (!empty($naItems)) {
-            foreach ($naItems as $item) {
-                $rows[] = [
-                    $item['Branch']      ?? '',
-                    $item['DrAccount']   ?? '',
-                    $item['DrCategory']  ?? '',
-                    $item['DrCurrency']  ?? '',
-                    $item['CrAccount']   ?? '',
-                    $item['CrCategory']  ?? '',
-                    $item['CrCurrency']  ?? '',
-                    $item['Amount']      ?? 0,
-                    $item['LDNumber']    ?? '',
-                    $item['CCY']         ?? '',
-                    $item['KHName']      ?? '',
-                    $item['Outstanding'] ?? 0,
-                    $item['TotaArr']     ?? 0,
-                    $item['PricipalArr'] ?? 0,
-                    $item['InteresArr']  ?? 0,
-                    $item['PenaltyArr']  ?? 0,
-                    $item['ChargeArr']   ?? 0,
-                    $item['DateCol']     ?? '',
-                    $item['TotalCol']    ?? 0,
-                    $item['Principal']   ?? 0,
-                    $item['Interest']    ?? 0,
-                    $item['Charge']      ?? 0,
-                    $item['LoanProduct'] ?? '',
-                    $item['Note']        ?? '',
-                    $item['Agent']       ?? '',
-                    $item['Officer']     ?? '',
-                    $item['ClientTel']   ?? '',
-                ];
+            foreach ($naItems as $currency => $items) {
+                foreach ($items as $item) {
+                    $rows[] = $renderItem($item);
+                }
             }
-
-            // ✅ #N/A Total row
             $rows[] = [
                 '#N/A Total',
                 '', '', '', '', '', '',
@@ -254,7 +244,7 @@ class BranchExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSiz
         for ($i = 2; $i <= $lastRow; $i++) {
             $cellValue = (string) $sheet->getCell('A' . $i)->getValue();
 
-            if ($cellValue === 'Grand Total') {
+            if (str_starts_with($cellValue, 'Grand Total')) {
                 $sheet->getStyle('A' . $i . ':' . $lastColumn . $i)->applyFromArray([
                     'font' => [
                         'name' => 'Arial Narrow',
