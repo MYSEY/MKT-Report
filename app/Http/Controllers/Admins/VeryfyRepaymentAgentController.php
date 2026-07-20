@@ -318,7 +318,6 @@ class VeryfyRepaymentAgentController extends Controller
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
         return Excel::download(new MorakotExport($results), $fileName);
     }
-
     public function downloadToBranch(Request $request)
     {
         $results = session('veryfy_results_branch', []);
