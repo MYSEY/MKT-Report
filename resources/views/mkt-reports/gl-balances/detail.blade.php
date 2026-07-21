@@ -233,7 +233,7 @@
                     [20, 25, 50, 100, "All"]
                 ],
                 ajax: {
-                    url: '/admin/mkt-report/gl-detail/' + glId,
+                    url: "{{ url('admin/mkt-report/gl-detail') }}/" + glId,
                     type: 'GET',
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();

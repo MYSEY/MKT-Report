@@ -235,7 +235,10 @@
                         render: function (data, type, row) {
                             if (!data) return ''; 
 
-                            return `<a href="/admin/mkt-report/gl-detail/${data}" class="text-decoration-none">${data}</a>`;
+                            let glDetailUrl = "{{ route('mkt.gl.detail', ':id') }}";
+                            glDetailUrl = glDetailUrl.replace(':id', data);
+
+                            return `<a href="${glDetailUrl}" class="text-decoration-none">${data}</a>`;
                         }
                     },
                     { 
@@ -245,7 +248,9 @@
                         className: "text-wrap",
                         render: function (data, type, row) {
                             if (!data) return '';
-                            return `<a href="/admin/mkt-report/gl-detail/${row.ID}" class="text-decoration-none">${data}</a>`;
+                            let glDetailUrl = "{{ route('mkt.gl.detail', ':id') }}";
+                            glDetailUrl = glDetailUrl.replace(':id', data);
+                            return `<a href="${glDetailUrl}" class="text-decoration-none">${data}</a>`;
                         }
                     },
                     { 
