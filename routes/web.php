@@ -9,6 +9,7 @@ use App\Http\Controllers\Admins\CategoryController;
 use App\Http\Controllers\Admins\DashboardController;
 use App\Http\Controllers\Admins\PermissionController;
 use App\Http\Controllers\Admins\COPerformanceController;
+use App\Http\Controllers\Admins\GLBalanceController;
 use App\Http\Controllers\Admins\LoandDetailListingController;
 use App\Http\Controllers\Admins\NetworkEmployeeController;
 use App\Http\Controllers\Admins\SaleRecordController;
@@ -64,6 +65,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
         Route::get('trial-balance',[SaleRecordController::class,'indexTrialBalance']);
 
+        Route::get('gl-balance', [GLBalanceController::class, 'index'])->name('mkt.gl.balance');
+        Route::get('gl-detail/{id}', [GLBalanceController::class, 'detail'])->name('mkt.gl.detail');
+        
         Route::get('loan-inactive',[LoanInactiveController::class,'index']);
         // Route::get('loan-inactive/download',[LoanInactiveController::class,'export']);
         Route::get('loan-inactive/download',[LoanInactiveController::class,'exportInactive']);

@@ -204,12 +204,21 @@
                                             Request::is('admin/mkt-report/trial-balance')
                                             ||
                                             Request::is('admin/mkt-report/veryfy/repayment/agent')
+                                            ||
+                                            request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
                                             }}">
                                             <a href="javascript:void(0);" title="Accounting Reports" data-filter-tags="pages accounting">
                                                 <span class="nav-link-text" data-i18n="nav.pages_forum">Accounting Reports</span>
                                             </a>
                                             <ul> 
+                                                @if(Auth::user()->can('GL Balance View'))
+                                                    <li class="{{ request()->routeIs('mkt.gl.balance', 'mkt.gl.detail') ? 'active' : '' }}">
+                                                        <a href="{{ route('mkt.gl.balance') }}">
+                                                            <span class="nav-link-text">GL Balance</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
                                                 @if(Auth::user()->can('Trial Balance View'))
                                                     <li class="{{ Request::is('admin/mkt-report/trial-balance') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/trial-balance') }}">
