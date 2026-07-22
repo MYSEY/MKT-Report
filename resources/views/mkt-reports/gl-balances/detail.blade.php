@@ -18,10 +18,22 @@
                     <div class="form-group">
                         <input type="text" 
                             class="form-control datepicker_month btn-filter" 
-                            name="tb_date" 
-                            id="tb_date" data-filter="date"
-                            value="{{ date('Y-m') }}"
-                            placeholder="mm/yyyy" 
+                            name="from_date" 
+                            id="from_date" 
+                            value="{{ \Carbon\Carbon::now()->startOfMonth()->format('d-m-Y') }}"
+                            placeholder="From Date" 
+                            readonly 
+                            style="background-color: #fff;">
+                    </div>
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <div class="form-group">
+                        <input type="text" 
+                            class="form-control datepicker_month btn-filter" 
+                            name="to_date" 
+                            id="to_date" 
+                            value="{{ \Carbon\Carbon::now()->format('d-m-Y') }}"
+                            placeholder="To Date" 
                             readonly 
                             style="background-color: #fff;">
                     </div>
@@ -43,18 +55,10 @@
                             </select>
                         </div>
                     </div>
+                @else
+                 <div class="col-sm-3 col-md-3"></div>
                 @endif
-                
-                {{-- <div class="col-sm-3 col-md-3">
-                    <div class="form-group">
-                        <select data-filter="currency" class="select2 form-control btn-filter" id="currency" data-select2-id="select2-data-2-c0n4" name="currency">
-                            <option value="" selected>Original Currency</option>
-                            <option value="KHR" >In KHR</option>
-                            <option value="USD">In USD</option>
-                        </select>
-                    </div>
-                </div> --}}
-                <div class="col-sm-6 col-md-6">
+                <div class="col-sm-3 col-md-3">
                     <div class="float-right">
                         @if(Auth::user()->can('GL Balance Export'))
                            <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
@@ -103,11 +107,18 @@
 @section('script')
     <script>
         $(function(){
+            // $(document).ready(function() {
+            //     $('.datepicker_month').datepicker({
+            //         format: "yyyy-mm",
+            //         viewMode: "months",
+            //         minViewMode: "months",
+            //         autoclose: true,
+            //         todayHighlight: true
+            //     });
+            // });
             $(document).ready(function() {
                 $('.datepicker_month').datepicker({
-                    format: "yyyy-mm",
-                    viewMode: "months",
-                    minViewMode: "months",
+                    format: "dd-mm-yyyy",
                     autoclose: true,
                     todayHighlight: true
                 });
@@ -115,78 +126,160 @@
             $(document).on('click', '.btn_excel', function (e) {
                 e.preventDefault();
                 
-                $('.btn-text-excel').hide();
-                $('#btn-text-loading-excel-1').show();
+                let $btnText = $('.btn-text-excel');
+                let $btnLoading = $('#btn-text-loading-excel-1');
 
-                let excelData = [];
-                
-                // 1. Get Table Headers
-                let headers = [];
-                $('#tbl-TB thead tr th').each(function() {
-                    headers.push($(this).text().trim());
-                });
+                $btnText.hide();
+                $btnLoading.show();
 
-                // 2. Loop through Table Body Rows
-                $('#tbl-TB tbody tr').each(function() {
-                    let rowData = {};
-                    $(this).find('td').each(function(index) {
-                        let cellValue = $(this).text().trim();
-                        
-                        // Indexes 5 (Debit), 6 (Credit), 7 (balance) are financial numbers
-                        if (index >= 5 && index <= 7) {
-                            // Clean formatted string (e.g. "1,250.00 $" -> 1250.00)
-                            cellValue = cellValue.replace('$', '').replace(/,/g, '').trim(); 
-                            cellValue = parseFloat(cellValue) || 0;
-                        }
-                        
-                        if (headers[index]) {
-                            rowData[headers[index]] = cellValue;
-                        }
-                    });
-                    excelData.push(rowData);
-                });
+                // 1. បង្កើត Function Load Dynamic Script ដើម្បីការពារ Script Collision/Conflict ជាមួយ System
+                function loadXlsxStyleScript(callback) {
+                    if (window.XLSX && window.XLSX.utils && window.XLSX.utils.json_to_sheet) {
+                        // ប្រសិនបើមាន Load រួចហើយ
+                        callback();
+                        return;
+                    }
 
-                // 3. Create Worksheet from JSON Data
-                var ws = XLSX.utils.json_to_sheet(excelData);
-
-                // 4. Apply Excel Number Format (#,##0.00) to Debit, Credit, Balance columns
-                const range = XLSX.utils.decode_range(ws['!ref']);
-                for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Skip header row
-                    [5, 6, 7].forEach(C => { // Col 5: Debit, Col 6: Credit, Col 7: Balance
-                        const cell_address = { c: C, r: R };
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        if (ws[cell_ref] && typeof ws[cell_ref].v === 'number') {
-                            ws[cell_ref].z = '#,##0.00'; // Standard 2-decimal format
-                        }
-                    });
+                    let script = document.createElement('script');
+                    script.id = 'xlsx-style-script-dynamic';
+                    script.src = "{{ asset('admins/js/export_xlsx.bundle.js') }}";
+                    script.onload = function() {
+                        callback();
+                    };
+                    document.head.appendChild(script);
                 }
 
-                // 5. Set Column Widths for all 9 columns
-                ws['!cols'] = [
-                    { wpx: 80 },  // 0. Branch
-                    { wpx: 110 }, // 1. Transaction Date
-                    { wpx: 160 }, // 2. Transaction (Transaction + Description)
-                    { wpx: 110 }, // 3. Reference
-                    { wpx: 250 }, // 4. Description
-                    { wpx: 110 }, // 5. Debit
-                    { wpx: 110 }, // 6. Credit
-                    { wpx: 120 }, // 7. Balance
-                    { wpx: 80 }   // 8. SortCut
-                ];
+                // 2. ដំនើរការ Export បន្ទាប់ពី Script Load រួចរាល់
+                loadXlsxStyleScript(function() {
+                    try {
+                        let headers = [
+                            "Branch", "Date", "Transaction", "Reference", 
+                            "Description", "Debit", "Credit", "Balance", "SortCut"
+                        ];
 
-                // 6. Create Workbook and Export File
-                var wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Journal_Report");
+                        let excelData = [];
+                        let merges = []; 
+                        let summaryRows = []; 
 
-                var d = new Date();
-                var dateString = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
-                XLSX.writeFile(wb, "Journal_Report_" + dateString + ".xlsx");
+                        $('#tbl-TB tbody tr').each(function(rowIndex) {
+                            let $row = $(this);
+                            let $tds = $row.find('td');
 
-                // Reset button state
-                setTimeout(function() {
-                    $('.btn-text-excel').show();
-                    $('#btn-text-loading-excel-1').hide();
-                }, 500);
+                            let isSummary = $tds.first().attr('colspan') == '5' || 
+                                            $tds.text().includes('000 - Beginning Balance') || 
+                                            $tds.text().includes('*** - Ending Balance');
+
+                            let rowData = {};
+                            let excelRowIndex = rowIndex + 1; // +1 ព្រោះ Row 0 ជា Header
+
+                            if (isSummary) {
+                                let summaryTitle = $tds.eq(0).text().trim();
+                                let rawBalance   = $tds.eq(1).text().trim().replace('$', '').replace(/,/g, '');
+                                let balanceVal   = parseFloat(rawBalance) || 0;
+
+                                merges.push({ s: { r: excelRowIndex, c: 0 }, e: { r: excelRowIndex, c: 4 } });
+                                merges.push({ s: { r: excelRowIndex, c: 5 }, e: { r: excelRowIndex, c: 7 } });
+                                summaryRows.push(excelRowIndex);
+
+                                rowData["Branch"]      = summaryTitle;
+                                rowData["Date"]        = "";
+                                rowData["Transaction"] = "";
+                                rowData["Reference"]   = "";
+                                rowData["Description"] = "";
+                                rowData["Debit"]       = balanceVal; 
+                                rowData["Credit"]      = "";
+                                rowData["Balance"]     = "";
+                                rowData["SortCut"]     = "";
+                            } else {
+                                if ($tds.length >= 8) {
+                                    let parseNum = (val) => parseFloat(val.replace('$', '').replace(/,/g, '').trim()) || 0;
+
+                                    rowData["Branch"]      = $tds.eq(0).text().trim();
+                                    rowData["Date"]        = $tds.eq(1).text().trim();
+                                    rowData["Transaction"] = $tds.eq(2).text().trim();
+                                    rowData["Reference"]   = $tds.eq(3).text().trim();
+                                    rowData["Description"] = $tds.eq(4).text().trim();
+                                    rowData["Debit"]       = parseNum($tds.eq(5).text());
+                                    rowData["Credit"]      = parseNum($tds.eq(6).text());
+                                    rowData["Balance"]     = parseNum($tds.eq(7).text());
+                                    rowData["SortCut"]     = $tds.eq(8).text().trim();
+                                }
+                            }
+
+                            if (Object.keys(rowData).length > 0) {
+                                excelData.push(rowData);
+                            }
+                        });
+
+                        var ws = XLSX.utils.json_to_sheet(excelData, { header: headers });
+                        ws['!merges'] = merges;
+
+                        // --- APPLY STYLES ---
+                        const range = XLSX.utils.decode_range(ws['!ref']);
+
+                        for (let R = range.s.r; R <= range.e.r; ++R) {
+                            let isSummaryRow = summaryRows.includes(R);
+
+                            for (let C = range.s.c; C <= range.e.c; ++C) {
+                                const cell_address = { c: C, r: R };
+                                const cell_ref = XLSX.utils.encode_cell(cell_address);
+
+                                if (!ws[cell_ref]) continue;
+
+                                if (R === 0) {
+                                    // Header Style
+                                    ws[cell_ref].s = {
+                                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                                        fill: { fgColor: { rgb: "343A40" } },
+                                        alignment: { horizontal: "center", vertical: "center" }
+                                    };
+                                } else if (isSummaryRow) {
+                                    // Summary Row Style
+                                    let cellStyle = {
+                                        font: { bold: true, color: { rgb: "000000" } },
+                                        fill: { fgColor: { rgb: "E9ECEF" } }, // Background ពណ៌ប្រផេះស្រាល
+                                        alignment: { vertical: "center" }
+                                    };
+
+                                    if (C >= 0 && C <= 4) {
+                                        cellStyle.alignment.horizontal = "center"; // Center Title
+                                    } else if (C >= 5 && C <= 7) {
+                                        cellStyle.alignment.horizontal = "right";  // Right Align Amount
+                                        if (typeof ws[cell_ref].v === 'number') {
+                                            ws[cell_ref].z = '#,##0.00';
+                                        }
+                                    }
+                                    ws[cell_ref].s = cellStyle;
+                                } else {
+                                    // Regular Rows Format Number
+                                    if ([5, 6, 7].includes(C) && typeof ws[cell_ref].v === 'number') {
+                                        ws[cell_ref].z = '#,##0.00';
+                                    }
+                                }
+                            }
+                        }
+
+                        ws['!cols'] = [
+                            { wpx: 120 }, { wpx: 110 }, { wpx: 160 }, 
+                            { wpx: 180 }, { wpx: 250 }, { wpx: 110 }, 
+                            { wpx: 110 }, { wpx: 120 }, { wpx: 80 }
+                        ];
+
+                        var wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "Journal_Report");
+
+                        var d = new Date();
+                        var dateString = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+                        XLSX.writeFile(wb, "Journal_Report_" + dateString + ".xlsx");
+
+                    } catch (err) {
+                        console.error("Export error:", err);
+                    } finally {
+                        // 3. បិទ Loading state វិញ
+                        $btnText.show();
+                        $btnLoading.hide();
+                    }
+                });
             });
             // Reload only (DON'T destroy/reinit)
             $('.btn-filter').on('change', function() {
@@ -238,46 +331,93 @@
                     data: function (d) {
                         d.branch_id = $('select[name="branch_id"]').val();
                         d.period = $('select[name="period"]').val();
-                        d.date = $('input[name="tb_date"]').val();
-                        d.currency = $('select[name="currency"]').val();
+                        d.from_date = $('input[name="from_date"]').val();
+                        d.to_date = $('input[name="to_date"]').val();
                     },
                     dataSrc: function (json) {
                         return json.data;
                     }
                 },
                 columns: [
-                    { data: 'Branch', name: 'jn.Branch' },
-                    { data: 'TransactionDate', name: 'jn.TransactionDate' },
+                    { 
+                        data: 'Branch', 
+                        name: 'jn.Branch',
+                        render: function (data) { return data ? data : ''; } // មិនបង្ហាញ null លើជួរ Summary
+                    },
+                    { 
+                        data: 'TransactionDate', 
+                        name: 'jn.TransactionDate',
+                        render: function (data) { return data ? data : ''; }
+                    },
                     { 
                         data: 'Transaction',
+                        render: function (data) { return data ? data : ''; }
                     },
                     { 
                         data: 'Reference', 
-                        name: 'jn.Reference'
+                        name: 'jn.Reference',
+                        render: function (data) { return data ? data : ''; }
                     },
                     { 
                         data: 'Description', 
-                        name: 'jn.Description'
+                        name: 'jn.Description',
+                        render: function (data) { return data ? data : ''; }
                     },
                     { 
                         data: 'Debit',
-                        className: 'text-right',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '')
+                        className: 'text-end', // ឬ 'text-right' អាស្រ័យលើ Bootstrap Version (BS5 = text-end)
+                        render: function (data, type, row) {
+                            // ប្រសិនបើជាជួរ Summary មិនបាច់បង្ហាញ 0.00 ទេ
+                            if (row.is_summary_row || !data) return '';
+                            return $.fn.dataTable.render.number(',', '.', 2, '').display(data);
+                        }
                     },
                     { 
                         data: 'Credit',
-                        className: 'text-right',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '')
+                        className: 'text-end',
+                        render: function (data, type, row) {
+                            if (row.is_summary_row || !data) return '';
+                            return $.fn.dataTable.render.number(',', '.', 2, '').display(data);
+                        }
                     },
                     { 
                         data: 'balance', 
-                        className: 'text-right',
-                        render: $.fn.dataTable.render.number(',', '.', 2, '')
+                        className: 'text-end',
+                        render: function (data, type, row) {
+                            if (data === null || data === undefined) return '';
+                            return $.fn.dataTable.render.number(',', '.', 2, '').display(data);
+                        }
                     },
                     { 
                         data: 'SortCut',
+                        render: function (data) { return data ? data : ''; }
                     },
                 ],
+                createdRow: function(row, data, dataIndex) {
+                    if (data.is_summary_row || data.Reference === '000 - Beginning Balance' || data.Reference === '*** - Ending Balance') {
+                        
+                        // 1. Set background-color and text color directly
+                        $(row).css({
+                            'background-color': '#e9ecef', // Light gray (or #fff3cd for soft yellow)
+                            'color': '#000000',            // Black text
+                            'font-weight': 'bold'
+                        });
+
+                        let titleText = data.Reference;
+                        let balanceValue = (data.balance !== null && data.balance !== undefined) 
+                            ? $.fn.dataTable.render.number(',', '.', 2, '').display(data.balance) 
+                            : '';
+
+                        // 2. Re-render merged HTML (apply inline style to cells if needed)
+                        let mergedHtml = `
+                            <td colspan="5" class="text-center fw-bold">${titleText}</td>
+                            <td colspan="3" class="text-end text-right fw-bold">${balanceValue}</td>
+                            <td></td>
+                        `;
+
+                        $(row).html(mergedHtml);
+                    }
+                }
             });
             $('#tbl-TB').on('processing.dt', function (e, settings, processing) {
                 if (processing) {
