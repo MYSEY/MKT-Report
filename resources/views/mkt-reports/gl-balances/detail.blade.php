@@ -132,10 +132,8 @@
                 $btnText.hide();
                 $btnLoading.show();
 
-                // 1. បង្កើត Function Load Dynamic Script ដើម្បីការពារ Script Collision/Conflict ជាមួយ System
                 function loadXlsxStyleScript(callback) {
                     if (window.XLSX && window.XLSX.utils && window.XLSX.utils.json_to_sheet) {
-                        // ប្រសិនបើមាន Load រួចហើយ
                         callback();
                         return;
                     }
@@ -149,7 +147,6 @@
                     document.head.appendChild(script);
                 }
 
-                // 2. ដំនើរការ Export បន្ទាប់ពី Script Load រួចរាល់
                 loadXlsxStyleScript(function() {
                     try {
                         let headers = [
@@ -165,32 +162,40 @@
                             let $row = $(this);
                             let $tds = $row.find('td');
 
-                            let isSummary = $tds.first().attr('colspan') == '5' || 
-                                            $tds.text().includes('000 - Beginning Balance') || 
+                            // ពិនិត្យមើលថាតើជាជួរ Summary ឬទេ
+                            let isSummary = $tds.text().includes('000 - Beginning Balance') || 
                                             $tds.text().includes('*** - Ending Balance');
 
                             let rowData = {};
                             let excelRowIndex = rowIndex + 1; // +1 ព្រោះ Row 0 ជា Header
 
                             if (isSummary) {
-                                let summaryTitle = $tds.eq(0).text().trim();
-                                let rawBalance   = $tds.eq(1).text().trim().replace('$', '').replace(/,/g, '');
+                                // --- ទាញយក Data តាម Column ថ្មី ---
+                                let branchName   = $tds.eq(0).text().trim(); // td[0] = Branch
+                                let summaryTitle = $tds.eq(2).text().trim(); // td[2] = Title (000 / ***)
+                                let rawBalance   = $tds.eq(3).text().trim().replace('$', '').replace(/,/g, ''); // td[3] = Balance
                                 let balanceVal   = parseFloat(rawBalance) || 0;
 
-                                merges.push({ s: { r: excelRowIndex, c: 0 }, e: { r: excelRowIndex, c: 4 } });
+                                // Merge Columns 2..4 (Transaction, Reference, Description) សម្រាប់ដាក់ Title
+                                merges.push({ s: { r: excelRowIndex, c: 2 }, e: { r: excelRowIndex, c: 4 } });
+
+                                // Merge Columns 5..7 (Debit, Credit, Balance) សម្រាប់ដាក់ Amount
                                 merges.push({ s: { r: excelRowIndex, c: 5 }, e: { r: excelRowIndex, c: 7 } });
+
                                 summaryRows.push(excelRowIndex);
 
-                                rowData["Branch"]      = summaryTitle;
+                                // រៀបចំ Structural Data សម្រាប់ Excel Row
+                                rowData["Branch"]      = branchName;     // បង្ហាញ Branch នៅក្នុង Col 0
                                 rowData["Date"]        = "";
-                                rowData["Transaction"] = "";
+                                rowData["Transaction"] = summaryTitle; // Title នឹងលោតទៅស្ថិតនៅ Col 2 (ដោយសារ Merge Col 2..4)
                                 rowData["Reference"]   = "";
                                 rowData["Description"] = "";
-                                rowData["Debit"]       = balanceVal; 
+                                rowData["Debit"]       = balanceVal;   // Amount ស្ថិតនៅ Col 5 (ដោយសារ Merge Col 5..7)
                                 rowData["Credit"]      = "";
                                 rowData["Balance"]     = "";
                                 rowData["SortCut"]     = "";
                             } else {
+                                // --- ជួរ Normal Data ---
                                 if ($tds.length >= 8) {
                                     let parseNum = (val) => parseFloat(val.replace('$', '').replace(/,/g, '').trim()) || 0;
 
@@ -231,20 +236,22 @@
                                     ws[cell_ref].s = {
                                         font: { bold: true, color: { rgb: "FFFFFF" } },
                                         fill: { fgColor: { rgb: "343A40" } },
-                                        alignment: { horizontal: "center", vertical: "center" }
+                                        alignment: { horizontal: "left", vertical: "left" }
                                     };
                                 } else if (isSummaryRow) {
                                     // Summary Row Style
                                     let cellStyle = {
                                         font: { bold: true, color: { rgb: "000000" } },
-                                        fill: { fgColor: { rgb: "E9ECEF" } }, // Background ពណ៌ប្រផេះស្រាល
-                                        alignment: { vertical: "center" }
+                                        fill: { fgColor: { rgb: "E9ECEF" } }, // Background ប្រផេះស្រាល
+                                        alignment: { vertical: "left" }
                                     };
 
-                                    if (C >= 0 && C <= 4) {
-                                        cellStyle.alignment.horizontal = "center"; // Center Title
+                                    if (C === 0) {
+                                        cellStyle.alignment.horizontal = "left";   // Branch Align Left
+                                    } else if (C >= 2 && C <= 4) {
+                                        cellStyle.alignment.horizontal = "left"; // Title (000/***) Align Center
                                     } else if (C >= 5 && C <= 7) {
-                                        cellStyle.alignment.horizontal = "right";  // Right Align Amount
+                                        cellStyle.alignment.horizontal = "right";  // Amount Align Right
                                         if (typeof ws[cell_ref].v === 'number') {
                                             ws[cell_ref].z = '#,##0.00';
                                         }
@@ -275,7 +282,6 @@
                     } catch (err) {
                         console.error("Export error:", err);
                     } finally {
-                        // 3. បិទ Loading state វិញ
                         $btnText.show();
                         $btnLoading.hide();
                     }
@@ -404,13 +410,16 @@
                         });
 
                         let titleText = data.Reference;
+                        let branch = data.Branch;
                         let balanceValue = (data.balance !== null && data.balance !== undefined) 
                             ? $.fn.dataTable.render.number(',', '.', 2, '').display(data.balance) 
                             : '';
 
                         // 2. Re-render merged HTML (apply inline style to cells if needed)
                         let mergedHtml = `
-                            <td colspan="5" class="text-center fw-bold">${titleText}</td>
+                            <td>${branch}</td>
+                            <td></td>
+                            <td colspan="3" class="fw-bold">${titleText}</td>
                             <td colspan="3" class="text-end text-right fw-bold">${balanceValue}</td>
                             <td></td>
                         `;
