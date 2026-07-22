@@ -87,10 +87,15 @@ class GLBalanceController extends Controller
     public static function getDataDetail($request) {
         $AccessBranch = Auth::user()->AccessBranch;
         $branches = preg_split('/\s+/', trim($AccessBranch));
-        $dateInput = $request->get('date') ?? date('Y-m');
         $id = $request->id;
         
-        $filterDate = Carbon::parse($dateInput)->format('Y-m');
+        $fromDate = !empty($request->from_date) 
+                    ? Carbon::createFromFormat('d-m-Y', $request->from_date)->format('Y-m-d') 
+                    : null;
+        $toDate = !empty($request->to_date) 
+                    ? Carbon::createFromFormat('d-m-Y', $request->to_date)->format('Y-m-d') 
+                    : null;
+
         $query = DB::connection('pgsql')->table('MKT_JOURNAL as jn')
             ->leftJoin('MKT_GL_MAPPING_DE as mp', 'jn.GL_KEYS', '=', 'mp.ConsolKey')
             ->leftJoin('MKT_TRANSACTION as tst', 'jn.Transaction', '=', 'tst.ID')
@@ -104,6 +109,7 @@ class GLBalanceController extends Controller
                 'jn.Currency',
                 'jn.Reference',
                 'jn.TransactionDate',
+                'jn.Authorizeon',
                 'jn.GL_KEYS',
                 'jn.Amount',
                 'jn.PrevBalance',
@@ -118,15 +124,21 @@ class GLBalanceController extends Controller
             )
             ->where('jn.Branch', '<>', '')
             ->whereRaw('LENGTH(mp."ID"::text) = 8')
-            ->when($filterDate, function ($q) use ($filterDate) {
-                return $q->where('jn.TransactionDate', 'ILIKE', '%' . $filterDate . '%'); 
+            ->when($fromDate, function ($q) use ($fromDate) {
+                return $q->whereDate('jn.TransactionDate', '>=', $fromDate);
             })
+            ->when($toDate, function ($q) use ($toDate) {
+                return $q->whereDate('jn.TransactionDate', '<=', $toDate);
+            })
+            // ->when($filterDate, function ($q) use ($filterDate) {
+            //     return $q->where('jn.TransactionDate', 'ILIKE', '%' . $filterDate . '%'); 
+            // })
             // Optional: Filter by mp.ID when loading detail view
             ->when(!empty($id), function ($q) use ($id) {
                 return $q->where('mp.ID', $id);
             })
             ->orderBy('jn.Branch', 'asc')
-            ->orderBy('jn.TransactionDate', 'asc');
+            ->orderBy('jn.Authorizeon', 'asc');
         // --- Filters ---
         if($branches[0] == "HQ"){
             if ($request->branch_id && $request->branch_id != 'ALL') {
@@ -202,33 +214,88 @@ class GLBalanceController extends Controller
         }
         
         if (request()->ajax()) {
-            // ១. ទាញ Query ពី getDataTB (ដែលមិនទាន់មាន GroupBy)
+            // 1. ទាញ Query Base មក
             $baseQuery = self::getDataDetail($request);
             
-            $groupedQuery = clone $baseQuery;
-            // $groupedQuery->groupBy('mp.ID','jn.Description');
+            // 2. ទាញ Data ទាំងអស់តាម Filter (ដោយសារយើងត្រូវ Group និងគណនា Beginning/Ending Balance តាម Branch)
+            $rawRecords = $baseQuery->get();
 
-            // ៣. រាប់ចំនួន RecordsFiltered (ប្រើ Sub-query)
-            $recordsTotal = DB::connection('pgsql')
-                ->table(DB::raw("({$groupedQuery->toSql()}) as sub"))
-                ->mergeBindings($groupedQuery)
-                ->count();
+            // 3. Group Data តាម Branch
+            $groupedByBranch = $rawRecords->groupBy('Branch');
 
-            // ៥. ទាញទិន្នន័យសម្រាប់បង្ហាញតាមទំព័រ
-            $start = intval($request->input('start', 0));
-            $limit = intval($request->input('length', 20));
-            
-            if ($limit == -1) {
-                $data = $groupedQuery->get();
-            } else {
-                $data = $groupedQuery->offset($start)->limit($limit)->get();
+            $formattedData = collect();
+
+            foreach ($groupedByBranch as $branch => $rows) {
+                if ($rows->isEmpty()) continue;
+
+                $firstRecord = $rows->first();
+                $lastRecord  = $rows->last();
+
+                // ក. បន្ថែមជួរ: 000 - Beginning Balance
+                $formattedData->push((object)[
+                    'ID'              => $firstRecord->ID ?? null,
+                    'Tst_Description' => null,
+                    'Transaction'     => null,
+                    'Branch'          => null,
+                    'Description'     => null,
+                    'SortCut'         => null,
+                    'Currency'        => $firstRecord->Currency ?? null,
+                    'Reference'       => '000 - Beginning Balance',
+                    'TransactionDate' => null,
+                    'GL_KEYS'         => null,
+                    'Amount'          => null,
+                    'PrevBalance'     => null,
+                    'DebitCredit'     => null,
+                    'Debit'           => null,
+                    'Credit'          => null,
+                    'balance'         => $firstRecord->PrevBalance ?? 0, // យក PrevBalance នៃ record ដំបូង
+                    'is_summary_row'  => true // Flag សម្រាប់ចំណាំពេលធ្វើ Style CSS
+                ]);
+
+                // ខ. បន្ថែម Records ធម្មតា
+                foreach ($rows as $row) {
+                    $row->is_summary_row = false;
+                    $formattedData->push($row);
+                }
+
+                // គ. បន្ថែមជួរ: *** - Ending Balance
+                $formattedData->push((object)[
+                    'ID'              => $lastRecord->ID ?? null,
+                    'Tst_Description' => null,
+                    'Transaction'     => null,
+                    'Branch'          => null,
+                    'Description'     => null,
+                    'SortCut'         => null,
+                    'Currency'        => $lastRecord->Currency ?? null,
+                    'Reference'       => '*** - Ending Balance',
+                    'TransactionDate' => null,
+                    'GL_KEYS'         => null,
+                    'Amount'          => null,
+                    'PrevBalance'     => null,
+                    'DebitCredit'     => null,
+                    'Debit'           => null,
+                    'Credit'          => null,
+                    'balance'         => $lastRecord->balance ?? 0, // យក Balance នៃ record ចុងក្រោយ
+                    'is_summary_row'  => true
+                ]);
             }
-            // dd($data);
+
+            // 4. ចាត់ចែង Pagination សម្រាប់ DataTables
+            $totalRecords = $formattedData->count();
+            $start        = intval($request->input('start', 0));
+            $limit        = intval($request->input('length', 20));
+
+            if ($limit != -1) {
+                $pagedData = $formattedData->slice($start, $limit)->values();
+            } else {
+                $pagedData = $formattedData->values();
+            }
+
             return response()->json([
-                'draw' => intval($request->input('draw')),
-                'recordsTotal' => $recordsTotal,
-                'recordsFiltered' => $recordsTotal, 
-                'data' => $data,
+                'draw'            => intval($request->input('draw')),
+                'recordsTotal'    => $totalRecords,
+                'recordsFiltered' => $totalRecords, 
+                'data'            => $pagedData,
             ]);
         }
         
