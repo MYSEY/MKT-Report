@@ -162,7 +162,6 @@
                             let $row = $(this);
                             let $tds = $row.find('td');
 
-                            // ពិនិត្យមើលថាតើជាជួរ Summary ឬទេ
                             let isSummary = $tds.text().includes('000 - Beginning Balance') || 
                                             $tds.text().includes('*** - Ending Balance');
 
@@ -170,32 +169,32 @@
                             let excelRowIndex = rowIndex + 1; // +1 ព្រោះ Row 0 ជា Header
 
                             if (isSummary) {
-                                // --- ទាញយក Data តាម Column ថ្មី ---
-                                let branchName   = $tds.eq(0).text().trim(); // td[0] = Branch
-                                let summaryTitle = $tds.eq(2).text().trim(); // td[2] = Title (000 / ***)
-                                let rawBalance   = $tds.eq(3).text().trim().replace('$', '').replace(/,/g, ''); // td[3] = Balance
+                                // ទាញ Data តាម Structure ថ្មី៖
+                                // td[0] = Branch
+                                // td[2] = Title (000 / ***)
+                                // td[5] = Balance (ព្រោះ td[2] មាន colspan=3 នាំឱ្យ Balance ធ្លាក់មក td[5])
+                                let branchName   = $tds.eq(0).text().trim(); 
+                                let summaryTitle = $tds.eq(2).text().trim(); 
+                                let rawBalance   = $tds.eq(5).text().trim().replace('$', '').replace(/,/g, ''); 
                                 let balanceVal   = parseFloat(rawBalance) || 0;
 
-                                // Merge Columns 2..4 (Transaction, Reference, Description) សម្រាប់ដាក់ Title
+                                // Merge តែ Columns 2..4 (Transaction, Reference, Description) សម្រាប់ Title
                                 merges.push({ s: { r: excelRowIndex, c: 2 }, e: { r: excelRowIndex, c: 4 } });
-
-                                // Merge Columns 5..7 (Debit, Credit, Balance) សម្រាប់ដាក់ Amount
-                                merges.push({ s: { r: excelRowIndex, c: 5 }, e: { r: excelRowIndex, c: 7 } });
 
                                 summaryRows.push(excelRowIndex);
 
-                                // រៀបចំ Structural Data សម្រាប់ Excel Row
-                                rowData["Branch"]      = branchName;     // បង្ហាញ Branch នៅក្នុង Col 0
+                                // រៀបចំ Structural Data សម្រាប់ Excel Row (Balance ស្ថិតនៅ Col 7 ត្រឹមត្រូវ)
+                                rowData["Branch"]      = branchName;
                                 rowData["Date"]        = "";
-                                rowData["Transaction"] = summaryTitle; // Title នឹងលោតទៅស្ថិតនៅ Col 2 (ដោយសារ Merge Col 2..4)
+                                rowData["Transaction"] = summaryTitle; // លោតទៅ Col 2 (Merged Col 2..4)
                                 rowData["Reference"]   = "";
                                 rowData["Description"] = "";
-                                rowData["Debit"]       = balanceVal;   // Amount ស្ថិតនៅ Col 5 (ដោយសារ Merge Col 5..7)
+                                rowData["Debit"]       = "";
                                 rowData["Credit"]      = "";
-                                rowData["Balance"]     = "";
+                                rowData["Balance"]     = balanceVal;   // ចំ Col 7 (Balance Column)
                                 rowData["SortCut"]     = "";
                             } else {
-                                // --- ជួរ Normal Data ---
+                                // Normal Rows
                                 if ($tds.length >= 8) {
                                     let parseNum = (val) => parseFloat(val.replace('$', '').replace(/,/g, '').trim()) || 0;
 
@@ -242,16 +241,16 @@
                                     // Summary Row Style
                                     let cellStyle = {
                                         font: { bold: true, color: { rgb: "000000" } },
-                                        fill: { fgColor: { rgb: "E9ECEF" } }, // Background ប្រផេះស្រាល
+                                        fill: { fgColor: { rgb: "E9ECEF" } }, // Background ពណ៌ប្រផេះស្រាល
                                         alignment: { vertical: "left" }
                                     };
 
                                     if (C === 0) {
-                                        cellStyle.alignment.horizontal = "left";   // Branch Align Left
+                                        cellStyle.alignment.horizontal = "left";   // Branch
                                     } else if (C >= 2 && C <= 4) {
-                                        cellStyle.alignment.horizontal = "left"; // Title (000/***) Align Center
-                                    } else if (C >= 5 && C <= 7) {
-                                        cellStyle.alignment.horizontal = "right";  // Amount Align Right
+                                        cellStyle.alignment.horizontal = "left"; // Merged Title
+                                    } else if (C === 7) {
+                                        cellStyle.alignment.horizontal = "right";  // Balance Column (Col 7)
                                         if (typeof ws[cell_ref].v === 'number') {
                                             ws[cell_ref].z = '#,##0.00';
                                         }
@@ -420,7 +419,9 @@
                             <td>${branch}</td>
                             <td></td>
                             <td colspan="3" class="fw-bold">${titleText}</td>
-                            <td colspan="3" class="text-end text-right fw-bold">${balanceValue}</td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-end text-right fw-bold">${balanceValue}</td>
                             <td></td>
                         `;
 
