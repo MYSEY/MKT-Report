@@ -93,6 +93,22 @@
                                 <div class="label">{{ $totalAssetClass }}</div>
                             </div>
                         </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <div class="type">KHR</div>
+                            </div>
+                            <div class="col-md-6" style="text-align: right;">
+                                <div class="amount">{{ number_format($dataAssetClass->khr ?? 0, 0) }}</div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <div class="type">USD</div>
+                            </div>
+                            <div class="col-md-6" style="text-align: right;">
+                                <div class="amount">{{ number_format($dataAssetClass->usd ?? 0, 2) }}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -96,6 +96,13 @@ class DashboardController extends Controller
         $totalOutstanding = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT')->where('OutstandingAmountAS', '>', 0)->sum('OutstandingAmountAS');
         $finalParRate = $totalOutstanding > 0 ? round(($totalParAmount / $totalOutstanding) * 100, 2) : 0;
         $totalAssetClass = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT')->where('AssetClass', '>', 20)->count();
+        $dataAssetClass = DB::connection('pgsql')
+        ->table('MKT_LOAN_CONTRACT as LC') // ✅ add alias here
+        ->selectRaw("
+            SUM(CASE WHEN \"Currency\" = 'KHR' THEN \"OutstandingAmount\" ELSE 0 END) as khr,
+            SUM(CASE WHEN \"Currency\" = 'USD' THEN \"OutstandingAmount\" ELSE 0 END) as usd
+        ")->where('AssetClass', '>', 20)->first();
+        
         // dd([
         //     'Pars30' => $totalPars30,
         //     'ParAmount30' => $totalParAmount,
@@ -112,6 +119,6 @@ class DashboardController extends Controller
         ")->where('OutstandingAmountAS', '>', 0)->first();
         $customer = DB::connection('pgsql')->table('MKT_CUSTOMER')->count();
         $loan = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT')->where('OutstandingAmountAS', '>', 0)->count();
-        return view('dashboads.admin',compact('customer','data','loan','finalParRate','totalAssetClass','Profitble'));
+        return view('dashboads.admin',compact('customer','data','loan','finalParRate','totalAssetClass','dataAssetClass','Profitble'));
     }
 }
