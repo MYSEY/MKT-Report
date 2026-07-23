@@ -98,8 +98,10 @@ class GLBalanceController extends Controller
 
         $query = DB::connection('pgsql')->table('MKT_JOURNAL as jn')
             ->leftJoin('MKT_GL_MAPPING_DE as mp', 'jn.GL_KEYS', '=', 'mp.ConsolKey')
+            ->leftJoin('MKT_GL_MAPPING as glm', 'mp.ID', '=', 'glm.ID')
             ->leftJoin('MKT_TRANSACTION as tst', 'jn.Transaction', '=', 'tst.ID')
             ->select(
+                'glm.Description as GLM_Description',
                 'mp.ID',
                 'tst.Description as Tst_Description',
                 DB::raw("CONCAT(jn.\"Transaction\", ' - ', tst.\"Description\") as \"Transaction\""),
