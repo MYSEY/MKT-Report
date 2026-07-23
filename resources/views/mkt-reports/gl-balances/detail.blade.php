@@ -72,12 +72,20 @@
             </div>
         </div>
     </div>
-
     <div id="panel-1" class="panel">
-        <div class="panel-hdr">
+        {{-- <div class="panel-hdr">
             <h2>
-                GL Balance Reports
+                GL Code
             </h2>
+        </div> --}}
+        <div class="panel-container show">
+            <div class="panel-content">
+                <div class="panel-tag">
+                    <strong>Branch: </strong><span id="branch_name">All</span><br>
+                    <strong>GL Code:</strong> <span id="gl_number"></span><br>
+                    <strong>GL Description:</strong> <span id="gl_desription"></span>
+                </div>
+            </div>
         </div>
          <div class="panel-container show">
             <div class="panel-content">
@@ -107,15 +115,6 @@
 @section('script')
     <script>
         $(function(){
-            // $(document).ready(function() {
-            //     $('.datepicker_month').datepicker({
-            //         format: "yyyy-mm",
-            //         viewMode: "months",
-            //         minViewMode: "months",
-            //         autoclose: true,
-            //         todayHighlight: true
-            //     });
-            // });
             $(document).ready(function() {
                 $('.datepicker_month').datepicker({
                     format: "dd-mm-yyyy",
@@ -340,6 +339,16 @@
                         d.to_date = $('input[name="to_date"]').val();
                     },
                     dataSrc: function (json) {
+                        if (json && json.data && json.data.length > 0 && json.data[0].ID) {
+                            let glNumber = json.data[0].ID;
+                            let glDescription = json.data[1].GLM_Description;
+                            $("#gl_number").text(glNumber);
+                            $("#gl_desription").text(glDescription);
+                            
+                        }
+                        if ($('select[name="branch_id"]').val()) {
+                            $("#branch_name").text($('select[name="branch_id"]').val());
+                        }
                         return json.data;
                     }
                 },
