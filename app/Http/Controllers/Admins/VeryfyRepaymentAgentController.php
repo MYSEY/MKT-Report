@@ -315,7 +315,7 @@ class VeryfyRepaymentAgentController extends Controller
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-        $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
+        $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new MorakotExport($results), $fileName);
     }
     public function downloadToBranch(Request $request)
@@ -324,7 +324,7 @@ class VeryfyRepaymentAgentController extends Controller
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-        $fileName = 'tmp_' . date('Ymd_His') . '.csv';
+        $fileName = 'tmp_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new BranchExport($results), $fileName);
     }
 }
