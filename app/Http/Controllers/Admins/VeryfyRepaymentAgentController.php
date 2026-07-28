@@ -163,9 +163,9 @@ class VeryfyRepaymentAgentController extends Controller
                 if ($uploadedCurrency === 'USD') {
                     $ExchangeRate = 1;
                 } else {
-                    $ExchangeRate = round($request->exchange_rate, 16);
+                    $ExchangeRate = $request->exchange_rate;
                 }
-                $uploadedLCYAmount = round($uploadedAmount * $ExchangeRate, 5);
+                $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
                 if ($loanFullName !== '') {
@@ -260,7 +260,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'CrCurrency'       => $uploadedCurrency,
                     'Amount'           => $uploadedAmount,
                     'LCYAmount'        => $uploadedLCYAmount,
-                    'ExchangeRate'     => number_format($ExchangeRate, 5, '.', ''),
+                    'ExchangeRate'     => $ExchangeRate,
                     'Transaction'      => 40,
                     'TranDate'         => $request->date,
                     'Reference'        => $loanFullName,
@@ -268,7 +268,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'DrGLKey'          => '',
                     'CrGLKey'          => '',
                     'Module'           => 'FT',
-                    'Officer'          => $loan->Officer,
+                    'Officer'          => '',
                     'DisbursementList' => '',
                     'TargetBranch'     => 'HQ',
                     'TargetBranchDrCr' => 'Dr',
@@ -300,7 +300,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'LoanProduct' => $loan->LoanProduct,
                     'Note'        => $note,
                     'Agent'       => $uploadedAgent,
-                    'Officer'     => $loan->Officer,
+                    'Officer'     => '',
                     'ClientTel'   => trim(($loan->Mobile1 ?? '') . ' ' . ($loan->Mobile2 ?? '')),
                 ];
             }
