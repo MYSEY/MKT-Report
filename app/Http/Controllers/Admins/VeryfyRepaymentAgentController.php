@@ -159,7 +159,8 @@ class VeryfyRepaymentAgentController extends Controller
                 $uploadedAmount   = (float) trim($row[4] ?? 0);
                 $uploadedAgent    = trim($row[6] ?? '');
                 $DrCategory = $configeAgent[$uploadedAgent] ?? null;
-                
+                // ✅ Fix CrAccount
+                $CrAccount = 'DD' . mb_substr($uploadedAccount, 0, -2);
                 if ($uploadedCurrency === 'USD') {
                     $ExchangeRate = 1;
                 } else {
@@ -168,11 +169,16 @@ class VeryfyRepaymentAgentController extends Controller
                 $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
-                if ($loanFullName !== '') {
-                    $fullName = $loanFullName;
-                }else {
-                    $fullName = '(Error: )';
-                }
+                $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: ' . $uploadedAccount . ')';
+                // ✅ Fix duplicate count
+                $dupCount     = collect($rows)->filter(fn($r) => isset($r[0]) && trim($r[0]) === $uploadedAccount)->count();
+                $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
+                
+                // if ($loanFullName !== '') {
+                //     $fullName = $loanFullName;
+                // }else {
+                //     $fullName = '(Error: )';
+                // }
 
                 $rep    = $loan ? ($repSchedules[$loan->LDNumber] ?? null) : null;
                 $collectionDate = $rep->CollectionDate ?? null;
@@ -187,7 +193,7 @@ class VeryfyRepaymentAgentController extends Controller
                         'DrAccount'        => '',
                         'DrCategory'       => '#VALUE!',
                         'DrCurrency'       => '0',
-                        'CrAccount'        => $uploadedAccount,
+                        'CrAccount'        => $CrAccount,
                         'CrCategory'       => '3852204',
                         'CrCurrency'       => '0',
                         'Amount'           => $uploadedAmount,
@@ -196,7 +202,7 @@ class VeryfyRepaymentAgentController extends Controller
                         'Transaction'      => 40,
                         'TranDate'         => $request->date,
                         'Reference'        => $loanFullName,
-                        'Note'             => $uploadedAgent . ' ' . $fullName,
+                        'Note'             => $uploadedAgent . ' ' . $fullName . $duplicateMsg,
                         'DrGLKey'          => '',
                         'CrGLKey'          => '',
                         'Module'           => 'FT',
@@ -264,7 +270,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'Transaction'      => 40,
                     'TranDate'         => $request->date,
                     'Reference'        => $loanFullName,
-                    'Note'             => $uploadedAgent . ' ' . $fullName,
+                    'Note'             => $uploadedAgent . ' ' . $fullName . $duplicateMsg,
                     'DrGLKey'          => '',
                     'CrGLKey'          => '',
                     'Module'           => 'FT',
