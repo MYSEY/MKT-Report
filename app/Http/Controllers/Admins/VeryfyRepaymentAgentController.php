@@ -169,16 +169,10 @@ class VeryfyRepaymentAgentController extends Controller
                 $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
-                $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: ' . $uploadedAccount . ')';
+                $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: )';
                 // ✅ Fix duplicate count
                 $dupCount     = collect($rows)->filter(fn($r) => isset($r[0]) && trim($r[0]) === $uploadedAccount)->count();
                 $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
-                
-                // if ($loanFullName !== '') {
-                //     $fullName = $loanFullName;
-                // }else {
-                //     $fullName = '(Error: )';
-                // }
 
                 $rep    = $loan ? ($repSchedules[$loan->LDNumber] ?? null) : null;
                 $collectionDate = $rep->CollectionDate ?? null;
