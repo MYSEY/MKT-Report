@@ -315,7 +315,7 @@ class VeryfyRepaymentAgentController extends Controller
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-        $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.xlsx';
+        $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
         return Excel::download(new MorakotExport($results), $fileName);
     }
     public function downloadToBranch(Request $request)
