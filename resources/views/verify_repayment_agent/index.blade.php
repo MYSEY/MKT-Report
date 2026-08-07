@@ -10,7 +10,7 @@
             @endif
             @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
                 <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
-                <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download To Branch</a>
+                <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download</a>
             @endif
         </div>
     </div>

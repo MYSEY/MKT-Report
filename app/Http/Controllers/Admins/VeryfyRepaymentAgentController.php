@@ -161,12 +161,15 @@ class VeryfyRepaymentAgentController extends Controller
                 $DrCategory = $configeAgent[$uploadedAgent] ?? null;
                 // ✅ Fix CrAccount
                 $CrAccount = 'DD' . mb_substr($uploadedAccount, 0, -2);
+
                 if ($uploadedCurrency === 'USD') {
-                    $ExchangeRate = 1;
+                    $ExchangeRate      = '1.0000000000000000';
+                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 16);
                 } else {
-                    $ExchangeRate = $request->exchange_rate;
+                    $ExchangeRate      = number_format((float) $request->exchange_rate, 16, '.', '');
+                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 16);
                 }
-                $uploadedLCYAmount = $uploadedAmount * $ExchangeRate;
+
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
                 $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: )';
