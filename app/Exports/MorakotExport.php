@@ -34,10 +34,8 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
                 $row['CrCategory']       ?? '',
                 $row['CrCurrency']       ?? '',
                 $row['Amount']           ?? '',
-                // $row['LCYAmount']        ?? '',
-                // $row['ExchangeRate']     ?? '',
-                "\t" . ($row['LCYAmount']    ?? ''), // ✅ force text
-                "\t" . ($row['ExchangeRate'] ?? ''), // ✅ force text
+                "\t" . ($row['LCYAmount']    ?? ''),
+                "\t" . ($row['ExchangeRate'] ?? ''),
                 $row['Transaction']      ?? '',
                 $row['TranDate']         ?? '',
                 $row['Reference']        ?? '',
@@ -83,8 +81,9 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
     public function columnFormats(): array
     {
         return [
-            'I' => '@', // ✅ Text
-            'J' => '@', // ✅ Text
+            'I' => '@',
+            'J' => '@',
+            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
         ];
     }
     public function styles(Worksheet $sheet): array

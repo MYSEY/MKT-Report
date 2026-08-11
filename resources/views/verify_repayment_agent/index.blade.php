@@ -8,10 +8,10 @@
             @if(Auth::user()->can('Veryfy Repayment Agent Report Import'))
                 <a type="button" id="btn-import" href="#" data-toggle="modal" data-target="#modal-import" class="btn btn-danger btn-sm mr-1">Upload Verify</a>
             @endif
-            @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
+            {{-- @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
                 <a type="button" class="btn btn-sucess btn-sm" id="downloadToMorakot">Download To Morakot</a>
                 <a type="button" class="btn btn-sucess btn-sm" id="downloadToBranch">Download</a>
-            @endif
+            @endif --}}
         </div>
     </div>
     {!! Toastr::message() !!}
@@ -27,27 +27,10 @@
                     <table id="tbl_veryfy_repayment_agent" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
-                                <th class="text-center">Branch</th>
-                                <th class="text-center">DrAccount</th>
-                                <th class="text-center">DrCategory</th>
-                                <th class="text-center">DrCurrency</th>
-                                <th class="text-center">CrAccount</th>
-                                <th class="text-center">CrCategory</th>
-                                <th class="text-center">CrCurrency</th>
-                                <th class="text-center">Amount</th>
-                                <th class="text-center">LCYAmount</th>
-                                <th class="text-center">ExchangeRate</th>
-                                <th class="text-center">Transaction</th>
-                                <th class="text-center">TranDate</th>
-                                <th class="text-center">Reference</th>
-                                <th class="text-center">Note</th>
-                                <th class="text-center">DrGLKey</th>
-                                <th class="text-center">CrGLKey</th>
-                                <th class="text-center">Module</th>
-                                <th class="text-center">Officer</th>
-                                <th class="text-center">DisbursementList</th>
-                                <th class="text-center">TargetBranch</th>
-                                <th class="text-center">TargetBranchDrCr</th>
+                                <th>Branch</th>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,6 +45,7 @@
 @section('script')
     <script>
         $(function(){
+            dataTables();
             $("#downloadToMorakot").on("click", function () {
                 window.location = "{{ URL::to('admin/mkt-report/veryfy/repayment/agent/download/morakot') }}";
             });
@@ -141,91 +125,29 @@
                 },
                 columns: [
                     {
-                        data: 'Branch',
-                        name: 'Branch',
+                        data: 'branch',
+                        name: 'branch',
                         orderable: false,
                         searchable: false,
                     },
                     { 
-                        data: 'DrAccount', 
-                        name: 'DrAccount',
+                        data: 'name', 
+                        name: 'name',
                     },
                     { 
-                        data: 'DrCategory', 
-                        name: 'DrCategory',
-                    },
-                    { 
-                        data: 'DrCurrency', 
-                        name: 'DrCurrency',
-                    },
-                    { 
-                        data: 'CrAccount', 
-                        name: 'CrAccount',
-                    },
-                    { 
-                        data: 'CrCategory', 
-                        name: 'CrCategory',
-                    },
-                    { 
-                        data: 'CrCurrency', 
-                        name: 'CrCurrency',
-                    },
-                    { 
-                        data: 'Amount', 
-                        name: 'Amount',
-                    },
-                    { 
-                        data: 'LCYAmount', 
-                        name: 'LCYAmount',
-                    },
-                    { 
-                        data: 'ExchangeRate', 
-                        name: 'ExchangeRate',
-                    },
-                    { 
-                        data: 'Transaction', 
-                        name: 'Transaction',
-                    },
-                    { 
-                        data: 'TranDate', 
-                        name: 'TranDate',
-                    },
-                    { 
-                        data: 'Reference', 
-                        name: 'Reference',
-                    },
-                    { 
-                        data: 'Note', 
-                        name: 'Note',
+                        data: 'date', 
+                        name: 'date',
                     },
                     {
-                        data: 'DrGLKey', 
-                        name: 'DrGLKey',
-                    },
-                    { 
-                        data: 'CrGLKey', 
-                        name: 'CrGLKey',
-                    },
-                    { 
-                        data: 'Module', 
-                        name: 'Module',
-                    },
-                    { 
-                        data: 'Officer', 
-                        name: 'Officer',
-                    },
-                    { 
-                        data: 'DisbursementList', 
-                        name: 'DisbursementList',
-                    },
-                    { 
-                        data: 'TargetBranch', 
-                        name: 'TargetBranch',
-                    },
-                    { 
-                        data: 'TargetBranchDrCr', 
-                        name: 'TargetBranchDrCr',
-                    },
+                        data: '',
+                        name: 'action',
+                        render: function(data, type, row) {
+                            
+                            return `<a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>`;;
+                        },
+                        orderable: false,
+                        searchable: false
+                    }
                 ],
             });
             $('#tbl_veryfy_repayment_agent').on('processing.dt', function (e, settings, processing) {

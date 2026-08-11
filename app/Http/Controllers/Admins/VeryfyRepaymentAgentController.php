@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Admins;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BranchCode;
+use App\Models\VerifyRepaymentAgent;
+use App\Models\VerifyRepaymentAgentDetail;
+use App\Models\VerifyRepaymentAgentBranchDetail;
+use Illuminate\Support\Facades\Auth;
 use App\Exports\MorakotExport;
 use App\Exports\BranchExport;
 use App\Traits\HasRolePermission;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class VeryfyRepaymentAgentController extends Controller
 {
@@ -22,61 +27,96 @@ class VeryfyRepaymentAgentController extends Controller
     public function index(Request $request)
     {
         if (request()->ajax()) {
-            if (!$request->filled('date')) {
-                return response()->json([
-                    'draw'            => intval($request->draw),
-                    'recordsTotal'    => 0,
-                    'recordsFiltered' => 0,
-                    'data'            => []
-                ]);
+            $query = DB::table('verify_repayment_agents')->select('verify_repayment_agents.*');
+            $recordsTotal = $query->count();
+
+            // ✅ Search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('branch', 'like', '%' . $search . '%')
+                    ->orWhere('date', 'like', '%' . $search . '%');
+                });
             }
-            $results         = session('veryfy_results', []);
-            $recordsFiltered = count($results);
-            $start           = intval($request->start ?? 0);
-            $length          = intval($request->length ?? 10);
-            $data            = array_slice($results, $start, $length);
+
+            $recordsFiltered = $query->count();
+            $start = intval($request->input('start', 0));
+            $limit = intval($request->input('length', 10));
+            $data = (clone $query)->offset($start)->limit($limit)->orderBy('id', 'desc')->get();
             return response()->json([
-                'draw'            => intval($request->draw),
-                'recordsTotal'    => $recordsFiltered,
+                'draw'            => intval($request->input('draw')),
+                'recordsTotal'    => $recordsTotal,
                 'recordsFiltered' => $recordsFiltered,
                 'data'            => $data,
             ]);
         }
         return view('verify_repayment_agent.index');
     }
-
-    public function importVeryfyRepaymentAgent(Request $request)
+    public function verifyRepaymentDetail(Request $request, $id)
     {
-        $request->validate(['file' => 'required|mimes:xlsx,xls,csv']);
-        $results       = self::processing($request);
-        // ✅ Read branchResults from session (set inside processing())
-        $branchResults = session('veryfy_results_branch', []);
-        $total     = count($results);
-        // ✅ Count matched/unmatched from branchResults which has Reason field
-        $matched   = count(array_filter($branchResults, fn($r) => empty($r['Reason'])));
-        $unmatched = count(array_filter($branchResults, fn($r) => !empty($r['Reason'])));
-        session([
-            'veryfy_results'   => $results,
-            'veryfy_total'     => $total,
-            'veryfy_matched'   => $matched,
-            'veryfy_unmatched' => $unmatched,
-        ]);
-        return response()->json([
-            'success'   => true,
-            'total'     => $total,
-            'matched'   => $matched,
-            'unmatched' => $unmatched,
-            'message'   => $total . ' accounts loaded',
-        ]);
-    }
+        $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
+        if (request()->ajax()) {
+            $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
+            if ($request->filled('branch_id')) {
+                $query->where('Branch', $request->branch_id);
+            }
+            $recordsTotal = $query->count();
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $query->where(function ($q) use ($search) {
+                    $q->where('Branch', 'like', '%' . $search . '%')
+                    ->orWhere('CrAccount', 'like', '%' . $search . '%')
+                    ->orWhere('CrCurrency', 'like', '%' . $search . '%')
+                    ->orWhere('Note', 'like', '%' . $search . '%')
+                    ->orWhere('TranDate', 'like', '%' . $search . '%');
+                });
+            }
 
-    public static function processing(Request $request)
+            $recordsFiltered = $query->count();
+            $start = intval($request->input('start', 0));
+            $limit = intval($request->input('length', 10));
+
+            $data = (clone $query)->orderBy('Reference', 'asc')->offset($start)->limit($limit)->get()
+            ->map(fn($item) => [
+                'Branch'           => $item->Branch,
+                'DrAccount'        => $item->DrAccount,
+                'DrCategory'       => $item->DrCategory,
+                'DrCurrency'       => $item->DrCurrency,
+                'CrAccount'        => $item->CrAccount,
+                'CrCategory'       => $item->CrCategory,
+                'CrCurrency'       => $item->CrCurrency,
+                'Amount'           => $item->Amount,
+                'LCYAmount'        => $item->LCYAmount,
+                'ExchangeRate'     => $item->ExchangeRate,
+                'Transaction'      => $item->Transaction,
+                'TranDate'         => $item->TranDate,
+                'Reference'        => $item->Reference,
+                'Note'             => $item->Note,
+                'DrGLKey'          => $item->DrGLKey,
+                'CrGLKey'          => $item->CrGLKey,
+                'Module'           => $item->Module,
+                'Officer'          => $item->Officer,
+                'DisbursementList' => $item->DisbursementList,
+                'TargetBranch'     => $item->TargetBranch,
+                'TargetBranchDrCr' => $item->TargetBranchDrCr,
+            ]);
+
+            return response()->json([
+                'draw'            => intval($request->input('draw')),
+                'recordsTotal'    => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered,
+                'data'            => $data,
+            ]);
+        }
+        return view('verify_repayment_agent.detail', compact('branch', 'id'));
+    }
+    
+    public function importVeryfyRepaymentAgent(Request $request)
     {
         $data        = Excel::toArray([], $request->file('file'));
         $rows        = $data[0];
         $branchCodes = BranchCode::pluck('code', 'abbreviations');
-
-        // ✅ Query 1: Loan + Customer + PastDue
         $loans = DB::connection('pgsql')
             ->table('MKT_LOAN_CONTRACT as LC')
             ->leftJoin('MKT_CUSTOMER as CUST', 'LC.ContractCustomerID', '=', 'CUST.ID')
@@ -116,8 +156,8 @@ class VeryfyRepaymentAgentController extends Controller
             ])
         ->get();
 
-        $startDate = date('Y-m-01', strtotime($request->date)); // first day of month
-        $endDate   = date('Y-m-t', strtotime($request->date));  // last day of month
+        $startDate = date('Y-m-01', strtotime($request->date));
+        $endDate   = date('Y-m-t', strtotime($request->date));
 
         $repSchedules = DB::connection('pgsql')
         ->table('MKT_REP_SCHEDULE')
@@ -125,7 +165,6 @@ class VeryfyRepaymentAgentController extends Controller
         ->whereBetween('CollectionDate', [$startDate, $endDate])->get()
         ->keyBy('LoanID');
 
-        // ✅ Build loanLookup (same as Excel K column formula)
         $loanLookup = [];
         foreach ($loans as $loan) {
             $account = $loan->Account;
@@ -150,6 +189,16 @@ class VeryfyRepaymentAgentController extends Controller
         $results       = [];
         $branchResults = [];
 
+        $verifyrepayment = VerifyRepaymentAgent::create([
+            'name'       => Auth::user()->DisplayName,
+            'date'       => Carbon::now()->format('Y-m-d H:i:s'),
+            'branch'     => Auth::user()->Branch,
+            'created_by' => Auth::user()->DisplayName,
+        ]);
+
+        $results       = [];
+        $branchResults = [];
+
         foreach ($rows as $key => $row) {
             if ($key > 0 && !empty($row[0])) {
                 $uploadedAccount  = trim($row[0]);
@@ -158,34 +207,44 @@ class VeryfyRepaymentAgentController extends Controller
                 $uploadedCurrency = trim($row[3] ?? '');
                 $uploadedAmount   = (float) trim($row[4] ?? 0);
                 $uploadedAgent    = trim($row[6] ?? '');
+
                 $DrCategory = $configeAgent[$uploadedAgent] ?? null;
-                // ✅ Fix CrAccount
+
+                // ✅ Bug 2 fixed - set CrAccount once only
                 $CrAccount = 'DD' . mb_substr($uploadedAccount, 0, -2);
 
                 if ($uploadedCurrency === 'USD') {
-                    $ExchangeRate      = '1.0000000000000000';
-                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 16);
+                    $ExchangeRate      = '1.000000000000000000';
+                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 18);
                 } else {
-                    $ExchangeRate      = number_format((float) $request->exchange_rate, 16, '.', '');
-                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 16);
+                    $ExchangeRate      = number_format((float) $request->exchange_rate, 18, '.', '');
+                    $uploadedLCYAmount = bcmul((string) $uploadedAmount, $ExchangeRate, 18);
                 }
 
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
                 $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: )';
-                // ✅ Fix duplicate count
+                $Reference    = $key;
+
                 $dupCount     = collect($rows)->filter(fn($r) => isset($r[0]) && trim($r[0]) === $uploadedAccount)->count();
                 $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
 
-                $rep    = $loan ? ($repSchedules[$loan->LDNumber] ?? null) : null;
+                $rep            = $loan ? ($repSchedules[$loan->LDNumber] ?? null) : null;
                 $collectionDate = $rep->CollectionDate ?? null;
                 $principal      = $rep->Principal ?? 0;
                 $interest       = $rep->Interest ?? 0;
                 $charge         = $rep->Charge ?? 0;
                 $totalCol       = $principal + $interest + $charge;
-                $CrAccount  = $loan->Account ?? '#N/A';
+
+                // ✅ Common fields for both matched and unmatched
+                $commonFields = [
+                    'verify_repayment_agent_id' => $verifyrepayment->id, // ✅ Bug 1 fixed
+                    'created_by'                => Auth::user()->DisplayName,
+                    'updated_by'                => null,
+                ];
+
                 if (!$loan) {
-                    $results[] = [
+                    $results[] = array_merge([
                         'Branch'           => '#VALUE!',
                         'DrAccount'        => '',
                         'DrCategory'       => '#VALUE!',
@@ -194,11 +253,11 @@ class VeryfyRepaymentAgentController extends Controller
                         'CrCategory'       => '3852204',
                         'CrCurrency'       => '0',
                         'Amount'           => $uploadedAmount,
-                        'LCYAmount'        => '#N/A',
-                        'ExchangeRate'     => '#N/A',
+                        'LCYAmount'        => null,
+                        'ExchangeRate'     => null,
                         'Transaction'      => 40,
                         'TranDate'         => $request->date,
-                        'Reference'        => $loanFullName,
+                        'Reference'        => $Reference,
                         'Note'             => $uploadedAgent . ' ' . $fullName . $duplicateMsg,
                         'DrGLKey'          => '',
                         'CrGLKey'          => '',
@@ -207,9 +266,9 @@ class VeryfyRepaymentAgentController extends Controller
                         'DisbursementList' => '',
                         'TargetBranch'     => 'HQ',
                         'TargetBranchDrCr' => 'Dr',
-                    ];
+                    ], $commonFields);
 
-                    $branchResults[] = [
+                    $branchResults[] = array_merge([
                         'Branch'      => '#N/A',
                         'DrAccount'   => '#N/A',
                         'DrCategory'  => '#N/A',
@@ -237,15 +296,15 @@ class VeryfyRepaymentAgentController extends Controller
                         'Agent'       => '#N/A',
                         'Officer'     => '#N/A',
                         'ClientTel'   => '#N/A',
-                    ];
+                    ],$commonFields);
                     continue;
                 }
 
-                $PricipalArr     = $loan->PricipalArr ?? 0;
-                $InteresArr = $loan->InteresArr ?? 0;
+                $pricipalArr = $loan->PricipalArr ?? 0;
+                $interesArr  = $loan->InteresArr ?? 0;
                 $chargeArr   = $loan->ChargeArr ?? 0;
 
-                if (($PricipalArr + $InteresArr + $chargeArr) > 0) {
+                if (($pricipalArr + $interesArr + $chargeArr) > 0) {
                     $note = 'Arrears';
                 } elseif ($collectionDate == $request->date) {
                     $note = 'Due Date';
@@ -253,7 +312,7 @@ class VeryfyRepaymentAgentController extends Controller
                     $note = 'Prepaid';
                 }
 
-                $results[] = [
+                $results[] = array_merge([
                     'Branch'           => $loan->Branch,
                     'DrAccount'        => '',
                     'DrCategory'       => $DrCategory,
@@ -266,7 +325,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'ExchangeRate'     => $ExchangeRate,
                     'Transaction'      => 40,
                     'TranDate'         => $request->date,
-                    'Reference'        => $loanFullName,
+                    'Reference'        => $Reference,
                     'Note'             => $uploadedAgent . ' ' . $fullName . $duplicateMsg,
                     'DrGLKey'          => '',
                     'CrGLKey'          => '',
@@ -275,9 +334,9 @@ class VeryfyRepaymentAgentController extends Controller
                     'DisbursementList' => '',
                     'TargetBranch'     => 'HQ',
                     'TargetBranchDrCr' => 'Dr',
-                ];
+                ], $commonFields);
 
-                $branchResults[] = [
+                $branchResults[] = array_merge([
                     'Branch'      => $loan->Branch,
                     'DrAccount'   => '',
                     'DrCategory'  => $DrCategory,
@@ -305,25 +364,96 @@ class VeryfyRepaymentAgentController extends Controller
                     'Agent'       => $uploadedAgent,
                     'Officer'     => '',
                     'ClientTel'   => trim(($loan->Mobile1 ?? '') . ' ' . ($loan->Mobile2 ?? '')),
-                ];
+                ],$commonFields);
             }
         }
-        session(['veryfy_results_branch' => $branchResults]);
-        return $results;
+
+        if (!empty($results)) {
+            foreach (array_chunk($results, 100) as $chunk) {
+                VerifyRepaymentAgentDetail::insert($chunk);
+            }
+        }
+        if (!empty($branchResults)) {
+            foreach (array_chunk($branchResults, 100) as $chunk) {
+                VerifyRepaymentAgentBranchDetail::insert($chunk);
+            }
+        }
+        return response()->json([
+            'success'   => true,
+            'message'   => 'accounts loaded',
+        ]);
     }
 
-    public function downloadToMorakot(Request $request)
+    public function downloadToMorakot(Request $request,$id)
     {
-        $results = session('veryfy_results', []);
+        $results = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id)
+            ->orderBy('Reference', 'asc')
+            ->get()
+            ->map(fn($item) => [
+                'Branch'           => $item->Branch,
+                'DrAccount'        => $item->DrAccount,
+                'DrCategory'       => $item->DrCategory,
+                'DrCurrency'       => $item->DrCurrency,
+                'CrAccount'        => $item->CrAccount,
+                'CrCategory'       => $item->CrCategory,
+                'CrCurrency'       => $item->CrCurrency,
+                'Amount'           => $item->Amount,
+                'LCYAmount'        => $item->LCYAmount,
+                'ExchangeRate'     => $item->ExchangeRate,
+                'Transaction'      => $item->Transaction,
+                'TranDate'         => $item->TranDate,
+                'Reference'        => $item->Reference,
+                'Note'             => $item->Note,
+                'DrGLKey'          => $item->DrGLKey,
+                'CrGLKey'          => $item->CrGLKey,
+                'Module'           => $item->Module,
+                'Officer'          => $item->Officer,
+                'DisbursementList' => $item->DisbursementList,
+                'TargetBranch'     => $item->TargetBranch,
+                'TargetBranchDrCr' => $item->TargetBranchDrCr,
+            ])
+        ->toArray();
+
         if (empty($results)) {
-            return back()->with('error', 'No data to download. Please import a file first.');
+            return back()->with('error', 'No data to download.');
         }
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
         return Excel::download(new MorakotExport($results), $fileName);
     }
-    public function downloadToBranch(Request $request)
+    public function downloadToBranch(Request $request,$id)
     {
-        $results = session('veryfy_results_branch', []);
+        $results = VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id)
+            ->get()
+            ->map(fn($item) => [
+                'Branch'        => $item->Branch,
+                'DrAccount'     => $item->DrAccount,
+                'DrCategory'    => $item->DrCategory,
+                'DrCurrency'    => $item->DrCurrency,
+                'CrAccount'     => $item->CrAccount,
+                'CrCategory'    => $item->CrCategory,
+                'CrCurrency'    => $item->CrCurrency,
+                'Amount'        => $item->Amount,
+                'LDNumber'      => $item->LDNumber,
+                'CCY'           => $item->CCY,
+                'KHName'        => $item->KHName,
+                'Outstanding'   => $item->Outstanding,
+                'TotaArr'       => $item->TotaArr,
+                'PricipalArr'   => $item->PricipalArr,
+                'InteresArr'    => $item->InteresArr,
+                'PenaltyArr'    => $item->PenaltyArr,
+                'ChargeArr'     => $item->ChargeArr,
+                'DateCol'       => $item->DateCol,
+                'TotalCol'      => $item->TotalCol,
+                'Principal'     => $item->Principal,
+                'Interest'      => $item->Interest,
+                'Charge'        => $item->Charge,
+                'LoanProduct'   => $item->LoanProduct,
+                'Note'          => $item->Note,
+                'Agent'         => $item->Agent,
+                'Officer'       => $item->Officer,
+                'ClientTel'     => $item->ClientTel,
+            ])
+        ->toArray();
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
