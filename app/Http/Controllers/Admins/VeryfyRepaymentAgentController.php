@@ -199,6 +199,17 @@ class VeryfyRepaymentAgentController extends Controller
         $results       = [];
         $branchResults = [];
 
+        // ✅ Get max Reference for today
+        $today = Carbon::now()->format('Y-m-d');
+
+        $maxReference = DB::table('verify_repayment_agent_details')
+        ->join('verify_repayment_agents', 'verify_repayment_agent_details.verify_repayment_agent_id', '=', 'verify_repayment_agents.id')
+        ->where('verify_repayment_agents.date', 'like', $today . '%')
+        ->max('verify_repayment_agent_details.Reference');
+
+        $referenceCounter = (int) ($maxReference ?? 0);
+
+
         foreach ($rows as $key => $row) {
             if ($key > 0 && !empty($row[0])) {
                 $uploadedAccount  = trim($row[0]);
@@ -224,7 +235,9 @@ class VeryfyRepaymentAgentController extends Controller
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
                 $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: )';
-                $Reference    = $key;
+                $referenceCounter++; // ✅ 36, 37, 38...
+                $Reference = $referenceCounter;
+                // $Reference    = $key;
 
                 $dupCount     = collect($rows)->filter(fn($r) => isset($r[0]) && trim($r[0]) === $uploadedAccount)->count();
                 $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';

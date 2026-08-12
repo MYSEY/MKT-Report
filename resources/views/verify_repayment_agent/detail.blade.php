@@ -17,7 +17,7 @@
                             <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
                             @foreach ($branch as $item)
                                 <option value="{{ $item->ID }}">
-                                    {{ Helper::getLang() == 'en' ? $item->Description : $item->LocalDescription }}
+                                    {{ app()->getLocale() == 'en' ? $item->Description : $item->LocalDescription }}
                                 </option>
                             @endforeach
                         </select>
@@ -133,7 +133,12 @@
                     },
                 },
                 columns: [
-                    { data: 'Branch',           name: 'Branch' },
+                    { 
+                        data: 'Branch',           
+                        name: 'Branch',
+                        orderable: true,
+                        searchable: true,
+                    },
                     { data: 'DrAccount',        name: 'DrAccount' },
                     { data: 'DrCategory',       name: 'DrCategory' },
                     { data: 'DrCurrency',       name: 'DrCurrency' },

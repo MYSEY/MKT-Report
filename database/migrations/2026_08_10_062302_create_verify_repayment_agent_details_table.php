@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('ExchangeRate')->nullable();
             $table->string('Transaction');
             $table->date('TranDate');
-            $table->string('Reference');
+            $table->integer('Reference')->unsigned();
             $table->string('Note')->nullable();
             $table->string('DrGLKey')->nullable();
             $table->string('CrGLKey')->nullable();
