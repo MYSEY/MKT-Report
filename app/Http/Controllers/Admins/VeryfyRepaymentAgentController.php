@@ -27,7 +27,10 @@ class VeryfyRepaymentAgentController extends Controller
     public function index(Request $request)
     {
         if (request()->ajax()) {
-            $query = DB::table('verify_repayment_agents')->select('verify_repayment_agents.*');
+            $today = Carbon::now()->format('Y-m-d');
+            $query = DB::table('verify_repayment_agents')
+            ->select('verify_repayment_agents.*')
+            ->where('date', 'like', $today . '%');
             $recordsTotal = $query->count();
 
             // ✅ Search filter
