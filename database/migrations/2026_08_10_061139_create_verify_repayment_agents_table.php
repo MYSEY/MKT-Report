@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->dateTime('date')->nullable();
             $table->string('branch')->nullable();
+            $table->string('memo')->nullable();
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->timestamps();

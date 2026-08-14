@@ -12,30 +12,37 @@
         <div class="card-body">
             <div class="row filter-btn">
                 <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
-                    <div class="form-group">
-                        <select class="select2 form-control" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
-                            <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
-                            @foreach ($branch as $item)
-                                <option value="{{ $item->ID }}">
-                                    {{ app()->getLocale() == 'en' ? $item->Description : $item->LocalDescription }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if(Auth::user()->can('Veryfy Repayment Agent Report Search'))
+                        <div class="form-group">
+                            <select class="select2 form-control" id="branch_id" data-select2-id="select2-data-2-c0n2" name="branch_id">
+                                <option value="" data-select2-id="select2-data-2-c0n2">All Branch</option>
+                                @foreach ($branch as $item)
+                                    <option value="{{ $item->ID }}">
+                                        {{ app()->getLocale() == 'en' ? $item->Description : $item->LocalDescription }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
+               
                 <div class="col-sm-8 col-md-8">
                     <div class="float-right">
-                        <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" data-dismiss="modal" id="icon-search-download-reload">
-                            <span class="btn-txt"><i class="fal fa-search"></i></span>
-                            Search
-                            <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                        </button>
-                        @if(Auth::user()->can('Veryfy Repayment Agent Report Export'))
+                        @if(Auth::user()->can('Veryfy Repayment Agent Report Search'))
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-search mr-1" data-dismiss="modal" id="icon-search-download-reload">
+                                <span class="btn-txt"><i class="fal fa-search"></i></span>
+                                Search
+                                <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
+                            </button>
+                        @endif
+                        @if(Auth::user()->can('Veryfy Repayment Agent Report Download To Morakot'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed mr-1" id="downloadToMorakot">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 Download To Morakot
                                 <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                             </button>
+                        @endif
+                        @if(Auth::user()->can('Veryfy Repayment Agent Report Download To Branch'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed mr-1" id="downloadToBranch">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 Download

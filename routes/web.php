@@ -76,6 +76,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);
+        Route::get('veryfy/repayment/agent/monthly',[VeryfyRepaymentAgentController::class,'verifyRepaymentAgentMonthly']);
         Route::get('veryfy/repayment/agent/detail/{id}',[VeryfyRepaymentAgentController::class,'verifyRepaymentDetail']);
         Route::post('veryfy/repayment/agent/import',[VeryfyRepaymentAgentController::class,'importVeryfyRepaymentAgent']);
         Route::get('veryfy/repayment/agent/download/morakot/{id}',[VeryfyRepaymentAgentController::class,'downloadToMorakot']);

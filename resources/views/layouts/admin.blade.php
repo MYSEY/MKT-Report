@@ -205,6 +205,8 @@
                                             ||
                                             Request::is('admin/mkt-report/veryfy/repayment/agent')
                                             ||
+                                            Request::is('admin/mkt-report/veryfy/repayment/agent/monthly')
+                                            ||
                                             request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
                                             }}">
@@ -251,6 +253,11 @@
                                                     <li class="{{ Request::is('admin/mkt-report/veryfy/repayment/agent') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/veryfy/repayment/agent') }}">
                                                             <span class="nav-link-text">Veryfy Repayment By Agent</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="{{ Request::is('admin/mkt-report/veryfy/repayment/agent/monthly') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/veryfy/repayment/agent/monthly') }}">
+                                                            <span class="nav-link-text">Veryfy Repayment Agent Monthly</span>
                                                         </a>
                                                     </li>
                                                 @endif

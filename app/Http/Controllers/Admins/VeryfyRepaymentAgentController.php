@@ -56,8 +56,41 @@ class VeryfyRepaymentAgentController extends Controller
         }
         return view('verify_repayment_agent.index');
     }
+
+    public function verifyRepaymentAgentMonthly(Request $request)
+    {
+        if (request()->ajax()) {
+            $query = DB::table('verify_repayment_agents')
+            ->select('verify_repayment_agents.*');
+            $recordsTotal = $query->count();
+
+            // ✅ Search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('branch', 'like', '%' . $search . '%')
+                    ->orWhere('date', 'like', '%' . $search . '%');
+                });
+            }
+
+            $recordsFiltered = $query->count();
+            $start = intval($request->input('start', 0));
+            $limit = intval($request->input('length', 10));
+            $data = (clone $query)->offset($start)->limit($limit)->orderBy('id', 'desc')->get();
+            return response()->json([
+                'draw'            => intval($request->input('draw')),
+                'recordsTotal'    => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered,
+                'data'            => $data,
+            ]);
+        }
+        return view('verify_repayment_agent.monthly');
+    }
+
     public function verifyRepaymentDetail(Request $request, $id)
     {
+        $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
         if (request()->ajax()) {
             $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
@@ -75,7 +108,9 @@ class VeryfyRepaymentAgentController extends Controller
                     ->orWhere('TranDate', 'like', '%' . $search . '%');
                 });
             }
-
+            if($accessBranch != 'HQ'){
+                $query->where('Branch', $accessBranch);
+            }
             $recordsFiltered = $query->count();
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 10));
@@ -196,6 +231,7 @@ class VeryfyRepaymentAgentController extends Controller
             'name'       => Auth::user()->DisplayName,
             'date'       => Carbon::now()->format('Y-m-d H:i:s'),
             'branch'     => Auth::user()->Branch,
+            'memo'       => $this->generateMemo(),
             'created_by' => Auth::user()->DisplayName,
         ]);
 
@@ -211,7 +247,6 @@ class VeryfyRepaymentAgentController extends Controller
         ->max('verify_repayment_agent_details.Reference');
 
         $referenceCounter = (int) ($maxReference ?? 0);
-
 
         foreach ($rows as $key => $row) {
             if ($key > 0 && !empty($row[0])) {
@@ -238,9 +273,8 @@ class VeryfyRepaymentAgentController extends Controller
                 $loan         = $loanLookup[$uploadedAccount] ?? null;
                 $loanFullName = $loan ? trim(($loan->LastNameEn ?? '') . ' ' . ($loan->FirstNameEn ?? '')) : '';
                 $fullName     = $loanFullName !== '' ? $loanFullName : '(Error: )';
-                $referenceCounter++; // ✅ 36, 37, 38...
+                $referenceCounter++;
                 $Reference = $referenceCounter;
-                // $Reference    = $key;
 
                 $dupCount     = collect($rows)->filter(fn($r) => isset($r[0]) && trim($r[0]) === $uploadedAccount)->count();
                 $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
@@ -257,6 +291,8 @@ class VeryfyRepaymentAgentController extends Controller
                     'verify_repayment_agent_id' => $verifyrepayment->id, // ✅ Bug 1 fixed
                     'created_by'                => Auth::user()->DisplayName,
                     'updated_by'                => null,
+                    'created_at'                => Carbon::now()->format('Y-m-d H:i:s'),
+                    'updated_at'                => Carbon::now()->format('Y-m-d H:i:s'),
                 ];
 
                 if (!$loan) {
@@ -402,7 +438,13 @@ class VeryfyRepaymentAgentController extends Controller
 
     public function downloadToMorakot(Request $request,$id)
     {
-        $results = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id)
+        $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
+        $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
+        if ($accessBranch != 'HQ') {
+            $query->where('Branch', $accessBranch);
+        }
+
+        $results = $query
             ->orderBy('Reference', 'asc')
             ->get()
             ->map(fn($item) => [
@@ -438,8 +480,12 @@ class VeryfyRepaymentAgentController extends Controller
     }
     public function downloadToBranch(Request $request,$id)
     {
-        $results = VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id)
-            ->get()
+        $query = VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id);
+        $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
+        if ($accessBranch != 'HQ') {
+            $query->where('Branch', $accessBranch);
+        }
+        $results = $query->get()
             ->map(fn($item) => [
                 'Branch'        => $item->Branch,
                 'DrAccount'     => $item->DrAccount,
@@ -475,5 +521,12 @@ class VeryfyRepaymentAgentController extends Controller
         }
         $fileName = 'tmp_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new BranchExport($results), $fileName);
+    }
+    private function generateMemo(): string
+    {
+        $today = Carbon::now()->format('Y-m-d');
+        $todayCount = VerifyRepaymentAgent::where('date', 'like', $today . '%')->count();
+        $nextNumber = $todayCount + 1;
+        return $today . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
     }
 }

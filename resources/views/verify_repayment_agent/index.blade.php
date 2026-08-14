@@ -30,6 +30,7 @@
                                 <th>Branch</th>
                                 <th>Name</th>
                                 <th>Date</th>
+                                <th>Memo</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -138,11 +139,14 @@
                         data: 'date', 
                         name: 'date',
                     },
+                    { 
+                        data: 'memo', 
+                        name: 'memo',
+                    },
                     {
                         data: '',
                         name: 'action',
                         render: function(data, type, row) {
-                            
                             return `<a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>`;;
                         },
                         orderable: false,

@@ -14,6 +14,7 @@ class VerifyRepaymentAgent extends Model
         'name',
         'date',
         'branch',
+        'memo',
         'created_by',
         'updated_by',
     ];
