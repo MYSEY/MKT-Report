@@ -31,7 +31,6 @@ class VeryfyRepaymentAgentController extends Controller
             $query = DB::table('verify_repayment_agents')
             ->select('verify_repayment_agents.*')
             ->where('date', 'like', $today . '%');
-            $recordsTotal = $query->count();
 
             // ✅ Search filter
             if ($request->filled('search.value')) {
@@ -43,6 +42,7 @@ class VeryfyRepaymentAgentController extends Controller
                 });
             }
 
+            $recordsTotal = $query->count();
             $recordsFiltered = $query->count();
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 10));
@@ -62,7 +62,6 @@ class VeryfyRepaymentAgentController extends Controller
         if (request()->ajax()) {
             $query = DB::table('verify_repayment_agents')
             ->select('verify_repayment_agents.*');
-            $recordsTotal = $query->count();
 
             // ✅ Search filter
             if ($request->filled('search.value')) {
@@ -73,7 +72,7 @@ class VeryfyRepaymentAgentController extends Controller
                     ->orWhere('date', 'like', '%' . $search . '%');
                 });
             }
-
+            $recordsTotal = $query->count();
             $recordsFiltered = $query->count();
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 10));
@@ -90,14 +89,13 @@ class VeryfyRepaymentAgentController extends Controller
 
     public function verifyRepaymentDetail(Request $request, $id)
     {
-        $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
         if (request()->ajax()) {
             $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
             if ($request->filled('branch_id')) {
                 $query->where('Branch', $request->branch_id);
             }
-            $recordsTotal = $query->count();
+            
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
                 $query->where(function ($q) use ($search) {
@@ -108,14 +106,17 @@ class VeryfyRepaymentAgentController extends Controller
                     ->orWhere('TranDate', 'like', '%' . $search . '%');
                 });
             }
-            if($accessBranch != 'HQ'){
+            $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
+            if(Auth::user()->Role == 'L06' || Auth::user()->Role == 'L07' || Auth::user()->Role == 'L01') {
                 $query->where('Branch', $accessBranch);
             }
+
+            $recordsTotal = $query->count();
             $recordsFiltered = $query->count();
             $start = intval($request->input('start', 0));
             $limit = intval($request->input('length', 10));
 
-            $data = (clone $query)->orderBy('Reference', 'asc')->offset($start)->limit($limit)->get()
+            $data = (clone $query)->offset($start)->limit($limit)->get()
             ->map(fn($item) => [
                 'Branch'           => $item->Branch,
                 'DrAccount'        => $item->DrAccount,
@@ -223,7 +224,9 @@ class VeryfyRepaymentAgentController extends Controller
             'AMKR' => '2789104',
             'ACLB' => '2789106',
         ];
-
+        // ✅ Roll delete old data before insert
+        $this->rollDeleteOldData();
+        
         $results       = [];
         $branchResults = [];
 
@@ -528,5 +531,24 @@ class VeryfyRepaymentAgentController extends Controller
         $todayCount = VerifyRepaymentAgent::where('date', 'like', $today . '%')->count();
         $nextNumber = $todayCount + 1;
         return $today . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+    }
+    private function rollDeleteOldData(): void
+    {
+        $today    = Carbon::now()->format('Y-m-d');
+        $oneMonth = Carbon::now()->subMonth()->format('Y-m-d');
+        $latestDate = VerifyRepaymentAgent::orderBy('date', 'desc')->value('date');
+        if (!$latestDate) return;
+        $latestDay = Carbon::parse($latestDate)->format('Y-m-d');
+        if ($latestDay === $today) return;
+        $oldestRecord = VerifyRepaymentAgent::orderBy('date', 'asc')->first();
+        if (!$oldestRecord) return;
+        $oldestDay = Carbon::parse($oldestRecord->date)->format('Y-m-d');
+        if ($oldestDay >= $oneMonth) return;
+        $oldIds = VerifyRepaymentAgent::where('date', 'like', $oldestDay . '%')->pluck('id');
+        if ($oldIds->isEmpty()) return;
+        VerifyRepaymentAgentDetail::whereIn('verify_repayment_agent_id', $oldIds)->delete();
+        VerifyRepaymentAgentBranchDetail::whereIn('verify_repayment_agent_id', $oldIds)->delete();
+        VerifyRepaymentAgent::whereIn('id', $oldIds)->delete();
+        \Log::info('Rolling delete oldest day: ' . $oldestDay . ' total records: ' . $oldIds->count());
     }
 }
