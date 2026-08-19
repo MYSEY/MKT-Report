@@ -16,7 +16,7 @@
 
                     <div class="row mb-2">
                         <div class="col-md-3">
-                            <label for="Exchange Rate">Exchange Rate :</label>
+                            <label>Exchange Rate :</label>
                         </div>
                         <div class="col-md-9">
                             <input type="number" class="form-control" id="exchange_rate">
@@ -33,7 +33,7 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-md-3">
-                            <label for="">Import :</label>
+                            <label>Import :</label>
                         </div>
                         <div class="col-md-9">
                             <input type="file" class="form-control" name="result_file" id="result_file">

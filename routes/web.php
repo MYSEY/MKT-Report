@@ -82,6 +82,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('veryfy/repayment/agent/download/morakot/{id}',[VeryfyRepaymentAgentController::class,'downloadToMorakot']);
         Route::get('veryfy/repayment/agent/download/branch/{id}',[VeryfyRepaymentAgentController::class,'downloadToBranch']);
         Route::get('veryfy/repayment/agent/check-delete', [VeryfyRepaymentAgentController::class, 'checkDelete']);
+        Route::delete('veryfy/repayment/agent/destroy/{id}', [VeryfyRepaymentAgentController::class, 'destroy']);
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);

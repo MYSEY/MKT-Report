@@ -23,6 +23,7 @@
                     <table id="tbl_veryfy_repayment_agent" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Branch</th>
                                 <th>Name</th>
                                 <th>Date</th>
@@ -43,57 +44,6 @@
     <script>
         $(function(){
             dataTables();
-            // $(".upload_file_data").on("click", function () {
-            //     if ($('#result_file').val() == "") {
-            //         $("#thanLess").text("Please select xls, xlsx or csv file and size less than 1MB").css("color", "red");
-            //         $(".thanLess").show();
-            //         return false;
-            //     }
-            //     var file_data = $('#result_file').prop('files')[0];
-            //     var fileName = file_data.name;
-            //     var form_data = new FormData();
-            //     var fileExtension = fileName.split('.').pop().toLowerCase();
-            //     var fileSize = file_data.size;
-            //     form_data.append('file', file_data);
-            //     form_data.append('exchange_rate',$('#exchange_rate').val());
-            //     form_data.append('date',$('#date').val());
-            //     form_data.append('_token', "{{ csrf_token() }}");
-
-            //     // FIX CONDITION
-            //     if ((fileExtension == "xls" || fileExtension == "xlsx" || fileExtension == "csv") && fileSize < 1048576) {
-            //         $(".upload_file_data").prop('disabled', true);
-            //         $(".btn-hidden-show").hide();
-            //         $(".btn-impot-loading").show();
-            //         $("#modal-import").modal("show");
-            //         $.ajax({
-            //             type: 'POST',
-            //             url: "{{ url('admin/mkt-report/veryfy/repayment/agent/import') }}",
-            //             data: form_data,
-            //             contentType: false,
-            //             cache: false,
-            //             processData: false,
-            //             success: function (data) {
-            //                 $("#modal-import").modal("hide");
-            //                 $(".upload_file_data").prop('disabled', false);
-            //                 $(".btn-hidden-show").show();
-            //                 $(".btn-impot-loading").hide();
-            //                 toastr.success('Verify completed successfully');
-            //                 dataTables();
-            //             },
-            //             error: function (xhr, status, error) {
-            //                 $("#modal-import").modal("hide");
-            //                 $(".upload_file_data").prop('disabled', false);
-            //                 $(".btn-hidden-show").show();
-            //                 $(".btn-impot-loading").hide();
-            //                 Swal.fire("Error!","An error occurred while processing your request.","error");
-            //             }
-            //         });
-            //     } else {
-            //         $("#thanLess").text("Please select xls, xlsx or csv file and size less than 1MB").css("color", "red");
-            //         $(".thanLess").show();
-            //     }
-            // });
-
             $(".upload_file_data").on("click", function () {
                 if ($('#result_file').val() == "") {
                     $("#thanLess").text("Please select xls, xlsx or csv file and size less than 1MB").css("color", "red");
@@ -134,16 +84,13 @@
                                 cancelButtonText: 'Cancel',
                             }).then((result) => {
                                 submitImport(file_data);
-                                // if (result.isConfirmed) {
-                                //     submitImport(file_data); // ✅ proceed
-                                // }
                             });
                         } else {
-                            submitImport(file_data); // ✅ no delete, proceed directly
+                            submitImport(file_data);
                         }
                     },
                     error: function() {
-                        submitImport(file_data); // ✅ if check fails, proceed anyway
+                        submitImport(file_data);
                     }
                 });
             });
@@ -180,7 +127,33 @@
                 }
             });
         }
-
+        function deleteRecord(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'This record will be permanently deleted!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, Delete!',
+                cancelButtonText: 'Cancel',
+            }).then(function(result) {
+                $.ajax({
+                    url: '{{ url("admin/mkt-report/veryfy/repayment/agent/destroy") }}/' + id,
+                    type: 'DELETE',
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                    },
+                    success: function(response) {
+                        toastr.success('Deleted successfully');
+                        dataTables(); // ✅ reload table
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Failed to delete.', 'error');
+                    }
+                });
+            });
+        }
         function dataTables() {
             if ($.fn.DataTable.isDataTable('#tbl_veryfy_repayment_agent')) {
                 $('#tbl_veryfy_repayment_agent').DataTable().destroy();
@@ -201,6 +174,12 @@
                 },
                 columns: [
                     {
+                        data: 'id',
+                        name: 'id',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
                         data: 'branch',
                         name: 'branch',
                         orderable: false,
@@ -219,14 +198,19 @@
                         name: 'memo',
                     },
                     {
-                        data: '',
+                        data: 'id',
                         name: 'action',
                         render: function(data, type, row) {
-                            return `<a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>`;;
+                            return `
+                                <a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>
+                                <button onclick="deleteRecord(${row.id})" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1" title="Delete">
+                                    <i class="fal fa-trash"></i>
+                                </button>
+                            `;
                         },
                         orderable: false,
-                        searchable: false
-                    }
+                        searchable: false,
+                    },
                 ],
             });
             $('#tbl_veryfy_repayment_agent').on('processing.dt', function (e, settings, processing) {

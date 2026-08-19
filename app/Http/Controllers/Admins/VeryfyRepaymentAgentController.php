@@ -527,10 +527,11 @@ class VeryfyRepaymentAgentController extends Controller
     }
     private function generateMemo(): string
     {
-        $today = Carbon::now()->format('Y-m-d');
+        $today      = Carbon::now()->format('Y-m-d');
         $todayCount = VerifyRepaymentAgent::where('date', 'like', $today . '%')->count();
         $nextNumber = $todayCount + 1;
-        return $today . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+        return $today . ' (' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . ')';
+        // Result: 2026-08-19 (01)
     }
     private function rollDeleteOldData(): void
     {
@@ -580,6 +581,17 @@ class VeryfyRepaymentAgentController extends Controller
             'oldestDay'    => $oldestDay,
             'totalRecords' => $totalRecords,
             'totalUploads' => $oldIds->count(),
+        ]);
+    }
+    public function destroy($id)
+    {
+        $record = VerifyRepaymentAgent::findOrFail($id);
+        VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id)->delete();
+        VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id)->delete();
+        $record->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Deleted successfully',
         ]);
     }
 }
