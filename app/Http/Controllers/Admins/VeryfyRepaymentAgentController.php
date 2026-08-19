@@ -551,4 +551,35 @@ class VeryfyRepaymentAgentController extends Controller
         VerifyRepaymentAgent::whereIn('id', $oldIds)->delete();
         \Log::info('Rolling delete oldest day: ' . $oldestDay . ' total records: ' . $oldIds->count());
     }
+    public function checkDelete()
+    {
+        $today    = Carbon::now()->format('Y-m-d');
+        $oneMonth = Carbon::now()->subMonth()->format('Y-m-d');
+        $latestDate = VerifyRepaymentAgent::orderBy('date', 'desc')->value('date');
+
+        if (!$latestDate) {
+            return response()->json(['willDelete' => false]);
+        }
+        $latestDay = Carbon::parse($latestDate)->format('Y-m-d');
+        if ($latestDay === $today) {
+            return response()->json(['willDelete' => false]);
+        }
+        $oldestRecord = VerifyRepaymentAgent::orderBy('date', 'asc')->first();
+        if (!$oldestRecord) {
+            return response()->json(['willDelete' => false]);
+        }
+        $oldestDay = Carbon::parse($oldestRecord->date)->format('Y-m-d');
+        if ($oldestDay >= $oneMonth) {
+            return response()->json(['willDelete' => false]);
+        }
+        $oldIds       = VerifyRepaymentAgent::where('date', 'like', $oldestDay . '%')->pluck('id');
+        $totalRecords = VerifyRepaymentAgentDetail::whereIn('verify_repayment_agent_id', $oldIds)->count();
+
+        return response()->json([
+            'willDelete'   => true,
+            'oldestDay'    => $oldestDay,
+            'totalRecords' => $totalRecords,
+            'totalUploads' => $oldIds->count(),
+        ]);
+    }
 }
