@@ -656,6 +656,7 @@ class VeryfyRepaymentAgentController extends Controller
         VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id)->delete();
         VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id)->delete();
         $record->delete();
+
         return response()->json([
             'success' => true,
             'message' => 'Deleted successfully',

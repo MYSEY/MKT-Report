@@ -42,6 +42,7 @@
 @endsection
 @section('script')
     <script>
+        var Verifydelete = @json(Auth::user()->can('Veryfy Repayment Agent Report Delete'));
         $(function(){
             dataTables();
             $(".upload_file_data").on("click", function () {
@@ -138,20 +139,22 @@
                 confirmButtonText: 'Yes, Delete!',
                 cancelButtonText: 'Cancel',
             }).then(function(result) {
-                $.ajax({
-                    url: '{{ url("admin/mkt-report/veryfy/repayment/agent/destroy") }}/' + id,
-                    type: 'DELETE',
-                    data: {
-                        '_token': '{{ csrf_token() }}',
-                    },
-                    success: function(response) {
-                        toastr.success('Deleted successfully');
-                        dataTables(); // ✅ reload table
-                    },
-                    error: function() {
-                        Swal.fire('Error!', 'Failed to delete.', 'error');
-                    }
-                });
+                if (result.value === true) {
+                    $.ajax({
+                        url: '{{ url("admin/mkt-report/veryfy/repayment/agent/destroy") }}/' + id,
+                        type: 'DELETE',
+                        data: {
+                            '_token': '{{ csrf_token() }}',
+                        },
+                        success: function(response) {
+                            toastr.success('Deleted successfully');
+                            dataTables(); // ✅ reload table
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Failed to delete.', 'error');
+                        }
+                    });
+                }
             });
         }
         function dataTables() {
@@ -201,12 +204,21 @@
                         data: 'id',
                         name: 'action',
                         render: function(data, type, row) {
-                            return `
-                                <a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>
-                                <button onclick="deleteRecord(${row.id})" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1" title="Delete">
+                            let actionButtons = '';
+                            actionButtons += `<a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>`;
+                            if (Verifydelete) {
+                                actionButtons += `<button onclick="deleteRecord(${row.id})" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1" title="Delete">
                                     <i class="fal fa-trash"></i>
-                                </button>
-                            `;
+                                </button>`;
+                            }
+                            return actionButtons;
+
+                            // return `
+                            //     <a href="{{url('/admin/mkt-report/veryfy/repayment/agent/detail')}}/${row.id}" class="btn btn-sm btn-outline-success btn-icon btn-inline-block mr-2" title="show detail"><i class="fal fa-eye"></i></a>
+                            //     <button onclick="deleteRecord(${row.id})" class="btn btn-sm btn-outline-danger btn-icon btn-inline-block mr-1" title="Delete">
+                            //         <i class="fal fa-trash"></i>
+                            //     </button>
+                            // `;
                         },
                         orderable: false,
                         searchable: false,
