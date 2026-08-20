@@ -106,8 +106,75 @@ class VeryfyRepaymentAgentController extends Controller
                     ->orWhere('TranDate', 'like', '%' . $search . '%');
                 });
             }
+            // $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
+            // if(Auth::user()->Role == 'L06' || Auth::user()->Role == 'L07' || Auth::user()->Role == 'L01' || Auth::user()->Role == '7') {
+            //     $query->where('Branch', $accessBranch);
+            // }
+
+            // ✅ Roles that see ALL branches (HQ level)
+            $hqRoles = [
+                '99',   // Super Administrator
+                '13',   // Senior Admin
+                '8',    // Senior Manager
+                'L11',  // DCEO
+                'L12',  // CEO
+                'L13',  // BOD
+                'L14',  // AC
+                'L15',  // CAC
+                'L18',  // ACEO
+                'L05',  // CCO
+                'L08',  // Risk
+                'L09',  // HCD
+                'L10',  // HFND
+                'L17',  // Digital Lending LOS
+                'L16',  // Senior Digital Lending LOS
+                '17',   // Chief Accountant HQ
+                '16',   // Accountant HQ
+                '14',   // Head HR and Admin
+                '12',   // Compliance Officer
+                '11',   // Treasury Manager
+                '10',   // Treasury Officer
+                '9',    // Internal Auditor
+                'SU01', // EOD Staff
+            ];
+
+            // ✅ Roles that filter by branch
+            $branchRoles = [
+                'L01',    // CO
+                'L02',    // JCO
+                'L03',    // SCO
+                'L04',    // CSO
+                'L06',    // BM
+                'L07',    // Underwriting
+                'L_DBM',  // Dep Branch Manager
+                '7',      // Credit Officer
+                '2',      // Chief CO
+                '1',      // Credit Admin
+                '3',      // Accountant
+                '4',      // Chief Accountant
+                '5',      // Cashier
+                '6',      // Chief Cashier
+                '15',     // Digital Lending
+                '18',     // Senior Digital Lending
+                'L_DLA',  // Dig Loan Assess Officer
+                'L_JRO',  // Junior Rela Off Digital Len
+                'L_RO',   // Relat Officer Digital Len
+                'L_SRO',  // Senior Rela Off Dig Lend
+                'L_SDLA', // Senior Dig Loan Assess Off
+                'L_DLS',  // Officer Digital Len Support
+                'L_SDLS', // Senior Off Digital Len Sup
+            ];
+
             $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
-            if(Auth::user()->Role == 'L06' || Auth::user()->Role == 'L07' || Auth::user()->Role == 'L01') {
+            $userRole     = Auth::user()->Role;
+
+            if (in_array($userRole, $hqRoles)) {
+                // ✅ Show all branches
+            } elseif (in_array($userRole, $branchRoles)) {
+                // ✅ Filter by branch
+                $query->where('Branch', $accessBranch);
+            } else {
+                // ✅ Default - filter by branch for unknown roles
                 $query->where('Branch', $accessBranch);
             }
 
