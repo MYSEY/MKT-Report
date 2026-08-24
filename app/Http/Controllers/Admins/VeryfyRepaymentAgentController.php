@@ -589,7 +589,7 @@ class VeryfyRepaymentAgentController extends Controller
         if (empty($results)) {
             return back()->with('error', 'No data to download. Please import a file first.');
         }
-        $fileName = 'tmp_' . date('Ymd_His') . '.xlsx';
+        $fileName = 'Tmp detail_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new BranchExport($results), $fileName);
     }
     private function generateMemo(): string

@@ -37,7 +37,7 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
                 "\t" . ($row['LCYAmount']    ?? ''),
                 "\t" . ($row['ExchangeRate'] ?? ''),
                 $row['Transaction']      ?? '',
-                $row['TranDate']         ?? '',
+                "\t" . ($row['TranDate']     ?? ''),
                 $row['Reference']        ?? '',
                 $row['Note']             ?? '',
                 $row['DrGLKey']          ?? '',
@@ -84,6 +84,7 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
             'I' => '@',
             'J' => '@',
             'H' => '0.00',
+            'L' => '@',
         ];
     }
     public function styles(Worksheet $sheet): array

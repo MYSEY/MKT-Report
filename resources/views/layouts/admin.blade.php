@@ -252,12 +252,12 @@
                                                 @if(Auth::user()->can('Veryfy Repayment Agent Report View'))
                                                     <li class="{{ Request::is('admin/mkt-report/veryfy/repayment/agent') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/veryfy/repayment/agent') }}">
-                                                            <span class="nav-link-text">Veryfy Repayment By Agent</span>
+                                                            <span class="nav-link-text">Verify Repayment By Agent</span>
                                                         </a>
                                                     </li>
                                                     <li class="{{ Request::is('admin/mkt-report/veryfy/repayment/agent/monthly') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/veryfy/repayment/agent/monthly') }}">
-                                                            <span class="nav-link-text">Veryfy Repayment Agent Monthly</span>
+                                                            <span class="nav-link-text">Verify Repayment Agent Monthly</span>
                                                         </a>
                                                     </li>
                                                 @endif
