@@ -10,6 +10,10 @@ class VerifyRepaymentAgentDetail extends Model
     use HasFactory;
     protected $table = 'verify_repayment_agent_details';
     protected $guarded = ['id'];
+    protected $casts = [
+        'ExchangeRate' => 'string',
+        'LCYAmount' => 'string',
+    ];
     protected $fillable = [
         'verify_repayment_agent_id',
         'Branch',
