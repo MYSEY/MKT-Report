@@ -34,10 +34,10 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
                 $row['CrCategory']       ?? '',
                 $row['CrCurrency']       ?? '',
                 $row['Amount']           ?? '',
-                "\t" . ($row['LCYAmount']    ?? ''),
-                "\t" . ($row['ExchangeRate'] ?? ''),
+                $this->forceText($row['LCYAmount']    ?? ''),
+                $this->forceText($row['ExchangeRate'] ?? ''),
                 $row['Transaction']      ?? '',
-                "\t" . ($row['TranDate']     ?? ''),
+                $this->forceText($row['TranDate']     ?? ''),
                 $row['Reference']        ?? '',
                 $row['Note']             ?? '',
                 $row['DrGLKey']          ?? '',
@@ -49,6 +49,16 @@ class MorakotExport implements FromArray, WithHeadings, WithStyles, ShouldAutoSi
                 $row['TargetBranchDrCr'] ?? '',
             ];
         }, $this->results);
+    }
+
+    private function forceText($value)
+    {
+        if ($value === '' || $value === null) {
+            return '';
+        }
+        // Escape any existing double quotes inside the value
+        $escaped = str_replace('"', '""', $value);
+        return '="' . $escaped . '"';
     }
 
     public function headings(): array
