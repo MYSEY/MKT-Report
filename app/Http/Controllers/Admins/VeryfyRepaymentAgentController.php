@@ -15,6 +15,7 @@ use App\Traits\HasRolePermission;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 class VeryfyRepaymentAgentController extends Controller
 {
@@ -506,7 +507,54 @@ class VeryfyRepaymentAgentController extends Controller
         ]);
     }
 
-    public function downloadToMorakot(Request $request,$id)
+    // public function downloadToMorakot(Request $request,$id)
+    // {
+    //     $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
+    //     $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
+    //     if ($accessBranch != 'HQ') {
+    //         $query->where('Branch', $accessBranch);
+    //     }
+
+    //     $results = $query
+    //         ->orderBy('Reference', 'asc')
+    //         ->get()
+    //         ->map(fn($item) => [
+    //             'Branch'           => $item->Branch,
+    //             'DrAccount'        => $item->DrAccount,
+    //             'DrCategory'       => $item->DrCategory,
+    //             'DrCurrency'       => $item->DrCurrency,
+    //             'CrAccount'        => $item->CrAccount,
+    //             'CrCategory'       => $item->CrCategory,
+    //             'CrCurrency'       => $item->CrCurrency,
+    //             'Amount'           => $item->Amount,
+    //             'LCYAmount'        => $item->LCYAmount,
+    //             'ExchangeRate'     => $item->ExchangeRate,
+    //             'Transaction'      => $item->Transaction,
+    //             'TranDate'         => $item->TranDate,
+    //             'Reference'        => $item->Reference,
+    //             'Note'             => $item->Note,
+    //             'DrGLKey'          => $item->DrGLKey,
+    //             'CrGLKey'          => $item->CrGLKey,
+    //             'Module'           => $item->Module,
+    //             'Officer'          => $item->Officer,
+    //             'DisbursementList' => $item->DisbursementList,
+    //             'TargetBranch'     => $item->TargetBranch,
+    //             'TargetBranchDrCr' => $item->TargetBranchDrCr,
+    //         ])
+    //     ->toArray();
+
+    //     if (empty($results)) {
+    //         return back()->with('error', 'No data to download.');
+    //     }
+    //     $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
+    //     // return Excel::download(new MorakotExport($results), $fileName);
+    //     return Excel::download(
+    //         new MorakotExport($results),
+    //         $fileName,
+    //         ExcelFormat::CSV
+    //     );
+    // }
+    public function downloadToMorakot(Request $request, $id)
     {
         $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
         $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
@@ -514,39 +562,98 @@ class VeryfyRepaymentAgentController extends Controller
             $query->where('Branch', $accessBranch);
         }
 
-        $results = $query
-            ->orderBy('Reference', 'asc')
-            ->get()
-            ->map(fn($item) => [
-                'Branch'           => $item->Branch,
-                'DrAccount'        => $item->DrAccount,
-                'DrCategory'       => $item->DrCategory,
-                'DrCurrency'       => $item->DrCurrency,
-                'CrAccount'        => $item->CrAccount,
-                'CrCategory'       => $item->CrCategory,
-                'CrCurrency'       => $item->CrCurrency,
-                'Amount'           => $item->Amount,
-                'LCYAmount'        => $item->LCYAmount,
-                'ExchangeRate'     => $item->ExchangeRate,
-                'Transaction'      => $item->Transaction,
-                'TranDate'         => $item->TranDate,
-                'Reference'        => $item->Reference,
-                'Note'             => $item->Note,
-                'DrGLKey'          => $item->DrGLKey,
-                'CrGLKey'          => $item->CrGLKey,
-                'Module'           => $item->Module,
-                'Officer'          => $item->Officer,
-                'DisbursementList' => $item->DisbursementList,
-                'TargetBranch'     => $item->TargetBranch,
-                'TargetBranchDrCr' => $item->TargetBranchDrCr,
-            ])
-        ->toArray();
-
-        if (empty($results)) {
+        $results = $query->orderBy('Reference', 'asc')->get();
+        if ($results->isEmpty()) {
             return back()->with('error', 'No data to download.');
         }
+
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
-        return Excel::download(new MorakotExport($results), $fileName);
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$fileName\"",
+        ];
+
+        $callback = function () use ($results) {
+            $file = fopen('php://output', 'w');
+            // UTF-8 BOM
+            fwrite($file, "\xEF\xBB\xBF");
+            // Header row
+            fputcsv($file, [
+                'Branch', 'DrAccount', 'DrCategory', 'DrCurrency',
+                'CrAccount', 'CrCategory', 'CrCurrency', 'Amount',
+                'LCYAmount', 'ExchangeRate', 'Transaction', 'TranDate',
+                'Reference', 'Note', 'DrGLKey', 'CrGLKey', 'Module',
+                'Officer', 'DisbursementList', 'TargetBranch', 'TargetBranchDrCr',
+            ]);
+
+            foreach ($results as $item) {
+                $tranDate = '';
+                if (!empty($item->TranDate)) {
+                    try {
+                        $tranDate = \Carbon\Carbon::parse($item->TranDate)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        $tranDate = trim((string) $item->TranDate);
+                    }
+                }
+
+                fputcsv($file, [
+                    trim((string) ($item->Branch           ?? '')),
+                    trim((string) ($item->DrAccount        ?? '')),
+                    trim((string) ($item->DrCategory       ?? '')),
+                    trim((string) ($item->DrCurrency       ?? '')),
+                    trim((string) ($item->CrAccount        ?? '')),
+                    trim((string) ($item->CrCategory       ?? '')),
+                    trim((string) ($item->CrCurrency       ?? '')),
+                    trim((string) ($item->Amount           ?? '')),
+                    $this->padDecimal($item->LCYAmount    ?? '', 16),
+                    $this->padDecimal($item->ExchangeRate ?? '', 16),
+                    trim((string) ($item->Transaction      ?? '')),
+                    $tranDate,
+                    trim((string) ($item->Reference        ?? '')),
+                    trim((string) ($item->Note             ?? '')),
+                    trim((string) ($item->DrGLKey          ?? '')),
+                    trim((string) ($item->CrGLKey          ?? '')),
+                    trim((string) ($item->Module           ?? '')),
+                    trim((string) ($item->Officer          ?? '')),
+                    trim((string) ($item->DisbursementList ?? '')),
+                    trim((string) ($item->TargetBranch     ?? '')),
+                    trim((string) ($item->TargetBranchDrCr ?? '')),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Pad decimal number to fixed number of decimal places
+     * using pure string manipulation (no BCMath extension needed).
+     */
+    private function padDecimal($value, int $decimals = 16): string
+    {
+        if ($value === null || $value === '' || !is_numeric($value)) {
+            return '';
+        }
+
+        $value = (string) $value;
+        $negative = false;
+        if (str_starts_with($value, '-')) {
+            $negative = true;
+            $value = substr($value, 1);
+        }
+
+        if (str_contains($value, '.')) {
+            [$intPart, $decPart] = explode('.', $value, 2);
+        } else {
+            $intPart = $value;
+            $decPart = '';
+        }
+
+        $decPart = str_pad(substr($decPart, 0, $decimals), $decimals, '0');
+        $result = $intPart . '.' . $decPart;
+        return $negative ? '-' . $result : $result;
     }
     public function downloadToBranch(Request $request,$id)
     {
