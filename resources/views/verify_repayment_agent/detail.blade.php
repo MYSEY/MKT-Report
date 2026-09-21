@@ -45,7 +45,7 @@
                         @if(Auth::user()->can('Veryfy Repayment Agent Report Download To Branch'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed mr-1" id="downloadToBranch">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                Download Tmp
+                                Download Agent Report
                                 <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                             </button>
                         @endif
