@@ -80,8 +80,7 @@
     <div class="row">
         <div class="col-md-4">
             <h3 class="">Loan Detail Listing</h3>
-            <h5 class=""><strong>As of:</strong> {{ $data->SystemDate ?? 'N/A' }}</h5>
-            <h6><strong>Currency:</strong> {{ $currency->ID ?? 'N/A' }}</h6>
+            <h5 class=""><strong>As of:</strong> {{ $data->LastSystemDate ?? 'N/A' }}</h5>
         </div>
     </div>
     <div class="row">

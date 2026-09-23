@@ -76,8 +76,8 @@ class MorakotExport implements FromArray, WithHeadings, WithCustomCsvSettings
                 $this->clean($row['CrCategory'] ?? ''),
                 $this->clean($row['CrCurrency'] ?? ''),
                 $this->clean($row['Amount'] ?? ''),
-                $this->padDecimal($row['LCYAmount']    ?? '', 16),
-                $this->padDecimal($row['ExchangeRate'] ?? '', 16),
+                $this->clean($row['LCYAmount']    ?? '',),
+                $this->clean($row['ExchangeRate'] ?? '', ),
                 $this->clean($row['Transaction'] ?? ''),
                 $tranDate,
                 $this->clean($row['Reference'] ?? ''),
@@ -107,10 +107,10 @@ class MorakotExport implements FromArray, WithHeadings, WithCustomCsvSettings
     public function getCsvSettings(): array
     {
         return [
-            'delimiter'   => ',',
-            'enclosure'   => '"',
-            'line_ending' => "\r\n",
-            'use_bom'     => true,
+            'delimiter'              => ',',
+            'enclosure'              => '"',
+            'line_ending'            => "\r\n",
+            'use_bom'                => false, // Change this from true to false
             'include_separator_line' => false,
         ];
     }

@@ -410,6 +410,10 @@
                                     </a>
                                 </li>
                             </ul>
+                            @php
+                                $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate','LastSystemDate')->first();
+                            @endphp
+                            <strong>System Date:</strong> {{ $data->SystemDate ?? '' }}
                         </div>
                         <!-- DOC: mobile button appears during mobile width -->
                         <div class="hidden-lg-up">

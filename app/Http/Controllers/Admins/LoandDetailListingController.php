@@ -43,7 +43,7 @@ class LoandDetailListingController extends Controller
             ]);
         }
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
-        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
+        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate','LastSystemDate')->first();
         $currency = DB::connection('pgsql')->table('MKT_CURRENCY')->select('ID')->where('ID', 'USD')->first();
         return view('loans.loan_detail',compact('branch', 'data', 'currency'));
     }
