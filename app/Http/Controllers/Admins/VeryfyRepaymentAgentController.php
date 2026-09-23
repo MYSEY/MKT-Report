@@ -569,14 +569,15 @@ class VeryfyRepaymentAgentController extends Controller
 
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"$fileName\"",
         ];
 
         $callback = function () use ($results) {
             $file = fopen('php://output', 'w');
-            // UTF-8 BOM
-            fwrite($file, "\xEF\xBB\xBF");
+            
+            // BOM output line removed here so file begins strictly with the header text!
+
             // Header row
             fputcsv($file, [
                 'Branch', 'DrAccount', 'DrCategory', 'DrCurrency',
@@ -626,11 +627,6 @@ class VeryfyRepaymentAgentController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
-
-    /**
-     * Pad decimal number to fixed number of decimal places
-     * using pure string manipulation (no BCMath extension needed).
-     */
     private function padDecimal($value, int $decimals = 16): string
     {
         if ($value === null || $value === '' || !is_numeric($value)) {
