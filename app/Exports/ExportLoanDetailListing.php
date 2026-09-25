@@ -28,65 +28,65 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $dataExcel = [];
         foreach ($data as $row) {
             $dataExcel[] = [
-                $row->ReportDate,
-                $row->ID,
-                $row->ContractCustomerID,
-                preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))),
-                $row->Branch,
-                $row->Gender,
-                $row->HouseNo.' '.$row->Street,
-                $row->Village,
-                $row->Commune=='' ? 'None' : $row->Commune,
-                $row->District,
-                $row->Province,
-                $row->Account,
-                $row->Currency,
-                bcdiv($row->Disbursed,1,2),
-                bcdiv($row->LoanBalanceAS,1,2),
-                bcdiv($row->OutstandingAmountAS,1,2),
-                bcdiv($row->InterestRate,1,2),
-                round($row->AIRAS,2),
-                round($row->IntIncEarned,2),
-                round($row->TotalInterest,2),
-                $this->formatDate($row->ValueDate),
-                $this->formatDate($row->MaturityDate),
-                $row->LoanProduct . ' ' .$row->LoanProductDes,
-                $row->Term,
-                $row->DisbursedStat,
-                $row->AssetClass,
-                $row->MoreThanOneYear,
-                (int)$row->CBCSubSection,
-                (int)$row->CBCISSubSectionCuSt,
-                $row->MACode,
-                $row->MADes,
-                $row->LoanPurpose,
-                $row->ContractOfficerID,
-                $row->IDType,
-                $row->IDNumber,
-                $this->formatDate($row->LastPaymentDate),
-                $row->DueDay == null ? '0' : $row->DueDay,
-                $this->formatDate($row->OverdueDate),
-                $row->LoanType,
-                round($row->LoanCharge,2),
-                round($row->ChargeEarned,2),
-                round($row->ChargeUnearned,2),
-                $row->ScheduleType == null || $row->ScheduleType == '0' ? 'None' : $row->ScheduleType,
-                preg_replace('/\s+/', ' ', trim(($row->CustomerOccupation ?? ''))),
-                $row->RestructuredCycle,
-                preg_replace('/\s+/', ' ', trim(($row->AddressCode ?? ''))),
-                $row->CollateralID == null ? 'None' : $row->CollateralID,
-                $row->Mobile1. ' '. $row->Mobile2,
-                $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),
-                round($row->Amount ,2),
-                round($row->OutstandingAmount,2),
-                $row->EIRRate,
-                round($row->AccrIntPerDay,2),
-                round($row->AccrInterest,2),
-                round($row->RegularCharge,2),
-                round($row->SubAmount,2),
-                $row->SubLoanPurpose,
-                $row->PartneredWith,
-                $row->RestructureType,
+                $row->ReportDate,                                                      // A
+                $row->ID,                                                              // B
+                $row->ContractCustomerID,                                              // C
+                preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))), // D
+                $row->Branch,                                                          // E
+                $row->Gender,                                                          // F
+                $row->HouseNo.' '.$row->Street,                                        // G
+                $row->Village,                                                         // H
+                $row->Commune=='' ? 'None' : $row->Commune,                            // I
+                $row->District,                                                        // J
+                $row->Province,                                                        // K
+                $row->Account,                                                         // L
+                $row->Currency,                                                        // M
+                bcdiv($row->Disbursed,1,2),                                            // N
+                bcdiv($row->LoanBalanceAS,1,2),                                        // O
+                bcdiv($row->OutstandingAmountAS,1,2),                                  // P
+                bcdiv($row->InterestRate,1,2),                                         // Q
+                round($row->AIRAS,2),                                                  // R
+                round($row->IntIncEarned,2),                                           // S
+                round($row->TotalInterest,2),                                          // T
+                $this->formatDate($row->ValueDate),                                    // U
+                $this->formatDate($row->MaturityDate),                                 // V
+                $row->LoanProduct . ' ' .$row->LoanProductDes,                         // W
+                $row->Term,                                                            // X
+                $row->DisbursedStat,                                                   // Y
+                $row->AssetClass,                                                      // Z
+                $row->MoreThanOneYear,                                                 // AA
+                (int)$row->CBCSubSection,                                              // AB
+                (int)$row->CBCISSubSectionCuSt,                                        // AC
+                $row->MACode,                                                          // AD
+                $row->MADes,                                                           // AE
+                $row->LoanPurpose,                                                     // AF
+                $row->ContractOfficerID,                                               // AG
+                $row->IDType,                                                          // AH
+                $row->IDNumber,                                                        // AI
+                $this->formatDate($row->LastPaymentDate),                              // AJ
+                $row->DueDay == null ? '0' : $row->DueDay,                             // AK
+                $this->formatDate($row->OverdueDate),                                  // AL
+                $row->LoanType,                                                        // AM
+                round($row->LoanCharge,2),                                             // AN
+                round($row->ChargeEarned,2),                                           // AO
+                round($row->ChargeUnearned,2),                                         // AP
+                $row->ScheduleType == null || $row->ScheduleType == '0' ? 'None' : $row->ScheduleType, // AQ
+                preg_replace('/\s+/', ' ', trim(($row->CustomerOccupation ?? ''))),    // AR
+                $row->RestructuredCycle,                                               // AS
+                preg_replace('/\s+/', ' ', trim(($row->AddressCode ?? ''))),           // AT
+                $row->CollateralID == null ? 'None' : $row->CollateralID,              // AU
+                $row->Mobile1. ' '. $row->Mobile2,                                     // AV
+                $row->Cycle === null ? '03' : ltrim($row->Cycle, '0'),                 // AW
+                round($row->Amount ,2),                                                // AX
+                round($row->OutstandingAmount,2),                                      // AY
+                $row->EIRRate,                                                         // AZ
+                round($row->AccrIntPerDay,2),                                          // BA
+                round($row->AccrInterest,2),                                           // BB
+                round($row->RegularCharge,2),                                          // BC
+                round($row->SubAmount,2),                                              // BD
+                $row->SubLoanPurpose,                                                  // BE
+                $row->PartneredWith,                                                   // BF
+                $row->RestructureType,                                                 // BG
             ];
         }
 
@@ -96,13 +96,13 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
     public function columnFormats(): array
     {
         return [
-            'M' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'N' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'O' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'P' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'Q' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'R' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
             'S' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'T' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
         ];
     }
 
@@ -116,7 +116,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
             Carbon::parse($date)
         );
     }
-  
+
     public function collection()
     {
         return new Collection([
@@ -217,13 +217,16 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $lastRow = $this->totalRecord + 1;
                 $sheet = $event->sheet->getDelegate();
                 $lastRow = $sheet->getHighestRow();
-                $sheet->getStyle("T2:T{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
-                $sheet->getStyle("U2:U{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
-                $sheet->getStyle("AI2:AI{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
-                $sheet->getStyle("AK2:AK{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);
-                $event->sheet->getStyle('M:S')->getNumberFormat()->setFormatCode('#,##0.00');
-                $event->sheet->getStyle('AN:AO')->getNumberFormat()->setFormatCode('#,##0.00');
-                $event->sheet->getStyle('AW:BB')->getNumberFormat()->setFormatCode('#,##0.00');
+
+                $sheet->getStyle("U2:U{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);  // ValueDate
+                $sheet->getStyle("V2:V{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);  // MaturityDate
+                $sheet->getStyle("AJ2:AJ{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14); // LastPaymentDate
+                $sheet->getStyle("AL2:AL{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14); // OverdueDate
+
+                $event->sheet->getStyle('N:T')->getNumberFormat()->setFormatCode('#,##0.00');   // Disbursed...Total Interest
+                $event->sheet->getStyle('AO:AP')->getNumberFormat()->setFormatCode('#,##0.00'); // ChargeEarned/Unearned
+                $event->sheet->getStyle('AX:BC')->getNumberFormat()->setFormatCode('#,##0.00'); // Amount...AccrInterest FIRS
+
                 $event->sheet->getDelegate()->setTitle('Loanlisting');
             },
         ];
