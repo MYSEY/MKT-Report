@@ -28,6 +28,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $dataExcel = [];
         foreach ($data as $row) {
             $dataExcel[] = [
+                $row->ReportDate,
                 $row->ID,
                 $row->ContractCustomerID,
                 preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))),
@@ -131,6 +132,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
     public function headings(): array
     {
         return [
+            'Report Date',
             "ID",
             "Customer ID",
             "Name",

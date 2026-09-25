@@ -35,11 +35,18 @@ class LoandDetailListingController extends Controller
             $start = intval(request()->input('start', 0));
             $limit = intval(request()->input('length', 10));
             $data = $query->orderBy('LC.ID', 'desc')->offset($start)->limit($limit)->get();
+            $dataSystem = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate', 'LastSystemDate')->first();
+            // Attach ReportDate (SystemDate) to every row
+            $data = $data->map(function ($row) use ($dataSystem) {
+                $row->ReportDate = $dataSystem->LastSystemDate ?? null;
+                return $row;
+            });
             return response()->json([
                 'draw' => intval(request()->input('draw')),
                 'recordsTotal' => $recordsTotal,
                 'recordsFiltered' => $recordsFiltered,
-                'data' => $data
+                'data' => $data,
+                'dataSytem' => $dataSystem
             ]);
         }
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
@@ -55,6 +62,17 @@ class LoandDetailListingController extends Controller
         $fileName = $dateCode ."-Loan Detail Listings as of {$dateTime}.xlsx";
         $query = self::getDatas($request);
         $data = $query->get();
+
+        $dataSystem = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate', 'LastSystemDate')->first();
+
+        // Attach formatted ReportDate (mm-dd-yy) to every row
+        $reportDate = $dataSystem->LastSystemDate ? Carbon::parse($dataSystem->LastSystemDate)->format('m-d-y') : null;
+
+        $data = $data->map(function ($row) use ($reportDate) {
+            $row->ReportDate = $reportDate;
+            return $row;
+        });
+        
         return Excel::download(new ExportLoanDetailListing($data), $fileName);
     }
     public static function getDatas($request)

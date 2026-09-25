@@ -137,6 +137,7 @@
                             <table id="tbl_loan_detail" class="table table-bordered table-hover table-striped">
                                 <thead>
                                     <tr>
+                                        <th class="sorting stuck-scroll-3">ReportDate</th>
                                         <th class="sorting stuck-scroll-3">ID</th>
                                         <th class="sorting stuck-scroll-3">CustomerID</th>
                                         <th class="sorting stuck-scroll-3">CustomerName</th>
@@ -260,6 +261,25 @@
                     },
                 },
                 columns: [
+                    { 
+                        data: 'ReportDate',
+                        name: 'ReportDate',
+                        className: 'stuck-scroll-3',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            if (!data) return '-';
+
+                            const d = new Date(data);
+                            if (isNaN(d)) return '-';
+
+                            const month = String(d.getMonth() + 1).padStart(2, '0');
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const year = String(d.getFullYear()).slice(0);
+
+                            return `${month}-${day}-${year}`;
+                        }
+                    },
                     { 
                         data: 'ID', 
                         name: 'ID',
