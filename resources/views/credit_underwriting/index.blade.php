@@ -26,12 +26,16 @@
                             <tr>
                                 <th>Branch</th>
                                 <th>LoanID</th>
-                                <th>Customer Name</th>
+                                <th>CustomerName</th>
                                 <th>Currency</th>
+                                <th>Disbursed</th>
+                                <th>DisbursedDate</th>
+                                <th>Amount</th>
+                                <th>OutstandingAmount</th>
                                 <th>Income</th>
                                 <th>DSCR</th>
-                                <th>Credit Bureau Checks</th>
-                                <th>Number Of Other Lenders</th>
+                                <th>CreditBureauChecks</th>
+                                <th>NumberOfOtherLenders</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -77,6 +81,10 @@
                     { data: 'loan_id' },
                     { data: 'customer_name' },
                     { data: 'income_currency' },
+                    { data: 'disbursed', render: $.fn.dataTable.render.number(',', '.', 2) },
+                    { data: 'value_date' },
+                    { data: 'amount', render: $.fn.dataTable.render.number(',', '.', 2) },
+                    { data: 'outstanding_amount', render: $.fn.dataTable.render.number(',', '.', 2) },
                     { data: 'monthly_income', render: $.fn.dataTable.render.number(',', '.', 2) },
                     {
                         data: 'dsc_ratio',
