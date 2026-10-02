@@ -25,9 +25,11 @@
                         <thead>
                             <tr>
                                 <th>Branch</th>
+                                <th>LoanID</th>
+                                <th>Customer Name</th>
                                 <th>Currency</th>
                                 <th>Income</th>
-                                <th>Repayment Capacity</th>
+                                <th>DSCR</th>
                                 <th>Credit Bureau Checks</th>
                                 <th>Number Of Other Lenders</th>
                             </tr>
@@ -72,9 +74,18 @@
                 },
                 columns: [
                     { data: 'branch' },
+                    { data: 'loan_id' },
+                    { data: 'customer_name' },
                     { data: 'income_currency' },
                     { data: 'monthly_income', render: $.fn.dataTable.render.number(',', '.', 2) },
-                    { data: 'dsc_ratio' },
+                    {
+                        data: 'dsc_ratio',
+                        render: function (data, type) {
+                            if (data === null || data === '') return '';
+                            // keep raw value for sorting/searching, show % only on screen
+                            return type === 'display' ? parseFloat(data).toFixed(2) + '%' : data;
+                        }
+                    },
                     { data: 'number_of_applicants' },
                     { data: 'number_of_other_lenders' },
                 ],

@@ -128,8 +128,7 @@ class CreditUnderwritingController extends Controller
                 COALESCE("LGSub"."ID"::text, \'\') as lgid,
                 COALESCE("LGSub"."NumOfOtherLender"::text, \'\') as number_of_other_lenders
             ')
-        ->orderBy($orderCol, $orderDir)
-        ->orderBy('LC.ID');
+        ->orderBy($orderCol, $orderDir)->orderBy('LC.ID');
 
         if ($paginate) {
             $start  = max(0, (int) $request->input('start', 0));

@@ -27,9 +27,11 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
     {
         return [
             'Branch',
+            'LoanID',
+            'Customer Name',
             'Currency',
             'Income',
-            'Repayment Capacity',
+            'DSCR',
             'Credit Bureau Checks',
             'Number of Other Lenders',
         ];
@@ -39,6 +41,8 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
     {
         return [
             $row->branch,
+            $row->loan_id,
+            $row->customer_name,
             $row->income_currency,
             $row->monthly_income !== null ? (float) $row->monthly_income : null,
             $row->dsc_ratio !== '' ? (float) $row->dsc_ratio : null,
@@ -54,10 +58,12 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
                 $sheet = $event->sheet->getDelegate();
                 $last  = $sheet->getHighestRow();
                 for ($r = 2; $r <= $last; $r++) {
-                    $currency = $sheet->getCell("B{$r}")->getValue();
+                    $currency = $sheet->getCell("D{$r}")->getValue();
                     // KHR: 1,200,000   |   USD and others: 250.00
-                    $sheet->getStyle("C{$r}")->getNumberFormat()->setFormatCode($currency === 'KHR' ? '#,##0' : '#,##0.00');
+                    $sheet->getStyle("E{$r}")->getNumberFormat()->setFormatCode($currency === 'KHR' ? '#,##0' : '#,##0.00');
                 }
+                // F = DSCR: add % sign
+                $sheet->getStyle("F2:F{$last}")->getNumberFormat()->setFormatCode('0.00"%"');
             },
         ];
     }
