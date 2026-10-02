@@ -135,7 +135,7 @@
                                     <span class="nav-link-text" data-i18n="nav.pages">CBS Reports</span>
                                 </a>
                                 <ul>
-                                     {{-- *** block loan reports *** --}}
+                                    {{-- *** block loan reports *** --}}
                                     @if(Auth::user()->can('CO Performance View') 
                                         || Auth::user()->can('Loan Detail View')
                                         || Auth::user()->can('Loan Inactive View')
@@ -149,6 +149,7 @@
                                             Request::is('admin/mkt-report/loan-inactive')
                                             ||
                                             Request::is('admin/mkt-report/loan-disbursement')
+                                            || Request::is('admin/mkt-report/credit-underwriting')
                                             ? 'active open' : '' 
                                             }}"
                                             >
@@ -184,6 +185,11 @@
                                                         </a>
                                                     </li>
                                                 @endif
+                                                <li class="{{ Request::is('admin/mkt-report/credit-underwriting') ? 'active' : '' }}">
+                                                    <a href="{{ url('admin/mkt-report/credit-underwriting') }}">
+                                                        <span class="nav-link-text">Credit Underwriting</span>
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </li>
                                     @endif
