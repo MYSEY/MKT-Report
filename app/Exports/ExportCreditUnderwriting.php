@@ -32,7 +32,6 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
             'Currency',
             'Disbursed',
             'Value Date',
-            'Amount',
             'Outstanding Amount',
             'Income',
             'DSCR',
@@ -50,7 +49,6 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
             $row->income_currency,
             $row->disbursed !== null ? (float) $row->disbursed : null,
             $row->value_date,
-            $row->amount !== null ? (float) $row->amount : null,
             $row->outstanding_amount !== null ? (float) $row->outstanding_amount : null,
             $row->monthly_income !== null ? (float) $row->monthly_income : null,
             $row->dsc_ratio !== '' ? (float) $row->dsc_ratio : null,
@@ -67,15 +65,17 @@ class ExportCreditUnderwriting implements FromQuery, WithHeadings, WithMapping, 
                 $last  = $sheet->getHighestRow();
                 for ($r = 2; $r <= $last; $r++) {
                     $currency = $sheet->getCell("D{$r}")->getValue();
+
                     // KHR: 1,200,000 | USD and others: 250.00
                     $format = $currency === 'KHR' ? '#,##0' : '#,##0.00';
-                    // E = Disbursed, G = Amount, H = Outstanding, I = Income
-                    foreach (['E', 'G', 'H', 'I'] as $col) {
+
+                    // E = Disbursed, G = Outstanding, H = Income
+                    foreach (['E', 'G', 'H'] as $col) {
                         $sheet->getStyle("{$col}{$r}")->getNumberFormat()->setFormatCode($format);
                     }
                 }
-                // J = DSCR: add % sign
-                $sheet->getStyle("J2:J{$last}")->getNumberFormat()->setFormatCode('0.00"%"');
+                // I = DSCR: add % sign
+                $sheet->getStyle("I2:I{$last}")->getNumberFormat()->setFormatCode('0.00"%"');
             },
         ];
     }
