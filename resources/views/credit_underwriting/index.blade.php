@@ -2,7 +2,7 @@
 @section('content')
     <div class="row mb-2">
         <div class="col-md-6">
-            <h3 class="">Credit Underwriting Report</h3>
+            <h3 class="">Credit Underwriting Listing Report</h3>
         </div>
         <div class="col-md-6" style="text-align: right;">
             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
@@ -15,7 +15,7 @@
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Credit Underwriting Report
+                Credit Underwriting Listing Report
             </h2>
         </div>
         <div class="panel-container show">

@@ -150,6 +150,7 @@
                                             ||
                                             Request::is('admin/mkt-report/loan-disbursement')
                                             || Request::is('admin/mkt-report/credit-underwriting')
+                                            || Request::is('admin/mkt-report/cbc-none-equriry')
                                             ? 'active open' : '' 
                                             }}"
                                             >
@@ -187,7 +188,12 @@
                                                 @endif
                                                 <li class="{{ Request::is('admin/mkt-report/credit-underwriting') ? 'active' : '' }}">
                                                     <a href="{{ url('admin/mkt-report/credit-underwriting') }}">
-                                                        <span class="nav-link-text">Credit Underwriting</span>
+                                                        <span class="nav-link-text">Credit Underwriting Listing</span>
+                                                    </a>
+                                                </li>
+                                                <li class="{{ Request::is('admin/mkt-report/cbc-none-equriry') ? 'active' : '' }}">
+                                                    <a href="{{ url('admin/mkt-report/cbc-none-equriry') }}">
+                                                        <span class="nav-link-text">CBC None Equriry</span>
                                                     </a>
                                                 </li>
                                             </ul>
