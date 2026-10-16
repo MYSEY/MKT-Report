@@ -51,14 +51,15 @@ class ExportCBCNoneEquriry implements FromQuery, WithHeadings, WithMapping, With
     {
         return [
             $row->branch,
-            $row->loan_id,
+            $row->loan_application_id,
             $row->customer_name,
-            $row->applicant_type,
+            $row->customer_type,
             $row->currency,
-            $row->value_date,
-            $row->disbursed !== null ? (float) $row->disbursed : null,
-            $row->outstanding_amount !== null ? (float) $row->outstanding_amount : null,
-            $row->member_reference,
+            $row->app_date,
+            $row->amount !== null ? (float) $row->amount : null,
+            $row->amount !== null ? (float) $row->amount : null,
+            // $row->outstanding_amount !== null ? (float) $row->outstanding_amount : null,
+            $row->CBC_Ref,
         ];
     }
 

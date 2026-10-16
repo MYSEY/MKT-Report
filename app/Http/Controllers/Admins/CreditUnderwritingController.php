@@ -155,35 +155,77 @@ class CreditUnderwritingController extends Controller
     {
         $db = DB::connection('pgsql');
 
-        $persons = $db->table('MKT_LOAN_CONTRACT as L')
-            ->selectRaw('"L"."ID" as "LCID", \'Borrower\' as "Role", "L"."ContractCustomerID" as "PersonID"')
-            ->unionAll(
-                $db->table('MKT_LOAN_CO_BORROWER as CB')
-                ->selectRaw('"CB"."ID" as "LCID", \'Co-Borrower\' as "Role", "CB"."CoBorrowerID" as "PersonID"')
-            )
-            ->unionAll(
-                $db->table('MKT_GUARANTOR as G')
-                ->selectRaw('"G"."ID" as "LCID", \'Guarantor\' as "Role", "G"."Guarantor" as "PersonID"')
-            );
+        // Dates from the request (default: current month)
+        $dateFrom = $request->filled('from_date') ? $request->from_date : now()->startOfMonth()->toDateString();
+        $dateToExclusive = $request->filled('to_date') ? $request->to_date : now()->endOfMonth()->toDateString();
 
-        $base = $db->table('MKT_LOAN_CONTRACT as LC')
-            ->joinSub($persons, 'P', 'P.LCID', '=', 'LC.ID')
-            ->join('MKT_CBC_DE as CBCD', function ($join) {
-                $join->on('CBCD.Customer', '=', 'P.PersonID')
-                    ->where('CBCD.MemberReference', '=', '');
-            })
-            ->leftJoin('MKT_CUSTOMER as CU', 'CU.ID', '=', 'P.PersonID')
-            ->where('LC.ValueDate', '>=', '2024-02-01')
-        ->when($request->filled('branch_id'), fn ($q) => $q->where('LC.Branch', $request->branch_id));
+        // Filters shared by the three parts (no approval condition here)
+        $common = function ($q) use ($dateFrom, $dateToExclusive) {
+            $q->where('LA.Branch', '<>', '')
+            ->where('LA.AppDate', '>=', $dateFrom)
+            ->where('LA.AppDate', '<', $dateToExclusive)
+            ->where('LA.Currency', '<>', '');
+        };
+
+        // Main borrower: WFStatus = 'APP'
+        $borrower = $db->table('MKT_LOAN_APPLICATION as LA')
+            ->selectRaw('
+                "LA"."Branch", "LA"."Currency", "LA"."AppDate",
+                "LA"."LNCustomerID" as "CustomerID",
+                \'Borrower\' as "CustomerType",
+                "LA"."ID", "LA"."Amount"
+            ')
+            ->tap($common)
+            ->where('LA.WFStatus', '=', 'APP')
+            ->whereNotNull('LA.LNCustomerID')
+            ->where('LA.LNCustomerID', '<>', '');
+
+        // Co-borrowers: ApprovedDate <> ''
+        $coBorrower = $db->table('MKT_LOAN_APPLICATION as LA')
+            ->join('MKT_LOAN_CO_BORROWER as CBR', 'CBR.ID', '=', 'LA.ID')
+            ->selectRaw('
+                "LA"."Branch", "LA"."Currency", "LA"."AppDate",
+                "CBR"."CoBorrowerID" as "CustomerID",
+                \'Co_Borrower\' as "CustomerType",
+                "LA"."ID", "LA"."Amount"
+            ')
+            ->tap($common)
+        ->where('LA.ApprovedDate', '<>', '')
+        ->whereNotNull('CBR.CoBorrowerID')
+        ->where('CBR.CoBorrowerID', '<>', '');
+
+        // Guarantors: ApprovedDate <> ''
+        $guarantor = $db->table('MKT_LOAN_APPLICATION as LA')
+            ->join('MKT_GUARANTOR as GRT', 'GRT.ID', '=', 'LA.ID')
+            ->selectRaw('
+                "LA"."Branch", "LA"."Currency", "LA"."AppDate",
+                "GRT"."Guarantor" as "CustomerID",
+                \'Guarantor\' as "CustomerType",
+                "LA"."ID", "LA"."Amount"
+            ')
+            ->tap($common)
+            ->where('LA.ApprovedDate', '<>', '')
+            ->whereNotNull('GRT.Guarantor')
+            ->where('GRT.Guarantor', '<>', '');
+
+        // CustomerRoles CTE
+        $roles = $borrower->unionAll($coBorrower)->unionAll($guarantor);
+
+        // Main query: people whose application has no CBC record
+        $base = $db->query()
+            ->fromSub($roles, 'CR')
+            ->leftJoin('MKT_CUSTOMER as CUS', 'CUS.ID', '=', 'CR.CustomerID')
+            ->leftJoin('MKT_CBC as CBC', 'CBC.LoanAppID', '=', 'CR.ID')
+        ->whereNull('CBC.ID')
+        ->when($request->filled('branch_id'), fn ($q) => $q->where('CR.Branch', $request->branch_id));
 
         $search = trim((string) $request->input('search.value', ''));
         $filtered = (clone $base)->when($search !== '', function ($q) use ($search) {
             $like = '%' . $search . '%';
             $q->where(function ($w) use ($like) {
-                $w->whereRaw('CAST("LC"."ID" AS TEXT) ILIKE ?', [$like])
-                ->orWhereRaw('CAST("LC"."LoanApplicationID" AS TEXT) ILIKE ?', [$like])
-                ->orWhereRaw('CAST("P"."PersonID" AS TEXT) ILIKE ?', [$like])
-                ->orWhereRaw('CONCAT("CU"."FirstNameEn", \' \', "CU"."LastNameEn") ILIKE ?', [$like]);
+                $w->whereRaw('CAST("CR"."ID" AS TEXT) ILIKE ?', [$like])
+                ->orWhereRaw('CAST("CR"."CustomerID" AS TEXT) ILIKE ?', [$like])
+                ->orWhereRaw('TRIM(COALESCE("CUS"."FirstNameEn", \'\') || \' \' || COALESCE("CUS"."LastNameEn", \'\')) ILIKE ?', [$like]);
             });
         });
 
@@ -193,40 +235,33 @@ class CreditUnderwritingController extends Controller
     public static function getDatasCBCNoneEquriry(Request $request, $filtered, bool $paginate = true)
     {
         $columns = [
-            0 => 'LC.Branch',
-            1 => 'LC.ID',
-            2 => 'CU.FirstNameEn',
-            3 => 'CBCD.ApplicationType',
-            4 => 'CU.Currency',
-            5 => 'LC.ValueDate',
-            6 => 'LC.Disbursed',
-            7 => 'LC.OutstandingAmountAS',
-            8 => 'CBCD.MemberReference',
+            0 => 'CR.Branch',
+            1 => 'CR.ID',
+            2 => 'CR.CustomerID',
+            3 => 'CR.CustomerType',
+            4 => 'CR.Currency',
+            5 => 'CR.AppDate',
+            6 => 'CR.Amount',
         ];
-        $orderCol = $columns[(int) $request->input('order.0.column', 1)] ?? 'LC.ID';
+        $orderCol = $columns[(int) $request->input('order.0.column', 5)] ?? 'CR.AppDate';
         $orderDir = $request->input('order.0.dir') === 'desc' ? 'desc' : 'asc';
 
         $query = $filtered
             ->selectRaw('
-                "CU"."Branch" as branch,
-                "LC"."ID" as loan_id,
-                "LC"."LoanApplicationID" as loan_application_id,
-                "P"."Role" as role,
-                "P"."PersonID" as customer_id,
-                CONCAT("CU"."FirstNameEn", \' \', "CU"."LastNameEn") as customer_name,
-                "CBCD"."ApplicationType" as applicant_type,
-                COALESCE("CU"."Currency", \'\') as currency,
-                "LC"."ValueDate" as value_date,
-                "LC"."Disbursed" as disbursed,
-                "LC"."OutstandingAmountAS" as outstanding_amount,
-                "CBCD"."MemberReference" as member_reference,
-                "CBCD"."ID" as cbc_id,
-                "CBCD"."DetailID" as detail_id
+                "CR"."Branch"       as branch,
+                "CR"."Currency"     as currency,
+                "CR"."AppDate"      as app_date,
+                "CR"."CustomerID"   as customer_id,
+                TRIM(COALESCE("CUS"."FirstNameEn", \'\') || \' \' || COALESCE("CUS"."LastNameEn", \'\')) as customer_name,
+                "CR"."CustomerType" as customer_type,
+                "CR"."ID"           as loan_application_id,
+                "CR"."Amount"       as amount,
+                "CBC"."ID"          as "CBC_Ref"
             ')
         ->orderBy($orderCol, $orderDir)
-        ->orderBy('LC.ID')
-        ->orderBy('P.Role')
-        ->orderBy('CBCD.ID');
+        ->orderBy('CR.ID')
+        ->orderByRaw('CASE "CR"."CustomerType" WHEN \'Borrower\' THEN 1 WHEN \'Co_Borrower\' THEN 2 ELSE 3 END')
+        ->orderBy('CR.CustomerID');
 
         if ($paginate) {
             $start  = max(0, (int) $request->input('start', 0));
@@ -235,6 +270,7 @@ class CreditUnderwritingController extends Controller
                 $query->offset($start)->limit($length);
             }
         }
+
         return $query;
     }
 
@@ -253,7 +289,8 @@ class CreditUnderwritingController extends Controller
                 'data'            => $data,
             ]);
         }
-        return view('credit_underwriting.cbc_none_equriry');
+        $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
+        return view('credit_underwriting.cbc_none_equriry', compact('branch'));
     }
 
     public function CBCNoneEquriryDownload(Request $request)
