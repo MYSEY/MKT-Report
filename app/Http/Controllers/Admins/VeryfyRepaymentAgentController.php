@@ -453,7 +453,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'DrGLKey'          => '',
                     'CrGLKey'          => '',
                     'Module'           => 'FT',
-                    'Officer'          => '',
+                    'Officer'          => $loan->Officer,
                     'DisbursementList' => '',
                     'TargetBranch'     => 'HQ',
                     'TargetBranchDrCr' => 'Dr',
@@ -485,7 +485,7 @@ class VeryfyRepaymentAgentController extends Controller
                     'LoanProduct' => $loan->LoanProduct,
                     'Note'        => $note,
                     'Agent'       => $uploadedAgent,
-                    'Officer'     => '',
+                    'Officer'     => $loan->Officer,
                     'ClientTel'   => trim(($loan->Mobile1 ?? '') . ' ' . ($loan->Mobile2 ?? '')),
                 ],$commonFields);
             }
@@ -556,13 +556,22 @@ class VeryfyRepaymentAgentController extends Controller
     // }
     public function downloadToMorakot(Request $request, $id)
     {
-        $accessBranch = trim(preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch));
-        $query = VerifyRepaymentAgentDetail::where('verify_repayment_agent_id', $id);
-        if ($accessBranch != 'HQ') {
+        $accessBranch = trim(
+            preg_replace('/\s+ALL$/i', '', Auth::user()->AccessBranch)
+        );
+        $query = VerifyRepaymentAgentDetail::where(
+            'verify_repayment_agent_id',
+            $id
+        );
+
+        // Filter by user's authorized branch
+        if (strtoupper($accessBranch) !== 'HQ') {
             $query->where('Branch', $accessBranch);
         }
 
-        $results = $query->orderBy('Reference', 'asc')->get();
+        // Sort by Branch first, then Reference
+        $results = $query->orderBy('Branch', 'asc')->orderBy('Reference', 'asc')->get();
+
         if ($results->isEmpty()) {
             return back()->with('error', 'No data to download.');
         }
@@ -570,61 +579,77 @@ class VeryfyRepaymentAgentController extends Controller
         $fileName = 'uploadToMorakot_' . date('Ymd_His') . '.csv';
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$fileName\"",
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ];
 
         $callback = function () use ($results) {
             $file = fopen('php://output', 'w');
-            
-            // BOM output line removed here so file begins strictly with the header text!
-
-            // Header row
+            // CSV Header
             fputcsv($file, [
-                'Branch', 'DrAccount', 'DrCategory', 'DrCurrency',
-                'CrAccount', 'CrCategory', 'CrCurrency', 'Amount',
-                'LCYAmount', 'ExchangeRate', 'Transaction', 'TranDate',
-                'Reference', 'Note', 'DrGLKey', 'CrGLKey', 'Module',
-                'Officer', 'DisbursementList', 'TargetBranch', 'TargetBranchDrCr',
+                'Branch',
+                'DrAccount',
+                'DrCategory',
+                'DrCurrency',
+                'CrAccount',
+                'CrCategory',
+                'CrCurrency',
+                'Amount',
+                'LCYAmount',
+                'ExchangeRate',
+                'Transaction',
+                'TranDate',
+                'Reference',
+                'Note',
+                'DrGLKey',
+                'CrGLKey',
+                'Module',
+                'Officer',
+                'DisbursementList',
+                'TargetBranch',
+                'TargetBranchDrCr',
             ]);
 
             foreach ($results as $item) {
+                // Format TranDate
                 $tranDate = '';
                 if (!empty($item->TranDate)) {
                     try {
-                        $tranDate = \Carbon\Carbon::parse($item->TranDate)->format('Y-m-d');
+                        $tranDate = \Carbon\Carbon::parse(
+                            $item->TranDate
+                        )->format('Y-m-d');
                     } catch (\Throwable $e) {
                         $tranDate = trim((string) $item->TranDate);
                     }
                 }
 
+                // Export original data without SUM or Total rows
                 fputcsv($file, [
-                    trim((string) ($item->Branch           ?? '')),
-                    trim((string) ($item->DrAccount        ?? '')),
-                    trim((string) ($item->DrCategory       ?? '')),
-                    trim((string) ($item->DrCurrency       ?? '')),
-                    trim((string) ($item->CrAccount        ?? '')),
-                    trim((string) ($item->CrCategory       ?? '')),
-                    trim((string) ($item->CrCurrency       ?? '')),
-                    trim((string) ($item->Amount           ?? '')),
-                    $this->padDecimal($item->LCYAmount    ?? '', 16),
-                    $this->padDecimal($item->ExchangeRate ?? '', 16),
-                    trim((string) ($item->Transaction      ?? '')),
+                    trim((string) ($item->Branch ?? '')),
+                    trim((string) ($item->DrAccount ?? '')),
+                    trim((string) ($item->DrCategory ?? '')),
+                    trim((string) ($item->DrCurrency ?? '')),
+                    trim((string) ($item->CrAccount ?? '')),
+                    trim((string) ($item->CrCategory ?? '')),
+                    trim((string) ($item->CrCurrency ?? '')),
+                    trim((string) ($item->Amount ?? '')),
+                    $this->padDecimal($item->LCYAmount ?? '', 16),
+                    trim((string) ($item->ExchangeRate ?? '')),
+                    trim((string) ($item->Transaction ?? '')),
                     $tranDate,
-                    trim((string) ($item->Reference        ?? '')),
-                    trim((string) ($item->Note             ?? '')),
-                    trim((string) ($item->DrGLKey          ?? '')),
-                    trim((string) ($item->CrGLKey          ?? '')),
-                    trim((string) ($item->Module           ?? '')),
-                    trim((string) ($item->Officer          ?? '')),
+                    trim((string) ($item->Reference ?? '')),
+                    trim((string) ($item->Note ?? '')),
+                    trim((string) ($item->DrGLKey ?? '')),
+                    trim((string) ($item->CrGLKey ?? '')),
+                    trim((string) ($item->Module ?? '')),
+                    trim((string) ($item->Officer ?? '')),
                     trim((string) ($item->DisbursementList ?? '')),
-                    trim((string) ($item->TargetBranch     ?? '')),
+                    trim((string) ($item->TargetBranch ?? '')),
                     trim((string) ($item->TargetBranchDrCr ?? '')),
                 ]);
             }
 
             fclose($file);
         };
-
         return response()->stream($callback, 200, $headers);
     }
     private function padDecimal($value, int $decimals = 16): string
