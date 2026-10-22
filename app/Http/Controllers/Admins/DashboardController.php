@@ -119,6 +119,13 @@ class DashboardController extends Controller
         ")->where('OutstandingAmountAS', '>', 0)->first();
         $customer = DB::connection('pgsql')->table('MKT_CUSTOMER')->count();
         $loan = DB::connection('pgsql')->table('MKT_LOAN_CONTRACT')->where('OutstandingAmountAS', '>', 0)->count();
-        return view('dashboads.admin',compact('customer','data','loan','finalParRate','totalAssetClass','dataAssetClass','Profitble'));
+        $loanTypeChart = DB::connection('pgsql')
+        ->table('MKT_LOAN_CONTRACT as LC')
+        ->join('MKT_LOAN_PRODUCT as LP', 'LC.LoanProduct', '=', 'LP.ID')
+        ->select('LP.Description as type_name', DB::raw('COUNT("LC"."ID") as total_count'))
+        ->where('LC.OutstandingAmountAS', '>', 0)
+        ->groupBy('LP.Description')
+        ->get();
+        return view('dashboads.admin',compact('customer','data','loan','finalParRate','totalAssetClass','dataAssetClass','Profitble','loanTypeChart'));
     }
 }
