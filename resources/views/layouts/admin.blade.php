@@ -785,7 +785,7 @@
                             <div class="expanded theme-colors pl-5 pr-3">
                                 <ul class="m-0">
                                     <li>
-                                        <a href="#" id="myapp-0" data-action="theme-update" data-themesave data-theme="" data-toggle="tooltip" data-placement="top" title="Wisteria (base css)" data-original-title="Wisteria (base css)"></a>
+                                        <a href="#" id="myapp-12" data-action="theme-update" data-themesave data-theme="" data-toggle="tooltip" data-placement="top" title="Wisteria (base css)" data-original-title="Wisteria (base css)"></a>
                                     </li>
                                     <li>
                                         <a href="#" id="myapp-1" data-action="theme-update" data-themesave data-theme="{{asset('admins/css/themes/cust-theme-1.css')}}" data-toggle="tooltip" data-placement="top" title="Tapestry" data-original-title="Tapestry"></a>
@@ -821,7 +821,7 @@
                                         <a href="#" id="myapp-11" data-action="theme-update" data-themesave data-theme="{{asset('admins/css/themes/cust-theme-11.css')}}" data-toggle="tooltip" data-placement="top" title="Green Smoke" data-original-title="Green Smoke"></a>
                                     </li>
                                     <li>
-                                        <a href="#" id="myapp-12" data-action="theme-update" data-themesave data-theme="{{asset('admins/css/themes/cust-theme-12.css')}}" data-toggle="tooltip" data-placement="top" title="Wild Blue Yonder" data-original-title="Wild Blue Yonder"></a>
+                                        <a href="#" id="myapp-0" data-action="theme-update" data-themesave data-theme="{{asset('admins/css/themes/cust-theme-12.css')}}" data-toggle="tooltip" data-placement="top" title="Wild Blue Yonder" data-original-title="Wild Blue Yonder"></a>
                                     </li>
                                     <li>
                                         <a href="#" id="myapp-13" data-action="theme-update" data-themesave data-theme="{{asset('admins/css/themes/cust-theme-13.css')}}" data-toggle="tooltip" data-placement="top" title="Emerald" data-original-title="Emerald"></a>

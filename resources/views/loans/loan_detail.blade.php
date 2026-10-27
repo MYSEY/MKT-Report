@@ -251,11 +251,12 @@
                 lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
                 ajax: {
                     url: '{{ URL("admin/mkt-report/loan/detail") }}',
-                    type: 'GET',
+                    type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: function (d) {
+                        d._token = '{{ csrf_token() }}';
                         d.LCID = $('#LCID').val();
                         d.branch_id = $('select[name="branch_id"]').val();
                     },

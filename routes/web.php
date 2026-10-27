@@ -58,7 +58,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('cbc-none-equriry',[CreditUnderwritingController::class,'CBCNoneEquriry']);
         Route::get('cbc-none-equriry/download',[CreditUnderwritingController::class,'CBCNoneEquriryDownload'])->name('cbc-none-equriry.download');
 
-        Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
+        // Route::get('loan/detail',[LoandDetailListingController::class,'loanDetailListing']);
+        Route::match(['get', 'post'], 'loan/detail', [LoandDetailListingController::class, 'loanDetailListing']);
         Route::get('loan/detail/download',[LoandDetailListingController::class,'download'])->name('loan.detail.download');
         Route::get('co-performance',[COPerformanceController::class,'coPerformance']);
         Route::get('co-performance/download',[COPerformanceController::class,'coPerformanceDownload']);

@@ -1,12 +1,5 @@
 @extends('layouts.admin')
-
 @section('content')
-<style>
-    /* Custom soft shadow for the top modern widgets */
-    .glass-shadow {
-        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08), 0 0 15px -3px rgba(0,0,0,0.03);
-    }
-</style>
 
 <!-- Font and Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,137 +12,9 @@
 </div>
 
 @if(Auth::user()->can('Dashboard Branch Productivity'))
-    <div class="mt-2 font-[Inter]">
-        
+    <div class="mt-2">
         <!-- ================= TOP WIDGETS (LOAN, NPL, PRODUCTIVITY) ================= -->
-        {{-- <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch mb-6">
-            <!-- 1. LEFT COLUMN: LOAN PORTFOLIO -->
-            <div class="lg:col-span-1">
-                <div class="h-full relative overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-600 to-cyan-500 rounded-3xl p-5 xl:p-6 text-white shadow-lg flex flex-col justify-between">
-                    <div class="flex justify-between items-start relative z-10">
-                        <div>
-                            <span class="text-xs uppercase font-semibold text-blue-100 tracking-wider"># LOAN PORTFOLIO</span>
-                            <div class="flex items-baseline gap-2 mt-2">
-                                <h2 class="text-3xl xl:text-4xl font-extrabold tracking-tight">{{ number_format($loan) }}</h2>
-                                <span class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-medium text-white shadow-sm">Total</span>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                            <i data-lucide="banknote" class="w-7 h-7 text-white"></i>
-                        </div>
-                    </div>
-                    <div class="mt-6 grid grid-cols-2 gap-2 bg-white/10 backdrop-blur-md p-3.5 xl:p-4 rounded-2xl border border-white/15 relative z-10">
-                        <div class="flex flex-col justify-center min-w-0">
-                            <div class="text-[10px] xl:text-xs text-blue-100 font-medium uppercase tracking-wider">LOAN (KHR)</div>
-                            <div class="text-[11px] sm:text-sm lg:text-[12px] xl:text-base 2xl:text-lg font-bold mt-1 flex items-baseline gap-0.5 text-white tracking-tight">
-                                <span class="text-xs font-semibold">៛</span>
-                                <span>{{ number_format($data->khr ?? 0, 0) }}</span>
-                            </div>
-                        </div>
-                        <div class="border-l border-white/20 pl-2.5 xl:pl-4 flex flex-col justify-center min-w-0">
-                            <div class="text-[10px] xl:text-xs text-blue-100 font-medium uppercase tracking-wider">LOAN (USD)</div>
-                            <div class="text-[11px] sm:text-sm lg:text-[12px] xl:text-base 2xl:text-lg font-bold mt-1 flex items-baseline gap-0.5 text-white tracking-tight">
-                                <span class="text-xs font-semibold">$</span>
-                                <span>{{ number_format($data->usd ?? 0, 2) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="absolute -bottom-10 left-0 right-0 h-40 opacity-15 pointer-events-none">
-                        <svg viewBox="0 0 500 150" preserveAspectRatio="none" class="w-full h-full">
-                            <path d="M0,50 C150,150 350,-50 500,50 L500,150 L0,150 Z" fill="white"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. MIDDLE COLUMN: NPL -->
-            <div class="lg:col-span-1">
-                <div class="h-full relative overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-600 to-cyan-500 rounded-3xl p-5 xl:p-6 text-white shadow-lg flex flex-col justify-between">
-                    <div class="flex justify-between items-start relative z-10">
-                        <div>
-                            <span class="text-xs uppercase font-semibold text-blue-100 tracking-wider"># NPL</span>
-                            <div class="flex items-baseline gap-2 mt-2">
-                                <h2 class="text-3xl xl:text-4xl font-extrabold tracking-tight">{{ number_format($totalAssetClass) }}</h2>
-                                <span class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-medium text-white shadow-sm">Total</span>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                            <i data-lucide="shield-alert" class="w-7 h-7 text-white"></i>
-                        </div>
-                    </div>
-                    <div class="mt-6 grid grid-cols-2 gap-2 bg-white/10 backdrop-blur-md p-3.5 xl:p-4 rounded-2xl border border-white/15 relative z-10">
-                        <div class="flex flex-col justify-center min-w-0">
-                            <div class="text-[10px] xl:text-xs text-blue-100 font-medium uppercase tracking-wider">KHR</div>
-                            <div class="text-[11px] sm:text-sm lg:text-[12px] xl:text-base 2xl:text-lg font-bold mt-1 flex items-baseline gap-0.5 text-white tracking-tight">
-                                <span class="text-xs font-semibold">៛</span>
-                                <span>{{ number_format($dataAssetClass->khr ?? 0, 0) }}</span>
-                            </div>
-                        </div>
-                        <div class="border-l border-white/20 pl-2.5 xl:pl-4 flex flex-col justify-center min-w-0">
-                            <div class="text-[10px] xl:text-xs text-blue-100 font-medium uppercase tracking-wider">USD</div>
-                            <div class="text-[11px] sm:text-sm lg:text-[12px] xl:text-base 2xl:text-lg font-bold mt-1 flex items-baseline gap-0.5 text-white tracking-tight">
-                                <span class="text-xs font-semibold">$</span>
-                                <span>{{ number_format($dataAssetClass->usd ?? 0, 2) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="absolute -bottom-10 left-0 right-0 h-40 opacity-15 pointer-events-none">
-                        <svg viewBox="0 0 500 150" preserveAspectRatio="none" class="w-full h-full">
-                            <path d="M0,50 C150,150 350,-50 500,50 L500,150 L0,150 Z" fill="white"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. RIGHT COLUMN: 3 PRODUCTIVITY METRICS -->
-            <div class="lg:col-span-1 flex flex-col gap-4 justify-between h-full">
-                <!-- CUSTOMER -->
-                <div class="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="users" class="w-5.5 h-5.5"></i>
-                        </div>
-                        <div>
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># CUSTOMER</span>
-                            <h4 class="text-xl font-bold text-slate-800 mt-0.5">{{ number_format($customer) }}</h4>
-                        </div>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Total</span>
-                </div>
-
-                <!-- PARs 30+ -->
-                <div class="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="alert-triangle" class="w-5.5 h-5.5"></i>
-                        </div>
-                        <div>
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># PARs 30+</span>
-                            <h4 class="text-xl font-bold text-slate-800 mt-0.5">{{ $finalParRate }}%</h4>
-                        </div>
-                    </div>
-                    <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Low Risk</span>
-                </div>
-
-                <!-- PROFITABLE -->
-                <div class="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="trending-up" class="w-5.5 h-5.5"></i>
-                        </div>
-                        <div>
-                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># PROFITABLE</span>
-                            <h4 class="text-xl font-bold text-slate-800 mt-0.5">{{ $Profitble }}</h4>
-                        </div>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">Total</span>
-                </div>
-            </div>
-        </div> --}}
-
-
-        <!-- ================= TOP WIDGETS (LOAN, NPL, PRODUCTIVITY) ================= -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch mb-3">
             
             <!-- 1. LEFT COLUMN: LOAN PORTFOLIO (Classic Style) -->
             <div class="lg:col-span-1">
@@ -159,7 +24,7 @@
                     <div class="bg-[#d9edf7] px-3 py-2.5 flex items-center justify-between border-b border-[#bce8f1]">
                         <div class="flex items-center gap-2">
                             <div class="text-[#31708f]">
-                                <i data-lucide="banknote" class="w-[18px] h-[18px]"></i>
+                                {{-- <i data-lucide="banknote" class="w-[18px] h-[18px]"></i> --}}
                             </div>
                             <h2 class="text-[#31708f] text-[15px] font-normal tracking-wide m-0" style="font-family: inherit;">#LOAN PORTFOLIO</h2>
                         </div>
@@ -200,7 +65,7 @@
                     <div class="bg-[#d9edf7] px-3 py-2.5 flex items-center justify-between border-b border-[#bce8f1]">
                         <div class="flex items-center gap-2">
                             <div class="text-[#31708f]">
-                                <i data-lucide="shield-alert" class="w-[18px] h-[18px]"></i>
+                                {{-- <i data-lucide="shield-alert" class="w-[18px] h-[18px]"></i> --}}
                             </div>
                             <h2 class="text-[#31708f] text-[15px] font-normal tracking-wide m-0" style="font-family: inherit;">#NPL</h2>
                         </div>
@@ -239,7 +104,13 @@
                 <div class="bg-white p-4 lg:p-4 rounded shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
                     <div class="flex items-center gap-3.5">
                         <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="users" class="w-5 h-5"></i>
+                            {{-- <i data-lucide="users" class="w-5 h-5"></i> --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
                         </div>
                         <div>
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># CUSTOMER</span>
@@ -253,7 +124,12 @@
                 <div class="bg-white p-4 lg:p-4 rounded shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
                     <div class="flex items-center gap-3.5">
                         <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                            {{-- <i data-lucide="alert-triangle" class="w-5 h-5"></i> --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                <path d="M12 9v4"/>
+                                <path d="M12 17h.01"/>
+                            </svg>
                         </div>
                         <div>
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># PARs 30+</span>
@@ -267,7 +143,11 @@
                 <div class="bg-white p-4 lg:p-4 rounded shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition flex-1">
                     <div class="flex items-center gap-3.5">
                         <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">
-                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            {{-- <i data-lucide="trending-up" class="w-5 h-5"></i> --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                                <polyline points="16 7 22 7 22 13"/>
+                            </svg>
                         </div>
                         <div>
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide"># PROFITABLE</span>
@@ -281,52 +161,45 @@
         </div>
 
         <!-- ================= CLASSIC LOAN TYPE CHART CARD ================= -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            <div class="bg-white border border-[#bce8f1] rounded max-w-sm">
-                
-                <!-- Header Section -->
-                <div class="bg-[#d9edf7] px-3 py-2.5 flex items-center gap-2 border-b border-[#bce8f1]">
-                    <!-- Stacked Layers Icon -->
-                    <div class="text-[#31708f]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="12 2 2 7 12 12 22 7 12 2" fill="#31708f" fill-opacity="0.8"></polygon>
-                            <polyline points="2 17 12 22 22 17" fill="none"></polyline>
-                            <polyline points="2 12 12 17 22 12" fill="none"></polyline>
-                        </svg>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch mb-3">
+            <div class="lg:col-span-1">
+                <div class="bg-white border border-[#bce8f1] rounded h-full flex flex-col shadow-sm">
+                    <!-- Header Section -->
+                    <div class="bg-[#d9edf7] px-3 py-2.5 flex items-center gap-2 border-b border-[#bce8f1]">
+                        <!-- Stacked Layers Icon -->
+                        <div class="text-[#31708f]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2" fill="#31708f" fill-opacity="0.8"></polygon>
+                                <polyline points="2 17 12 22 22 17" fill="none"></polyline>
+                                <polyline points="2 12 12 17 22 12" fill="none"></polyline>
+                            </svg>
+                        </div>
+                        <h2 class="text-[#31708f] text-[15px] font-normal tracking-wide m-0" style="font-family: inherit;">Loan Type</h2>
                     </div>
-                    <h2 class="text-[#31708f] text-[15px] font-normal tracking-wide m-0" style="font-family: inherit;">Loan Type</h2>
-                </div>
 
-                <!-- Body Section (Chart) -->
-                <div class="p-6 flex flex-col items-center">
-                    
-                    <!-- Chart Container -->
-                    <div class="relative w-56 h-56">
-                        <canvas id="loanDonutChart"></canvas>
-                        
-                        <!-- Center Text overlay - Added IDs here -->
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                            <span id="chartCenterLabel" class="text-[20px] font-bold text-gray-500 leading-tight transition-all duration-200">Micro Loan</span>
-                            <span id="chartCenterValue" class="text-[18px] font-normal text-gray-500 leading-tight mt-1 transition-all duration-200">39%</span>
+                    <!-- Body Section (Chart) -->
+                    <div class="p-6 flex flex-col items-center">
+                        <!-- Chart Container -->
+                        <div class="relative w-56 h-56">
+                            <canvas id="loanDonutChart"></canvas>
+                            <!-- Center Text overlay - Added IDs here -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+                                <span id="chartCenterLabel" class="text-[20px] font-bold text-gray-500 leading-tight transition-all duration-200">Micro Loan</span>
+                                <span id="chartCenterValue" class="text-[18px] font-normal text-gray-500 leading-tight mt-1 transition-all duration-200">39%</span>
+                            </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>
-        
     </div>
 @endif
 @endsection
 
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     
     <script>
-        // Initialize Lucide Icons for the top widgets
-        lucide.createIcons();
-
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('loanDonutChart');
             if (!ctx) return;
