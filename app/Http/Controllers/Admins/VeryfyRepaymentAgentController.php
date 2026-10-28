@@ -966,7 +966,7 @@ class VeryfyRepaymentAgentController extends Controller
                     trim((string) ($item->CrCurrency ?? '')),
                     trim((string) ($item->Amount ?? '')),
                     $this->padDecimal($item->LCYAmount ?? '', 16),
-                    trim((string) ($item->ExchangeRate ?? '')),
+                    $item->ExchangeRate ?? '',
                     trim((string) ($item->Transaction ?? '')),
                     $tranDate,
                     trim((string) ($item->Reference ?? '')),
