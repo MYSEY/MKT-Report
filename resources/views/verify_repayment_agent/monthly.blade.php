@@ -38,7 +38,6 @@
         $(function(){
             dataTables();
         });
-
         function deleteRecord(id) {
             Swal.fire({
                 title: 'Are you sure?',
@@ -68,7 +67,6 @@
                 }
             });
         }
-
         function dataTables() {
             if ($.fn.DataTable.isDataTable('#tbl_veryfy_repayment_agent')) {
                 $('#tbl_veryfy_repayment_agent').DataTable().destroy();
