@@ -5,7 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="subheader mb-4">
+<div class="subheader mb-3">
     <h1 class="subheader-title">
         <i class='subheader-icon fal fa-chart-area'></i> <span class='fw-500'>Dashboard</span>
     </h1>
