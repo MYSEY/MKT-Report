@@ -22,6 +22,7 @@ use App\Http\Controllers\Admins\LoanDisbursementController;
 use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
 use App\Http\Controllers\Admins\PdfToExcelController;
 use App\Http\Controllers\Admins\CreditUnderwritingController;
+use App\Http\Controllers\Admins\JournalDeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,6 +82,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('loan-inactive/download',[LoanInactiveController::class,'exportInactive']);
 
         Route::get('loan-disbursement',[LoanDisbursementController::class,'index']);
+
+        Route::get('journal-de',[JournalDeController::class,'index']);
+        Route::get('journal-de/download',[JournalDeController::class,'download'])->name('journal-de.download');
 
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);

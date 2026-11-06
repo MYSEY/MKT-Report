@@ -985,30 +985,7 @@ class VeryfyRepaymentAgentController extends Controller
         };
         return response()->stream($callback, 200, $headers);
     }
-    private function padDecimal($value, int $decimals = 16): string
-    {
-        if ($value === null || $value === '' || !is_numeric($value)) {
-            return '';
-        }
-
-        $value = (string) $value;
-        $negative = false;
-        if (str_starts_with($value, '-')) {
-            $negative = true;
-            $value = substr($value, 1);
-        }
-
-        if (str_contains($value, '.')) {
-            [$intPart, $decPart] = explode('.', $value, 2);
-        } else {
-            $intPart = $value;
-            $decPart = '';
-        }
-
-        $decPart = str_pad(substr($decPart, 0, $decimals), $decimals, '0');
-        $result = $intPart . '.' . $decPart;
-        return $negative ? '-' . $result : $result;
-    }
+    
     public function downloadToBranch(Request $request,$id)
     {
         $query = VerifyRepaymentAgentBranchDetail::where('verify_repayment_agent_id', $id);

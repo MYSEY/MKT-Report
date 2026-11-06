@@ -11,25 +11,39 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterSheet;
 
-class ExportCBCNoneEquriry implements FromQuery, WithHeadings, WithMapping, WithEvents, ShouldAutoSize
+class ExportCBCNoneEquriry implements
+    FromQuery,
+    WithHeadings,
+    WithMapping,
+    WithEvents,
+    ShouldAutoSize
 {
-    public function __construct(private $branchId = null)
+    private array $filters;
+
+    public function __construct(array $filters = [])
     {
+        $this->filters = $filters;
     }
 
     public function query()
     {
-        $request = new Request(['branch_id' => $this->branchId]);
+        // Pass all filters
+        $request = new Request($this->filters);
 
         $callFilteredQuery = \Closure::bind(
-            static fn (Request $request) => CreditUnderwritingController::filteredQueryCBCNoneEquriry($request),
+            static fn (Request $request) =>
+                CreditUnderwritingController::filteredQueryCBCNoneEquriry($request),
             null,
-            CreditUnderwritingController::class,
+            CreditUnderwritingController::class
         );
 
         [, $filtered] = $callFilteredQuery($request);
 
-        return CreditUnderwritingController::getDatasCBCNoneEquriry($request, $filtered, false);
+        return CreditUnderwritingController::getDatasCBCNoneEquriry(
+            $request,
+            $filtered,
+            false
+        );
     }
 
     public function headings(): array
@@ -58,7 +72,6 @@ class ExportCBCNoneEquriry implements FromQuery, WithHeadings, WithMapping, With
             $row->app_date,
             $row->amount !== null ? (float) $row->amount : null,
             $row->amount !== null ? (float) $row->amount : null,
-            // $row->outstanding_amount !== null ? (float) $row->outstanding_amount : null,
             $row->CBC_Ref,
         ];
     }
@@ -67,12 +80,16 @@ class ExportCBCNoneEquriry implements FromQuery, WithHeadings, WithMapping, With
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                $sheet = $event->sheet->getDelegate();
-                $last  = $sheet->getHighestRow();
 
-                // G = Disburse Amount, H = Outstanding
-                $sheet->getStyle("G2:G{$last}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("H2:H{$last}")->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet = $event->sheet->getDelegate();
+
+                $last = $sheet->getHighestRow();
+
+                if ($last >= 2) {
+                    $sheet->getStyle("G2:H{$last}")
+                        ->getNumberFormat()
+                        ->setFormatCode('#,##0.00');
+                }
             },
         ];
     }

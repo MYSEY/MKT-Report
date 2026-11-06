@@ -101,7 +101,9 @@
             });
             $(".btn_excel").on("click", function() {
                 let query = {
-                    branch_id: $("#branch_id").val()
+                    branch_id: $("#branch_id").val(),
+                    from_date: toIso($('#from_date').val()),
+                    to_date: toIso($('#to_date').val())
                 };
                 var url = "{{URL::to('admin/mkt-report/cbc-none-equriry/download')}}?" + $.param(query)
                 window.location = url;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admins;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportCreditUnderwriting;
@@ -155,9 +156,8 @@ class CreditUnderwritingController extends Controller
     {
         $db = DB::connection('pgsql');
 
-        // Dates from the request (default: current month)
-        $dateFrom = $request->filled('from_date') ? $request->from_date : now()->startOfMonth()->toDateString();
-        $dateToExclusive = $request->filled('to_date') ? $request->to_date : now()->endOfMonth()->toDateString();
+        $dateFrom = $request->filled('from_date') ? Carbon::parse($request->from_date)->toDateString() : now()->startOfMonth()->toDateString();
+        $dateToExclusive = $request->filled('to_date') ? Carbon::parse($request->to_date)->addDay()->toDateString() : now()->endOfMonth()->addDay()->toDateString();
 
         // Filters shared by the three parts (no approval condition here)
         $common = function ($q) use ($dateFrom, $dateToExclusive) {
@@ -295,9 +295,16 @@ class CreditUnderwritingController extends Controller
 
     public function CBCNoneEquriryDownload(Request $request)
     {
+        $filters = $request->only([
+            'branch_id',
+            'from_date',
+            'to_date',
+            'search',
+        ]);
+
         return Excel::download(
-            new ExportCBCNoneEquriry($request->input('branch_id')),
-            'cbc_none_equriry_report.xlsx'
+            new ExportCBCNoneEquriry($filters),
+            'cbc_none_equriry_report_' . now()->format('Ymd_His') . '.xlsx'
         );
     }
 }
