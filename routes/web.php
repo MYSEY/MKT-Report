@@ -22,8 +22,11 @@ use App\Http\Controllers\Admins\LoanDisbursementController;
 use App\Http\Controllers\Admins\VeryfyRepaymentAgentController;
 use App\Http\Controllers\Admins\PdfToExcelController;
 use App\Http\Controllers\Admins\CreditUnderwritingController;
+use App\Http\Controllers\Admins\DBTableController;
 use App\Http\Controllers\Admins\JournalDeController;
 use App\Http\Controllers\Admins\CollectionSheetController;
+use App\Http\Controllers\Admins\PenaltyArrearsController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -97,6 +100,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('veryfy/repayment/agent/download/branch/{id}',[VeryfyRepaymentAgentController::class,'downloadToBranch']);
         Route::get('veryfy/repayment/agent/check-delete', [VeryfyRepaymentAgentController::class, 'checkDelete']);
         Route::delete('veryfy/repayment/agent/destroy/{id}', [VeryfyRepaymentAgentController::class, 'destroy']);
+
+        Route::get('penalty-arrears', [PenaltyArrearsController::class, 'index'])->name('mkt.penalty.arrears');
+
+        Route::get('db-tables/columns', [DBTableController::class, 'columns']);
+        Route::post('db-tables/export',  [DBTableController::class, 'export']);
+        Route::post('db-tables', [DBTableController::class, 'data']);
+        Route::get('db-tables', [DBTableController::class, 'index']);
+
     });
     Route::prefix('hr-report')->group(function () {
         Route::get('network-employee',[NetworkEmployeeController::class,'index']);

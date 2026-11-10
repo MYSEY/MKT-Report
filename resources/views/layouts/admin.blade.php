@@ -205,6 +205,8 @@
                                         || Auth::user()->can('Sale Record Console View')
                                         || Auth::user()->can('Trial Balance View')
                                         || Auth::user()->can('Veryfy Repayment Agent Report View')
+                                        || Auth::user()->can('Penalty in Arrears View')
+                                        || Auth::user()->can('MKT DB Table View')
                                         )
                                         <li class="{{
                                             Request::is('admin/mkt-report/sale-record')
@@ -224,12 +226,26 @@
                                             Request::is('admin/mkt-report/gl-balance')
                                             ||
                                             Request::is('admin/mkt-report/gl-detail')
+                                            ||
+                                            Request::is('admin/mkt-report/penalty-arrears')
+                                            ||
+                                            Request::is('admin/mkt-report/db-tables')
+                                            ||
+                                            request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
-                                            }}">
+                                            }}"
+                                            >
                                             <a href="javascript:void(0);" title="Accounting Reports" data-filter-tags="pages accounting">
                                                 <span class="nav-link-text" data-i18n="nav.pages_forum">Accounting Reports</span>
                                             </a>
                                             <ul> 
+                                                @if(Auth::user()->can('MKT DB Table View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/db-tables') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/db-tables') }}">
+                                                            <span class="nav-link-text">DB Tables</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
                                                 @if(Auth::user()->can('GL Balance View'))
                                                     <li class="{{ request()->routeIs('mkt.gl.balance', 'mkt.gl.detail') ? 'active' : '' }}">
                                                         <a href="{{ route('mkt.gl.balance') }}">
@@ -241,6 +257,13 @@
                                                     <li class="{{ Request::is('admin/mkt-report/trial-balance') ? 'active' : '' }}">
                                                         <a href="{{ url('admin/mkt-report/trial-balance') }}">
                                                             <span class="nav-link-text">Trial Balance</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                 @if(Auth::user()->can('Penalty in Arrears View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/penalty-arrears') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/penalty-arrears') }}">
+                                                            <span class="nav-link-text">Penalty in Arrears</span>
                                                         </a>
                                                     </li>
                                                 @endif
