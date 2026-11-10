@@ -28,7 +28,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
         $dataExcel = [];
         foreach ($data as $row) {
             $dataExcel[] = [
-                $row->ReportDate,                                                      // A
+                $this->formatDate($row->ReportDate),                                   // A
                 $row->ID,                                                              // B
                 $row->ContractCustomerID,                                              // C
                 preg_replace('/\s+/', ' ', trim(($row->LastNameEn ?? '') . ' ' . ($row->FirstNameEn ?? ''))), // D

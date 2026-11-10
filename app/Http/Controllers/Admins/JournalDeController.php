@@ -13,7 +13,6 @@ class JournalDeController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-
             $db = DB::connection('pgsql');
             // Base query with filters
             $query = self::getData($request);
@@ -52,19 +51,15 @@ class JournalDeController extends Controller
     public static function getData($request)
     {
         // Default date range
-        $fromDate = $request->filled('from_date')? Carbon::createFromFormat('d-m-Y', $request->from_date)->toDateString() : now()->startOfMonth()->toDateString();
-
-        $toDate = $request->filled('to_date')? Carbon::createFromFormat('d-m-Y', $request->to_date)->addDay()->toDateString() : now()->endOfMonth()->addDay()->toDateString();
+        $fromDate = $request->filled('from_date') ? Carbon::createFromFormat('d-m-Y', $request->from_date)->toDateString() : now()->startOfMonth()->toDateString();
+        $toDate = $request->filled('to_date') ? Carbon::createFromFormat('d-m-Y', $request->to_date)->addDay()->toDateString() : now()->endOfMonth()->addDay()->toDateString();
         $query = DB::connection('pgsql')->table('MKT_JOURNAL');
-
         // Branch filter
         if ($request->filled('branch_id')) {
             $query->where('Branch', $request->branch_id);
         }
-
         // Timestamp range filter
-        $query->where('TransactionDate', '>=', $fromDate)->where('TransactionDate', '<', $toDate);
-
+        $query->where('TransactionDate', '>=', $fromDate)->where('TransactionDate', '<=', $toDate);
         return $query;
     }
     public function download(Request $request)

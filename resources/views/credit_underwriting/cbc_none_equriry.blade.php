@@ -70,6 +70,8 @@
                             <tr>
                                 <th>Branch</th>
                                 <th>LoanID</th>
+                                <th>LCID</th>
+                                <th>CustomerID</th>
                                 <th>CustomerName</th>
                                 <th>ApplicationType</th>
                                 <th>Currency</th>
@@ -143,6 +145,8 @@
                 columns: [
                     { data: 'branch' },
                     { data: 'loan_application_id' },
+                    { data: 'contract_id' },
+                    { data: 'customer_id' },
                     { data: 'customer_name' },
                     { data: 'customer_type' },
                     { data: 'currency' },

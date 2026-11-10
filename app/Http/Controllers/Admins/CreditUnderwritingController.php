@@ -73,8 +73,8 @@ class CreditUnderwritingController extends Controller
         ->orderByDesc('ID'); // use a date column if you have one
 
         $base = $db->table('MKT_LOAN_CONTRACT as LC')
-            ->leftJoinSub($lasSub, 'LAS', 'LAS.LoanApplicationID', '=', 'LC.LoanApplicationID')
-            ->leftJoin('MKT_CUSTOMER as CU', 'CU.ID', '=', 'LC.ContractCustomerID')
+        ->leftJoinSub($lasSub, 'LAS', 'LAS.LoanApplicationID', '=', 'LC.LoanApplicationID')
+        ->leftJoin('MKT_CUSTOMER as CU', 'CU.ID', '=', 'LC.ContractCustomerID')
         ->leftJoinSub($lgSub, 'LGSub', 'LGSub.LoanAppID', '=', 'LC.LoanApplicationID')
         ->leftJoinSub($cbcSub, 'CBCSub', 'CBCSub.LoanAppID', '=', 'LC.LoanApplicationID')
         ->when($request->filled('branch_id'), fn ($q) => $q->where('LC.Branch', $request->branch_id));
@@ -189,7 +189,7 @@ class CreditUnderwritingController extends Controller
                 \'Co_Borrower\' as "CustomerType",
                 "LA"."ID", "LA"."Amount"
             ')
-            ->tap($common)
+        ->tap($common)
         ->where('LA.ApprovedDate', '<>', '')
         ->whereNotNull('CBR.CoBorrowerID')
         ->where('CBR.CoBorrowerID', '<>', '');
@@ -213,9 +213,10 @@ class CreditUnderwritingController extends Controller
 
         // Main query: people whose application has no CBC record
         $base = $db->query()
-            ->fromSub($roles, 'CR')
-            ->leftJoin('MKT_CUSTOMER as CUS', 'CUS.ID', '=', 'CR.CustomerID')
-            ->leftJoin('MKT_CBC as CBC', 'CBC.LoanAppID', '=', 'CR.ID')
+        ->fromSub($roles, 'CR')
+        ->leftJoin('MKT_CUSTOMER as CUS', 'CUS.ID', '=', 'CR.CustomerID')
+        ->leftJoin('MKT_CBC as CBC', 'CBC.LoanAppID', '=', 'CR.ID')
+        ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.LoanApplicationID', '=', 'CR.ID')
         ->whereNull('CBC.ID')
         ->when($request->filled('branch_id'), fn ($q) => $q->where('CR.Branch', $request->branch_id));
 
@@ -242,6 +243,8 @@ class CreditUnderwritingController extends Controller
             4 => 'CR.Currency',
             5 => 'CR.AppDate',
             6 => 'CR.Amount',
+            7 => 'LC.ID',
+            8 => 'LC.LoanApplicationID',
         ];
         $orderCol = $columns[(int) $request->input('order.0.column', 5)] ?? 'CR.AppDate';
         $orderDir = $request->input('order.0.dir') === 'desc' ? 'desc' : 'asc';
@@ -256,7 +259,8 @@ class CreditUnderwritingController extends Controller
                 "CR"."CustomerType" as customer_type,
                 "CR"."ID"           as loan_application_id,
                 "CR"."Amount"       as amount,
-                "CBC"."ID"          as "CBC_Ref"
+                "CBC"."ID"          as "CBC_Ref",
+                "LC"."ID"           as contract_id
             ')
         ->orderBy($orderCol, $orderDir)
         ->orderBy('CR.ID')

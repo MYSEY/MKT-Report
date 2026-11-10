@@ -29,16 +29,13 @@ class ExportCBCNoneEquriry implements
     {
         // Pass all filters
         $request = new Request($this->filters);
-
         $callFilteredQuery = \Closure::bind(
             static fn (Request $request) =>
                 CreditUnderwritingController::filteredQueryCBCNoneEquriry($request),
             null,
             CreditUnderwritingController::class
         );
-
         [, $filtered] = $callFilteredQuery($request);
-
         return CreditUnderwritingController::getDatasCBCNoneEquriry(
             $request,
             $filtered,
@@ -51,6 +48,8 @@ class ExportCBCNoneEquriry implements
         return [
             'Branch',
             'LoanID',
+            'LCID',
+            'CustomerID',
             'Customer Name',
             'Applicant Type',
             'Currency',
@@ -66,6 +65,8 @@ class ExportCBCNoneEquriry implements
         return [
             $row->branch,
             $row->loan_application_id,
+            $row->contract_id,
+            $row->customer_id,
             $row->customer_name,
             $row->customer_type,
             $row->currency,
@@ -80,15 +81,10 @@ class ExportCBCNoneEquriry implements
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-
                 $sheet = $event->sheet->getDelegate();
-
                 $last = $sheet->getHighestRow();
-
                 if ($last >= 2) {
-                    $sheet->getStyle("G2:H{$last}")
-                        ->getNumberFormat()
-                        ->setFormatCode('#,##0.00');
+                    $sheet->getStyle("G2:H{$last}")->getNumberFormat()->setFormatCode('#,##0.00');
                 }
             },
         ];
