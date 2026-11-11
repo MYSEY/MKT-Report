@@ -231,6 +231,8 @@
                                             ||
                                             Request::is('admin/mkt-report/db-tables')
                                             ||
+                                            Request::is('admin/mkt-report/collection-sheet')
+                                            ||
                                             request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
                                             }}"
@@ -303,6 +305,11 @@
                                                 <li class="{{ Request::is('admin/mkt-report/journal-de') ? 'active' : '' }}">
                                                     <a href="{{ url('admin/mkt-report/journal-de') }}">
                                                         <span class="nav-link-text">Journal Details</span>
+                                                    </a>
+                                                </li>
+                                                <li class="{{ Request::is('admin/mkt-report/collection-sheet') ? 'active' : '' }}">
+                                                    <a href="{{ url('admin/mkt-report/collection-sheet') }}">
+                                                        <span class="nav-link-text">Collection Sheet</span>
                                                     </a>
                                                 </li>
                                             </ul>

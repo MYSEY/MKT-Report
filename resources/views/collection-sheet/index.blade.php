@@ -127,14 +127,14 @@
                 },
                 columns: [
                     {
-                        data: 'LoanContract',
-                        name: 'LoanContract',
+                        data: 'ID',
+                        name: 'ID',
                         orderable: false,
                         searchable: false,
                     },
                     {
-                        data: 'Repayment_Date',
-                        name: 'Repayment_Date',
+                        data: 'CollectionDate',
+                        name: 'CollectionDate',
                         orderable: false,
                         searchable: false,
                     },
@@ -155,8 +155,8 @@
                         name: 'Branch',
                     },
                     { 
-                        data: 'Currency', 
-                        name: 'Currency',
+                        data: 'Branch', 
+                        name: 'Branch',
                     },
                 ],
             });

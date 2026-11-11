@@ -191,6 +191,7 @@ class CreditUnderwritingController extends Controller
             ')
         ->tap($common)
         ->where('LA.ApprovedDate', '<>', '')
+        ->where('LA.WFStatus', '=', 'APP')
         ->whereNotNull('CBR.CoBorrowerID')
         ->where('CBR.CoBorrowerID', '<>', '');
 
@@ -205,6 +206,7 @@ class CreditUnderwritingController extends Controller
             ')
             ->tap($common)
             ->where('LA.ApprovedDate', '<>', '')
+            ->where('LA.WFStatus', '=', 'APP')
             ->whereNotNull('GRT.Guarantor')
             ->where('GRT.Guarantor', '<>', '');
 
