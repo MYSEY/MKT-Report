@@ -55,6 +55,8 @@ class LoandDetailListingController extends Controller
         return view('loans.loan_detail',compact('branch', 'data', 'currency'));
     }
     public function download(Request $request){
+        ini_set('memory_limit', '1024M');
+        set_time_limit(0);
         $dataDate = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'LastSystemDate')->first();
         $date = Carbon::parse($dataDate->LastSystemDate);
         $dateTime = $date->format('d-m-Y');

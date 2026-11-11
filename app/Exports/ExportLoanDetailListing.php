@@ -218,6 +218,7 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
                 $sheet = $event->sheet->getDelegate();
                 $lastRow = $sheet->getHighestRow();
 
+                $sheet->getStyle("A2:A{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);  // ReportDate
                 $sheet->getStyle("U2:U{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);  // ValueDate
                 $sheet->getStyle("V2:V{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14);  // MaturityDate
                 $sheet->getStyle("AJ2:AJ{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_XLSX14); // LastPaymentDate

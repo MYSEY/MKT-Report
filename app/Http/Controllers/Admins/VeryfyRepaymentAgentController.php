@@ -265,8 +265,26 @@ class VeryfyRepaymentAgentController extends Controller
             ])
             ->get();
 
-        $startDate = date('Y-m-01', strtotime($request->date));
-        $endDate   = date('Y-m-t', strtotime($request->date));
+        // $startDate = date('Y-m-01', strtotime($request->date));
+        // $endDate   = date('Y-m-t', strtotime($request->date));
+
+        // $repSchedules = DB::connection('pgsql')
+        //     ->table('MKT_REP_SCHEDULE')
+        //     ->select([
+        //         'LoanID',
+        //         'CollectionDate',
+        //         'Principal',
+        //         'Interest',
+        //         'Charge',
+        //         'Balance',
+        //         'Curr',
+        //         'RepStatus',
+        //     ])
+        // ->whereBetween('CollectionDate', [$startDate, $endDate])
+        // ->get()
+        // ->keyBy('LoanID');
+
+        $uploadDate = Carbon::parse($request->date)->toDateString();
 
         $repSchedules = DB::connection('pgsql')
             ->table('MKT_REP_SCHEDULE')
@@ -280,31 +298,62 @@ class VeryfyRepaymentAgentController extends Controller
                 'Curr',
                 'RepStatus',
             ])
-        ->whereBetween('CollectionDate', [$startDate, $endDate])
+        ->whereDate('CollectionDate', $uploadDate)
         ->get()
         ->keyBy('LoanID');
 
         $loanLookup = [];
-
         foreach ($loans as $loan) {
-            $account = trim($loan->Account ?? '');
-            if (substr($account, 3, 1) === 'H') {
+            $account = trim((string) ($loan->Account ?? ''));
+            if ($account === '') {
+                continue;
+            }
+            // Excel FIND("H", O2) = 4
+            $hPosition = strpos($account, 'H');
+            // Excel FIND("M", O2) = 3
+            $mPosition = strpos($account, 'M');
+            if ($hPosition === 3) {
                 $suffix = substr($account, -4);
-                $CrAccount = 'DDMH'.$suffix;
-            } elseif (substr($account, 2, 1) === 'M') {
+                $CrAccount = 'DDMH' . $suffix;
+            } elseif ($mPosition === 2) {
                 $suffix = substr($account, -5);
-                $CrAccount = 'DDM'.$suffix;
+                $CrAccount = 'DDM' . $suffix;
             } else {
                 $suffix = substr($account, -6);
-                $CrAccount = 'DD'.$suffix;
+                $CrAccount = 'DD' . $suffix;
             }
-            $branchCode = $branchCodes[$loan->Branch] ?? '';
+            // Equivalent to VLOOKUP(M2, opt!Z6:AB50, 3, 0)
+            $branchCode = $branchCodes[$loan->Branch] ?? null;
+            if ($branchCode === null || $branchCode === '') {
+                continue;
+            }
+            // Excel output: RIGHT(O2, n) & VLOOKUP(...)
             $finalAccount = $suffix . $branchCode;
             $loanLookup[$finalAccount] = [
                 'loan'      => $loan,
                 'CrAccount' => $CrAccount,
             ];
         }
+
+        // foreach ($loans as $loan) {
+        //     $account = trim($loan->Account ?? '');
+        //     if (substr($account, 3, 1) === 'H') {
+        //         $suffix = substr($account, -4);
+        //         $CrAccount = 'DDMH'.$suffix;
+        //     } elseif (substr($account, 2, 1) === 'M') {
+        //         $suffix = substr($account, -5);
+        //         $CrAccount = 'DDM'.$suffix;
+        //     } else {
+        //         $suffix = substr($account, -6);
+        //         $CrAccount = 'DD'.$suffix;
+        //     }
+        //     $branchCode = $branchCodes[$loan->Branch] ?? '';
+        //     $finalAccount = $suffix . $branchCode;
+        //     $loanLookup[$finalAccount] = [
+        //         'loan'      => $loan,
+        //         'CrAccount' => $CrAccount,
+        //     ];
+        // }
 
         $configeAgent = [
             'WING' => '2789101',
@@ -372,10 +421,22 @@ class VeryfyRepaymentAgentController extends Controller
             $fullName = $loanFullName !== '' ? $loanFullName : '(Error: )';
             $referenceCounter++;
             $Reference = $referenceCounter;
-            $dupCount = collect($rows)->filter( fn ($r) => isset($r[0]) && trim((string) $r[0]) === $uploadedAccount)->count();
 
-            $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)': '';
+            // $dupCount = collect($rows)->filter( fn ($r) => isset($r[0]) && trim((string) $r[0]) === $uploadedAccount)->count();
 
+            $accountCounts = [];
+            foreach ($rows as $key => $row) {
+                if ($key === 0 || empty($row[0])) {
+                    continue;
+                }
+                $account = trim((string) $row[0]);
+                $accountCounts[$account] = ($accountCounts[$account] ?? 0) + 1;
+            }
+
+            // $duplicateMsg = $accountCounts[$uploadedAccount] > 1 ? ' (' . $accountCounts[$uploadedAccount] . ' Times)': '';
+            $dupCount = $accountCounts[$uploadedAccount] ?? 0;
+
+            $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
             $rep = $loan ? ($repSchedules[$loan->LDNumber] ?? null): null;
 
             $collectionDate = $rep->CollectionDate ?? null;
