@@ -103,9 +103,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
         Route::get('penalty-arrears', [PenaltyArrearsController::class, 'index'])->name('mkt.penalty.arrears');
 
-        Route::get('db-tables/columns', [DBTableController::class, 'columns']);
-        Route::post('db-tables/export',  [DBTableController::class, 'export']);
-        Route::post('db-tables', [DBTableController::class, 'data']);
+        Route::get('db-tables/columns',       [DBTableController::class, 'columns']);
+        Route::post('db-tables/export-check', [DBTableController::class, 'exportCheck']);
+        Route::post('db-tables/export',   [DBTableController::class, 'export']);
+        Route::post('db-tables',              [DBTableController::class, 'data']);
+
         Route::get('db-tables', [DBTableController::class, 'index']);
 
     });

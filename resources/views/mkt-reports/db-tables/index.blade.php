@@ -1,14 +1,8 @@
 @extends('layouts.admin')
 @section('content')
 <style>
-    .w-200 {
-        width: 200px !important;
-        min-width: 200px !important;
-    }
-    .text-wrap {
-        white-space: normal !important;
-        word-wrap: break-word;
-    }
+    .w-200 { width: 200px !important; min-width: 200px !important; }
+    .text-wrap { white-space: normal !important; word-wrap: break-word; }
 </style>
     {!! Toastr::message() !!}
 
@@ -18,26 +12,18 @@
             <div class="row filter-btn">
                 <div class="col-sm-3 col-md-3">
                     <div class="form-group">
-                        <input type="text"
-                            class="form-control datepicker_month btn-filter"
-                            name="from_date"
-                            id="from_date"
+                        <input type="text" class="form-control datepicker_month btn-filter"
+                            name="from_date" id="from_date"
                             value="{{ \Carbon\Carbon::now()->startOfMonth()->format('d-m-Y') }}"
-                            placeholder="From Date"
-                            readonly
-                            style="background-color: #fff;">
+                            placeholder="From Date" readonly style="background-color: #fff;">
                     </div>
                 </div>
                 <div class="col-sm-3 col-md-3">
                     <div class="form-group">
-                        <input type="text"
-                            class="form-control datepicker_month btn-filter"
-                            name="to_date"
-                            id="to_date"
+                        <input type="text" class="form-control datepicker_month btn-filter"
+                            name="to_date" id="to_date"
                             value="{{ \Carbon\Carbon::now()->endOfMonth()->format('d-m-Y') }}"
-                            placeholder="To Date"
-                            readonly
-                            style="background-color: #fff;">
+                            placeholder="To Date" readonly style="background-color: #fff;">
                     </div>
                 </div>
 
@@ -57,7 +43,6 @@
                     </div>
                 </div>
 
-                {{-- NEW: choose which column the From/To date applies to --}}
                 <div class="col-sm-3 col-md-3">
                     <div class="form-group">
                         <select id="date_col" class="form-control">
@@ -69,23 +54,33 @@
         </div>
     </div>
 
-    {{-- Column picker (filled by JS after selecting a table) --}}
+    {{-- Column picker --}}
     <div class="card mb-2" id="column-card" style="display:none">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-                <strong>Select Columns</strong>
+                <strong>Check Columns</strong>
                 <span class="badge badge-primary ml-2" id="col-count">0</span>
             </div>
             <div class="custom-control custom-checkbox">
                 <input type="checkbox" class="custom-control-input" id="check_all" checked>
-                <label class="custom-control-label" for="check_all">Select All</label>
+                <label class="custom-control-label" for="check_all">Check All</label>
             </div>
         </div>
         <div class="card-body">
             <input type="text" id="col_search" class="form-control form-control-sm mb-3" placeholder="Search column...">
+
+            <div class="row mb-3" hidden>
+                <div class="col-md-4">
+                    <input type="text" id="col_index" class="form-control form-control-sm"
+                           placeholder="Column index e.g. 1,2,5-8">
+                </div>
+                <div class="col-md-8">
+                    <small class="text-muted">ទុកទទេ = ប្រើ checkbox | លេខចាប់ពី 1 តាមលំដាប់ក្នុង table</small>
+                </div>
+            </div>
+
             <div class="row" id="column-list" style="max-height:260px; overflow-y:auto;"></div>
 
-            {{-- NEW: value filters --}}
             <div class="mt-3">
                 <strong>Value filters</strong>
                 <button type="button" class="btn btn-xs btn-outline-primary ml-2" id="btn_add_filter">+ Add filter</button>
@@ -93,25 +88,24 @@
             </div>
         </div>
         <div class="card-footer text-right">
-            <button type="button" class="btn btn-sm btn-primary" id="btn_show">
+            <button type="button" class="btn btn-sm btn-primary mr-1" id="btn_show">
                 <i class="fal fa-table"></i> Show Data
             </button>
             @if(Auth::user()->can('MKT DB Table Export'))
-                <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1">
-                    <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                    <span id="btn-text-loading-excel-1" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
-                    Download To Excel
+                <button type="button" class="btn btn-sm btn-success btn_export mr-1" data-format="csv">
+                    <i class="fal fa-file-csv"></i> Download CSV
+                </button>
+                <button type="button" class="btn btn-sm btn-info btn_export" data-format="xlsx">
+                    <i class="fal fa-file-excel"></i> Download Excel
                 </button>
             @endif
         </div>
     </div>
 
-    {{-- Data table (header and body built by JS) --}}
+    {{-- Data table --}}
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
-            <h2>
-                Table name: <span id="panel-title" class="ml-1 text-primary"></span>
-            </h2>
+            <h2>Table name: <span id="panel-title" class="ml-1 text-primary"></span></h2>
         </div>
         <div class="panel-container show">
             <div class="panel-content">
@@ -125,9 +119,11 @@
 
 @section('script')
     <script>
-        var tableUrl   = '{{ URL("admin/mkt-report/db-tables") }}';
-        var columnsUrl = tableUrl + '/columns';
-        var exportUrl  = tableUrl + '/export';
+        var tableUrl       = '{{ URL("admin/mkt-report/db-tables") }}';
+        var columnsUrl     = tableUrl + '/columns';
+        var exportCheckUrl = tableUrl + '/export-check';
+        var exportCsvUrl   = tableUrl + '/export';
+        var csrf           = '{{ csrf_token() }}';
 
         var defaultFrom = '{{ \Carbon\Carbon::now()->startOfMonth()->format("d-m-Y") }}';
         var defaultTo   = '{{ \Carbon\Carbon::now()->endOfMonth()->format("d-m-Y") }}';
@@ -136,13 +132,34 @@
             return $('<div>').text(s).html();
         }
 
+        // column ដែលត្រូវប្រើ: តាម index (បើវាយ) ឬតាម checkbox
         function selectedCols() {
-            return $('#column-list .col-check:checked').map(function () {
-                return this.value;
-            }).get();
+            var expr = ($('#col_index').val() || '').trim();
+
+            if (expr) {
+                var all = $('#column-list .col-check').map(function () { return this.value; }).get();
+                var out = [];
+
+                expr.split(',').forEach(function (p) {
+                    p = p.trim();
+                    var m = p.match(/^(\d+)\s*-\s*(\d+)$/);
+                    if (m) {
+                        var a = Math.min(+m[1], +m[2]), b = Math.max(+m[1], +m[2]);
+                        for (var i = a; i <= Math.min(b, all.length); i++) {
+                            if (all[i - 1] && out.indexOf(all[i - 1]) === -1) out.push(all[i - 1]);
+                        }
+                    } else if (/^\d+$/.test(p) && all[+p - 1] && out.indexOf(all[+p - 1]) === -1) {
+                        out.push(all[+p - 1]);
+                    }
+                });
+
+                if (out.length) return out;
+            }
+
+            return $('#column-list .col-check:checked').map(function () { return this.value; }).get();
         }
 
-        // NEW: collect value filters
+        // value filters
         function colFilters() {
             var list = [];
             $('#filter-list .filter-row').each(function () {
@@ -154,7 +171,6 @@
             return list;
         }
 
-        // NEW: add one filter row
         function addFilterRow() {
             var cols = $('#column-list .col-check').map(function () { return this.value; }).get();
             if (!cols.length) return;
@@ -204,12 +220,13 @@
             $('#db-tbl').empty();
         }
 
-        // Step 1: table selected -> load column names as checkboxes
+        // Step 1: select table -> load columns
         function loadColumns() {
             var tableName = $('#table_name').val();
             $('#panel-title').text(tableName);
             destroyTable();
             $('#col_search').val('');
+            $('#col_index').val('');
             $('#filter-list').empty();
             $('#date_col').html('<option value="">-- No date filter --</option>');
 
@@ -226,11 +243,10 @@
                     html += '<div class="col-sm-6 col-md-3 col-item" data-name="' + esc(c.toLowerCase()) + '">' +
                                 '<div class="custom-control custom-checkbox mb-2">' +
                                     '<input type="checkbox" class="custom-control-input col-check" id="col_' + i + '" value="' + esc(c) + '" checked>' +
-                                    '<label class="custom-control-label" for="col_' + i + '">' + esc(c) + '</label>' +
+                                    '<label class="custom-control-label" for="col_' + i + '">' + (i + 1) + '. ' + esc(c) + '</label>' +
                                 '</div>' +
                             '</div>';
 
-                    // default date filter column = CreatedOn (if the table has it)
                     var sel = (c.toLowerCase() === 'createdon') ? ' selected' : '';
                     dateOpts += '<option value="' + esc(c) + '"' + sel + '>' + esc(c) + '</option>';
                 });
@@ -244,7 +260,7 @@
             });
         }
 
-        // Step 2: click Show Data -> build header + load body for checked columns
+        // Step 2: Show Data
         function showData() {
             var cols = selectedCols();
 
@@ -253,7 +269,6 @@
                 return;
             }
 
-            // if date inputs are empty, put the defaults back
             if (!$('#from_date').val()) $('#from_date').val(defaultFrom);
             if (!$('#to_date').val())   $('#to_date').val(defaultTo);
 
@@ -274,19 +289,20 @@
                 pageLength: 20,
                 processing: true,
                 serverSide: true,
+                searching: false,          // បិទ global search (យឺតលើ table ធំ)
                 autoWidth: false,
                 scrollX: true,
                 scrollY: dynamicHeight + 'px',
                 scrollCollapse: true,
-                order: [[0, 'asc']],
+                order: [],                 // មិន sort ដំបូង (លឿនជាង)
                 lengthMenu: [[20, 25, 50, 100], [20, 25, 50, 100]],
                 ajax: {
                     url: tableUrl,
                     type: 'POST',
                     data: function (d) {
-                        delete d.columns;          // keep the request small
+                        delete d.columns;          // ធ្វើឲ្យ request តូច
                         $.extend(d, filters());
-                        d._token = '{{ csrf_token() }}';
+                        d._token = csrf;
                     },
                     error: function (xhr) {
                         console.error(xhr.status, xhr.responseText.substring(0, 1000));
@@ -302,6 +318,75 @@
             });
         }
 
+        // Download: ឆែកចំនួនមុន រួច submit form ឲ្យ browser download
+        function download(format) {
+            var f = filters();
+
+            if (!f.table_name) {
+                Swal.fire(" ", "Please select a table first", "error");
+                return;
+            }
+            if (!f.select_cols.length) {
+                Swal.fire(" ", "Please select at least one column", "error");
+                return;
+            }
+
+            $('.btn-text-excel').hide();
+            $('#btn-text-loading-excel-1').show();
+
+            $.post(exportCheckUrl, $.extend({}, f, { _token: csrf }), function (res) {
+
+                if (res.status === 'too_large') {
+                    Swal.fire({ icon: 'error', title: 'Download limit exceeded', text: res.message });
+                    return;
+                }
+                if (res.status === 'empty') {
+                    Swal.fire({ icon: 'info', title: 'No data', text: 'No data to export' });
+                    return;
+                }
+                if (res.status === 'error') {
+                    Swal.fire({ icon: 'error', title: 'Export failed', text: res.message });
+                    return;
+                }
+
+                var form = $('<form method="POST" style="display:none">').attr('action', exportCsvUrl);
+                form.append($('<input type="hidden" name="_token">').val(csrf));
+                form.append($('<input type="hidden" name="format">').val(format));
+                form.append($('<input type="hidden" name="table_name">').val(f.table_name));
+                form.append($('<input type="hidden" name="from_date">').val(f.from_date));
+                form.append($('<input type="hidden" name="to_date">').val(f.to_date));
+                form.append($('<input type="hidden" name="date_col">').val(f.date_col));
+
+                f.select_cols.forEach(function (c) {
+                    form.append($('<input type="hidden" name="select_cols[]">').val(c));
+                });
+                f.col_filters.forEach(function (cf, i) {
+                    form.append($('<input type="hidden">').attr('name', 'col_filters[' + i + '][col]').val(cf.col));
+                    form.append($('<input type="hidden">').attr('name', 'col_filters[' + i + '][op]').val(cf.op));
+                    form.append($('<input type="hidden">').attr('name', 'col_filters[' + i + '][val]').val(cf.val));
+                });
+
+                $('body').append(form);
+                form.submit();
+                form.remove();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download started',
+                    text: res.total.toLocaleString() + ' rows កំពុងត្រូវបានទាញយក។',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+            }).fail(function (xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Export failed (' + xhr.status + ')';
+                Swal.fire({ icon: 'error', title: 'Export failed', text: msg });
+            }).always(function () {
+                $('.btn-text-excel').show();
+                $('#btn-text-loading-excel-1').hide();
+            });
+        }
+
         $(function () {
             $('.datepicker_month').datepicker({
                 format: "dd-mm-yyyy",
@@ -312,11 +397,11 @@
             $('#table_name').on('change', loadColumns);
             $('#btn_show').on('click', showData);
             $('#btn_add_filter').on('click', addFilterRow);
+
             $(document).on('click', '.btn-del-filter', function () {
                 $(this).closest('.filter-row').remove();
             });
 
-            // Select All (only visible columns, so it works with the search box)
             $('#check_all').on('change', function () {
                 $('#column-list .col-item:visible .col-check').prop('checked', this.checked);
                 updateCount();
@@ -324,7 +409,34 @@
 
             $(document).on('change', '.col-check', updateCount);
 
-            // reload when date or date column changes (only if data is already shown)
+            // checkbox តាមដាន index ដែលវាយ
+            $('#col_index').on('input', function () {
+                var expr = $(this).val().trim();
+                if (!expr) return;
+
+                var all = $('#column-list .col-check').map(function () { return this.value; }).get();
+                var picked = [];
+
+                expr.split(',').forEach(function (p) {
+                    p = p.trim();
+                    var m = p.match(/^(\d+)\s*-\s*(\d+)$/);
+                    if (m) {
+                        var a = Math.min(+m[1], +m[2]), b = Math.min(Math.max(+m[1], +m[2]), all.length);
+                        for (var i = a; i <= b; i++) { if (all[i - 1]) picked.push(all[i - 1]); }
+                    } else if (/^\d+$/.test(p) && all[+p - 1]) {
+                        picked.push(all[+p - 1]);
+                    }
+                });
+
+                if (!picked.length) return;
+
+                $('#column-list .col-check').each(function () {
+                    $(this).prop('checked', picked.indexOf(this.value) !== -1);
+                });
+                updateCount();
+            });
+
+            // reload ពេលប្តូរថ្ងៃ ឬ date column (បើបានបង្ហាញ data រួច)
             $(document).on('change changeDate dp.change', '#from_date, #to_date, #date_col', function () {
                 if ($.fn.DataTable.isDataTable('#db-tbl')) {
                     $('#db-tbl').DataTable().ajax.reload();
@@ -339,58 +451,9 @@
                 });
             });
 
-            // Export to Excel
-            $(document).on('click', '.btn_excel', function (e) {
+            $(document).on('click', '.btn_export', function (e) {
                 e.preventDefault();
-
-                var f = filters();
-                if (!f.table_name) {
-                    Swal.fire(" ", "Please select a table first", "error");
-                    return;
-                }
-                if (!f.select_cols.length) {
-                    Swal.fire(" ", "Please select at least one column", "error");
-                    return;
-                }
-
-                $('.btn-text-excel').hide();
-                $('#btn-text-loading-excel-1').show();
-
-                $.post(exportUrl, $.extend({}, f, { _token: '{{ csrf_token() }}' }), function (res) {
-                    if (res.status === 'too_large') {
-                        Swal.fire({ icon: 'error', title: 'Download limit exceeded', text: res.message });
-                        return;
-                    }
-
-                    if (!res.rows.length) {
-                        Swal.fire({ icon: 'info', title: 'No data', text: 'No data to export' });
-                        return;
-                    }
-
-                    var ws = XLSX.utils.json_to_sheet(res.rows, { header: f.select_cols });
-
-                    ws['!cols'] = f.select_cols.map(function (k) {
-                        var max = k.length;
-                        res.rows.slice(0, 100).forEach(function (r) {
-                            var len = (r[k] === null || r[k] === undefined ? '' : String(r[k])).length;
-                            if (len > max) max = len;
-                        });
-                        return { wch: Math.min(max + 2, 50) };
-                    });
-
-                    var wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, res.table.substring(0, 31));
-
-                    var d  = new Date();
-                    var ds = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-                    XLSX.writeFile(wb, res.table + '_' + ds + '.xlsx');
-                }).fail(function (xhr) {
-                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Export failed (' + xhr.status + ')';
-                    Swal.fire({ icon: 'error', title: 'Export failed', text: msg });
-                }).always(function () {
-                    $('.btn-text-excel').show();
-                    $('#btn-text-loading-excel-1').hide();
-                });
+                download($(this).data('format'));
             });
         });
     </script>
