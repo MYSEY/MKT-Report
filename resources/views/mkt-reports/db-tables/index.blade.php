@@ -31,14 +31,9 @@
                     <div class="form-group">
                         <select data-filter="table_name" class="select2 form-control btn-filter" id="table_name" name="table_name">
                             <option value="" selected>-- Select Table --</option>
-                            <option value="MKT_PD_DATE">PD DATE</option>
-                            <option value="MKT_LOAN_CONTRACT">LOAN CONTRACT</option>
-                            <option value="MKT_REP_SCHEDULE">REP SCHEDULE</option>
-                            <option value="MKT_REP_SCHEDULE_AS">REP SCHEDULE AS</option>
-                            <option value="MKT_GL_BALANCE_BACKUP">GL BALANCE BACKUP</option>
-                            <option value="MKT_JOURNAL">MKT_JOURNAL</option>
-                            <option value="MKT_COLLATERAL">MKT_COLLATERAL</option>
-                            <option value="MKT_BORROWING_REP_SCHEDULE_AS">BORROWING REP SCHEDULE AS</option>
+                            @foreach($tables as $t)
+                                <option value="{{ $t->table_name }}" data-date-col="{{ $t->date_column }}">{{ $t->display_name }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -256,6 +251,10 @@
                 $('#column-card').show();
                 updateCount();
             }).fail(function () {
+                $('#column-list').html('');
+                $('#date_col').html('');
+                $('#column-card').hide();
+                updateCount();
                 Swal.fire(" ", "Failed to load columns", "error");
             });
         }

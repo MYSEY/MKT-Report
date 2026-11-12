@@ -25,6 +25,7 @@ use App\Http\Controllers\Admins\CreditUnderwritingController;
 use App\Http\Controllers\Admins\DBTableController;
 use App\Http\Controllers\Admins\JournalDeController;
 use App\Http\Controllers\Admins\CollectionSheetController;
+use App\Http\Controllers\Admins\MKTTableSetupController;
 use App\Http\Controllers\Admins\PenaltyArrearsController;
 
 
@@ -55,6 +56,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::resource('branch-code', BranchCodeController::class);
         Route::post('interest-income/import', [InterestIncomeController::class, 'import']);
         Route::resource('position', PositionController::class);
+
+        Route::get('mkt-table-setup',                 [MKTTableSetupController::class, 'index'])->name('mkt-table-setup.index');
+        Route::get('mkt-table-setup/data',            [MKTTableSetupController::class, 'data'])->name('mkt-table-setup.data');
+        Route::get('mkt-table-setup/available',       [MKTTableSetupController::class, 'available'])->name('mkt-table-setup.available');
+        Route::post('mkt-table-setup',                [MKTTableSetupController::class, 'store'])->name('mkt-table-setup.store');
+        Route::put('mkt-table-setup/{id}',            [MKTTableSetupController::class, 'update'])->name('mkt-table-setup.update');
+        Route::post('mkt-table-setup/{id}/toggle',    [MKTTableSetupController::class, 'toggle'])->name('mkt-table-setup.toggle');
+        Route::delete('mkt-table-setup/{id}',         [MKTTableSetupController::class, 'destroy'])->name('mkt-table-setup.destroy');
     });
     Route::prefix('mkt-report')->group(function () {
         Route::get('credit-underwriting',[CreditUnderwritingController::class,'index']);
