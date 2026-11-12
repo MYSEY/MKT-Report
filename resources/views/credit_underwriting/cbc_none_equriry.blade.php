@@ -70,7 +70,7 @@
                             <tr>
                                 <th>Branch</th>
                                 <th>LoanID</th>
-                                <th>LCID</th>
+                                {{-- <th>LCID</th> --}}
                                 <th>CustomerID</th>
                                 <th>CustomerName</th>
                                 <th>ApplicationType</th>
@@ -145,7 +145,7 @@
                 columns: [
                     { data: 'branch' },
                     { data: 'loan_application_id' },
-                    { data: 'contract_id' },
+                    // { data: 'contract_id' },
                     { data: 'customer_id' },
                     { data: 'customer_name' },
                     { data: 'customer_type' },
@@ -153,7 +153,6 @@
                     { data: 'app_date' },
                     { data: 'amount', render: $.fn.dataTable.render.number(',', '.', 2) },
                     { data: 'amount', render: $.fn.dataTable.render.number(',', '.', 2) },
-                    // { data: 'outstanding_amount', render: $.fn.dataTable.render.number(',', '.', 2) },
                     { data: 'CBC_Ref' },
                 ],
             });

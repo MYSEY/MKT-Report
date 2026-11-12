@@ -150,20 +150,20 @@ class CreditUnderwritingController extends Controller
         return $query;
     }
 
-
-
     public static function filteredQueryCBCNoneEquriry(Request $request): array
     {
         $db = DB::connection('pgsql');
 
-        $dateFrom = $request->filled('from_date') ? Carbon::parse($request->from_date)->toDateString() : now()->startOfMonth()->toDateString();
-        $dateToExclusive = $request->filled('to_date') ? Carbon::parse($request->to_date)->addDay()->toDateString() : now()->endOfMonth()->addDay()->toDateString();
+        $dateFrom = $request->from_date;
+        $dateTo = $request->to_date;
 
         // Filters shared by the three parts (no approval condition here)
-        $common = function ($q) use ($dateFrom, $dateToExclusive) {
+        $common = function ($q) use ($dateFrom, $dateTo) {
             $q->where('LA.Branch', '<>', '')
-            ->where('LA.AppDate', '>=', $dateFrom)
-            ->where('LA.AppDate', '<', $dateToExclusive)
+            // ->where('LA.AppDate', '>=', $dateFrom)
+            // ->where('LA.AppDate', '<', $dateToExclusive)
+            ->whereBetween('LA.AppDate', [$dateFrom, $dateTo])
+            ->where('LA.WFStatus', '=', 'APP')
             ->where('LA.Currency', '<>', '');
         };
 
@@ -175,10 +175,9 @@ class CreditUnderwritingController extends Controller
                 \'Borrower\' as "CustomerType",
                 "LA"."ID", "LA"."Amount"
             ')
-            ->tap($common)
-            ->where('LA.WFStatus', '=', 'APP')
-            ->whereNotNull('LA.LNCustomerID')
-            ->where('LA.LNCustomerID', '<>', '');
+        ->tap($common)
+        ->whereNotNull('LA.LNCustomerID')
+        ->where('LA.LNCustomerID', '<>', '');
 
         // Co-borrowers: ApprovedDate <> ''
         $coBorrower = $db->table('MKT_LOAN_APPLICATION as LA')
@@ -190,8 +189,6 @@ class CreditUnderwritingController extends Controller
                 "LA"."ID", "LA"."Amount"
             ')
         ->tap($common)
-        ->where('LA.ApprovedDate', '<>', '')
-        ->where('LA.WFStatus', '=', 'APP')
         ->whereNotNull('CBR.CoBorrowerID')
         ->where('CBR.CoBorrowerID', '<>', '');
 
@@ -204,11 +201,9 @@ class CreditUnderwritingController extends Controller
                 \'Guarantor\' as "CustomerType",
                 "LA"."ID", "LA"."Amount"
             ')
-            ->tap($common)
-            ->where('LA.ApprovedDate', '<>', '')
-            ->where('LA.WFStatus', '=', 'APP')
-            ->whereNotNull('GRT.Guarantor')
-            ->where('GRT.Guarantor', '<>', '');
+        ->tap($common)
+        ->whereNotNull('GRT.Guarantor')
+        ->where('GRT.Guarantor', '<>', '');
 
         // CustomerRoles CTE
         $roles = $borrower->unionAll($coBorrower)->unionAll($guarantor);
@@ -218,8 +213,7 @@ class CreditUnderwritingController extends Controller
         ->fromSub($roles, 'CR')
         ->leftJoin('MKT_CUSTOMER as CUS', 'CUS.ID', '=', 'CR.CustomerID')
         ->leftJoin('MKT_CBC as CBC', 'CBC.LoanAppID', '=', 'CR.ID')
-        ->leftJoin('MKT_LOAN_CONTRACT as LC', 'LC.LoanApplicationID', '=', 'CR.ID')
-        ->whereNull('CBC.ID')
+        // ->whereNull('CBC.ID')
         ->when($request->filled('branch_id'), fn ($q) => $q->where('CR.Branch', $request->branch_id));
 
         $search = trim((string) $request->input('search.value', ''));
@@ -245,8 +239,6 @@ class CreditUnderwritingController extends Controller
             4 => 'CR.Currency',
             5 => 'CR.AppDate',
             6 => 'CR.Amount',
-            7 => 'LC.ID',
-            8 => 'LC.LoanApplicationID',
         ];
         $orderCol = $columns[(int) $request->input('order.0.column', 5)] ?? 'CR.AppDate';
         $orderDir = $request->input('order.0.dir') === 'desc' ? 'desc' : 'asc';
@@ -261,8 +253,7 @@ class CreditUnderwritingController extends Controller
                 "CR"."CustomerType" as customer_type,
                 "CR"."ID"           as loan_application_id,
                 "CR"."Amount"       as amount,
-                "CBC"."ID"          as "CBC_Ref",
-                "LC"."ID"           as contract_id
+                "CBC"."ID"          as "CBC_Ref"
             ')
         ->orderBy($orderCol, $orderDir)
         ->orderBy('CR.ID')
