@@ -356,8 +356,11 @@
                                     </ul>
                                 </li>
                             @endif
-
-                            @if(Auth::user()->can('Interest Income View') || Auth::user()->can('Position View'))
+                            {{-- Configurations --}}
+                            @if(Auth::user()->can('Interest Income View') 
+                                || Auth::user()->can('Position View') 
+                                || Auth::user()->can('MKT Table Setup View')
+                                )
                                 <li class="{{ Request::is('admin/configuration/*') ? 'active open' : '' }}">
                                     <a href="javascript:void(0)" title="Configurations">
                                         <i class="fal fa-cog"></i>
@@ -383,6 +386,13 @@
                                                 <span class="nav-link-text">Branch</span>
                                             </a>
                                         </li>
+                                        @if(Auth::user()->can('MKT Table Setup View'))
+                                            <li class="{{ Request::is('admin/configuration/mkt-table-setup') ? 'active' : '' }}">
+                                                <a href="{{ url('admin/configuration/mkt-table-setup') }}">
+                                                    <span class="nav-link-text">Setup MKT Table</span>
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif

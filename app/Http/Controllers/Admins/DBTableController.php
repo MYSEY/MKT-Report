@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admins;
 
 use App\Http\Controllers\Controller;
+use App\Models\MktTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -14,18 +15,6 @@ use Carbon\Carbon;
 class DBTableController extends Controller
 {
     use HasRolePermission;
-
-    // table ដែលអនុញ្ញាត (whitelist)
-    protected $tables = [
-        'MKT_PD_DATE',
-        'MKT_LOAN_CONTRACT',
-        'MKT_REP_SCHEDULE',
-        'MKT_REP_SCHEDULE_AS',
-        'MKT_GL_BALANCE_BACKUP',
-        'MKT_JOURNAL',
-        'MKT_COLLATERAL',
-        'MKT_BORROWING_REP_SCHEDULE_AS',
-    ];
 
     protected $exportLimit = 500000;   // ចំនួន row អតិបរមាសម្រាប់ export
     protected $schemaTtl   = 3600;     // cache ព័ត៌មាន column (វិនាទី)
@@ -50,16 +39,25 @@ class DBTableController extends Controller
             return view('page.access_page');
         }
 
-        return view('mkt-reports.db-tables.index');
+        $tables = MktTable::active()->get();
+        return view('mkt-reports.db-tables.index', compact('tables'));
     }
 
     /* ---------------------------------------------------------
      | Helpers
      --------------------------------------------------------- */
+    // អនុញ្ញាតតែ table ដែលមានក្នុង mkt-table ហើយ Active
     protected function checkTable(Request $request): string
     {
         $name = $request->input('table_name');
-        abort_unless(is_string($name) && in_array($name, $this->tables, true), 422, 'Invalid table');
+
+        abort_unless(
+            is_string($name)
+            && MktTable::where('table_name', $name)->where('is_active', true)->exists(),
+            422,
+            'Invalid table'
+        );
+
         return $name;
     }
 
