@@ -48,7 +48,6 @@ class ExportCBCNoneEquriry implements
         return [
             'Branch',
             'LoanID',
-            'LCID',
             'CustomerID',
             'Customer Name',
             'Applicant Type',
@@ -65,7 +64,6 @@ class ExportCBCNoneEquriry implements
         return [
             $row->branch,
             $row->loan_application_id,
-            $row->contract_id,
             $row->customer_id,
             $row->customer_name,
             $row->customer_type,
