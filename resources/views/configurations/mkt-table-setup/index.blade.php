@@ -53,7 +53,7 @@
                     <input type="hidden" id="f_id">
 
                     <div class="form-group">
-                        <label>Table Name (Postgres) <span class="text-danger">*</span></label>
+                        <label>Table Name (MKT) <span class="text-danger">*</span></label>
                         <input type="text" id="f_table_name" class="form-control" placeholder="e.g. MKT_JOURNAL" maxlength="100" autocomplete="off">
                         <small class="text-muted">អក្សរ A-Z, លេខ និង _ ប៉ុណ្ណោះ</small><br>
                         <small class="text-danger err" id="err_table_name"></small>
@@ -77,7 +77,7 @@
                             <input type="number" id="f_sort_order" class="form-control" min="0" value="0">
                             <small class="text-danger err" id="err_sort_order"></small>
                         </div>
-                        <div class="form-group col-md-6 d-flex align-items-end">
+                        <div class="form-group col-md-6 d-flex align-items-end alert">
                             <div class="custom-control custom-checkbox mb-2">
                                 <input type="checkbox" class="custom-control-input" id="f_is_active" checked>
                                 <label class="custom-control-label" for="f_is_active">Active</label>
