@@ -265,27 +265,8 @@ class VeryfyRepaymentAgentController extends Controller
             ])
             ->get();
 
-        // $startDate = date('Y-m-01', strtotime($request->date));
-        // $endDate   = date('Y-m-t', strtotime($request->date));
-
-        // $repSchedules = DB::connection('pgsql')
-        //     ->table('MKT_REP_SCHEDULE')
-        //     ->select([
-        //         'LoanID',
-        //         'CollectionDate',
-        //         'Principal',
-        //         'Interest',
-        //         'Charge',
-        //         'Balance',
-        //         'Curr',
-        //         'RepStatus',
-        //     ])
-        // ->whereBetween('CollectionDate', [$startDate, $endDate])
-        // ->get()
-        // ->keyBy('LoanID');
-
-        $uploadDate = Carbon::parse($request->date)->toDateString();
-
+        $startDate = date('Y-m-01', strtotime($request->date));
+        $endDate   = date('Y-m-t', strtotime($request->date));
         $repSchedules = DB::connection('pgsql')
             ->table('MKT_REP_SCHEDULE')
             ->select([
@@ -298,7 +279,7 @@ class VeryfyRepaymentAgentController extends Controller
                 'Curr',
                 'RepStatus',
             ])
-        ->whereDate('CollectionDate', $uploadDate)
+        ->whereBetween('CollectionDate', [$startDate, $endDate])
         ->get()
         ->keyBy('LoanID');
 
@@ -334,26 +315,6 @@ class VeryfyRepaymentAgentController extends Controller
                 'CrAccount' => $CrAccount,
             ];
         }
-
-        // foreach ($loans as $loan) {
-        //     $account = trim($loan->Account ?? '');
-        //     if (substr($account, 3, 1) === 'H') {
-        //         $suffix = substr($account, -4);
-        //         $CrAccount = 'DDMH'.$suffix;
-        //     } elseif (substr($account, 2, 1) === 'M') {
-        //         $suffix = substr($account, -5);
-        //         $CrAccount = 'DDM'.$suffix;
-        //     } else {
-        //         $suffix = substr($account, -6);
-        //         $CrAccount = 'DD'.$suffix;
-        //     }
-        //     $branchCode = $branchCodes[$loan->Branch] ?? '';
-        //     $finalAccount = $suffix . $branchCode;
-        //     $loanLookup[$finalAccount] = [
-        //         'loan'      => $loan,
-        //         'CrAccount' => $CrAccount,
-        //     ];
-        // }
 
         $configeAgent = [
             'WING' => '2789101',
@@ -437,8 +398,8 @@ class VeryfyRepaymentAgentController extends Controller
             $dupCount = $accountCounts[$uploadedAccount] ?? 0;
 
             $duplicateMsg = $dupCount > 1 ? ' (' . $dupCount . ' Times)' : '';
-            $rep = $loan ? ($repSchedules[$loan->LDNumber] ?? null): null;
 
+            $rep = $loan ? ($repSchedules[$loan->LDNumber] ?? null): null;
             $collectionDate = $rep->CollectionDate ?? null;
             $principal      = $rep->Principal ?? 0;
             $interest       = $rep->Interest ?? 0;
