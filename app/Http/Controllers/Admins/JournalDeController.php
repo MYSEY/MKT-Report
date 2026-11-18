@@ -17,14 +17,14 @@ class JournalDeController extends Controller
             // Base query with filters
             $query = self::getData($request);
             // Total records (cached for 60 seconds)
-            $recordsTotal = Cache::remember(
-                'mkt_journal_total_records',
-                60,
-                function () use ($db) {
-                    return $db->table('MKT_JOURNAL')->count();
-                }
-            );
-
+            // $recordsTotal = Cache::remember(
+            //     'mkt_journal_total_records',
+            //     60,
+            //     function () use ($db) {
+            //         return $db->table('MKT_JOURNAL')->count();
+            //     }
+            // );
+            $recordsTotal = (clone $query)->count();
             // Filtered records
             $recordsFiltered = (clone $query)->count();
             // DataTables pagination

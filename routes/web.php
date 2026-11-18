@@ -99,6 +99,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('journal-de',[JournalDeController::class,'index']);
         Route::get('journal-de/download',[JournalDeController::class,'download'])->name('journal-de.download');
         Route::get('collection-sheet',[CollectionSheetController::class,'index']);
+        Route::get('collection-sheet/download',[CollectionSheetController::class,'download'])->name('collection-sheet.download');
 
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);

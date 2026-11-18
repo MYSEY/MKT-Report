@@ -163,7 +163,6 @@ class CreditUnderwritingController extends Controller
             // ->where('LA.AppDate', '>=', $dateFrom)
             // ->where('LA.AppDate', '<', $dateToExclusive)
             ->whereBetween('LA.AppDate', [$dateFrom, $dateTo])
-            ->where('LA.WFStatus', '=', 'APP')
             ->where('LA.Currency', '<>', '');
         };
 
@@ -177,6 +176,7 @@ class CreditUnderwritingController extends Controller
             ')
         ->tap($common)
         ->whereNotNull('LA.LNCustomerID')
+        ->where('LA.WFStatus', '=', 'APP')
         ->where('LA.LNCustomerID', '<>', '');
 
         // Co-borrowers: ApprovedDate <> ''
@@ -213,7 +213,7 @@ class CreditUnderwritingController extends Controller
         ->fromSub($roles, 'CR')
         ->leftJoin('MKT_CUSTOMER as CUS', 'CUS.ID', '=', 'CR.CustomerID')
         ->leftJoin('MKT_CBC as CBC', 'CBC.LoanAppID', '=', 'CR.ID')
-        // ->whereNull('CBC.ID')
+        ->whereNull('CBC.ID')
         ->when($request->filled('branch_id'), fn ($q) => $q->where('CR.Branch', $request->branch_id));
 
         $search = trim((string) $request->input('search.value', ''));

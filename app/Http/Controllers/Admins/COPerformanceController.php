@@ -471,41 +471,18 @@ class COPerformanceController extends Controller
                 'data' => $finalData
             ]);
         }
-        
-        // $data = DB::connection('pgsql')
-        //     ->table('MKT_LOAN_CONTRACT as LC')
-        //     ->select([
-        //         'LC.ContractOfficerID',
-        //         'US.DisplayName',
-        //         'LC.Currency',
-        //         'LC.Branch',
-        //         DB::raw('SUM("LC"."Disbursed") AS TotalDisbursed'),
-        //         DB::raw('SUM("LC"."OutstandingAmount") AS TotalOutstanding'),
-        //         DB::raw('SUM("LC"."Amount") AS TotalAmount'),
-        //         DB::raw('COUNT(DISTINCT "LC"."LoanApplicationID") AS "TotalLoans"'),
-        //         DB::raw('COUNT(DISTINCT "LC"."ID") AS "TotalBorrowers"'),
-        //     ])
-        //     ->leftJoin('MKT_USER as US', 'LC.ContractOfficerID', '=', 'US.Officer')
-        //     ->whereIn('LC.Currency', ['KHR', 'USD'])
-        //     ->where('LC.Branch', '<>', '""')
-        //     ->groupBy(
-        //         'LC.ContractOfficerID',
-        //         'US.DisplayName',
-        //         'LC.Currency',
-        //         'LC.Branch'
-        // )->get();
         $branch = DB::connection('pgsql')->table('MKT_BRANCH')->select('ID', 'Description', 'LocalDescription')->get();
         $AssetClass = DB::connection('pgsql')->table('MKT_ASSET_CLASS')->select('ID', 'Description')->get();
-        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
+        $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate','LastSystemDate')->first();
         $currency = DB::connection('pgsql')->table('MKT_CURRENCY')->select('ID')->where('ID', 'USD')->first();
         return view('loans.co_performance',compact('branch','AssetClass','data','currency'));
     }
 
     public function coPerformanceDownload(Request $request){
         try {
-            $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate')->first();
+            $data = DB::connection('pgsql')->table('MKT_DATES')->select('ID', 'SystemDate','LastSystemDate')->first();
             // Convert to Carbon
-            $date = Carbon::parse($data->SystemDate);
+            $date = Carbon::parse($data->LastSystemDate);
             // Add current time
             $currentTime = now()->setTimezone('Asia/Phnom_Penh');
             $dateTime = $date->format('Y-m-d') . '-' . $currentTime->format('H-i');

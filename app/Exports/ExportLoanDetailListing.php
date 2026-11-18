@@ -108,13 +108,44 @@ class ExportLoanDetailListing implements FromCollection, WithEvents, WithHeading
 
     private function formatDate($date)
     {
-        if (!$date) {
+        if ($date === null || trim((string) $date) === '') {
             return null;
         }
 
-        return Date::dateTimeToExcel(
-            Carbon::parse($date)
-        );
+        $date = trim((string) $date);
+
+        // បញ្ជី format ដែលអាចជួប (ដាក់តាមអាទិភាព)
+        $formats = [
+            'm-d-y',      // 11-13-26
+            'm-d-Y',      // 11-13-2026
+            'd-m-Y',      // 13-11-2026
+            'd-m-y',      // 13-11-26
+            'Y-m-d',      // 2026-11-13
+            'Y-m-d H:i:s',
+            'Ymd',        // 20261113
+            'm/d/Y',
+            'd/m/Y',
+        ];
+
+        foreach ($formats as $format) {
+            try {
+                $carbon = Carbon::createFromFormat('!' . $format, $date);
+
+                // ត្រូវប្រាកដថា parse ត្រឹមត្រូវ (កុំឲ្យ 13 ក្លាយជាខែបន្ទាប់ដោយស្វ័យប្រវត្តិ)
+                if ($carbon && $carbon->format($format) === $date) {
+                    return Date::dateTimeToExcel($carbon);
+                }
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        // ចុងក្រោយ ព្យាយាម parse ធម្មតា
+        try {
+            return Date::dateTimeToExcel(Carbon::parse($date));
+        } catch (\Throwable $e) {
+            return null;   // ឬ throw / log តាមតម្រូវការ
+        }
     }
 
     public function collection()

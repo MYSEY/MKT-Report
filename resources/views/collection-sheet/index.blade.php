@@ -5,7 +5,7 @@
             <h3 class="">Collection Sheet Report</h3>
         </div>
     </div>
-    {{-- <div class="card mb-2">
+    <div class="card mb-2">
         <div class="card-body">
             <div class="row filter-btn">
                 <div class="col-sm-3 col-md-3">
@@ -37,10 +37,10 @@
                             Search
                             <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                         </button>
-                        @if(Auth::user()->can('Loan Detail Export'))
+                        @if(Auth::user()->can('Collection Sheet Export'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                Excel
+                                Download
                                 <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                             </button>
                         @endif
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-    </div> --}}
+    </div>
     {!! app('toastr')->message() !!}
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
@@ -62,8 +62,8 @@
                     <table id="tbl_collection_sheet" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
-                                <th>LoanContract</th>
-                                <th>RepaymentDate</th>
+                                <th>Loan ID</th>
+                                <th>Repayment Date</th>
                                 <th>Principal</th>
                                 <th>Interest</th>
                                 <th>Charge</th>
@@ -93,14 +93,14 @@
                 to_date   = toIso($('#to_date').val());
                 $('#tbl_collection_sheet').DataTable().ajax.reload(null, false);
             });
-            $(".btn_excel").on("click", function() {
-                let query = {
-                    branch_id: $("#branch_id").val(),
-                    from_date: $("#from_date").val(),
-                    to_date: $("#to_date").val(),
+            $('.btn_excel').on('click', function () {
+                const query = {
+                    branch_id: $('#branch_id').val(),
+                    from_date: toIso($('#from_date').val()),
+                    to_date: toIso($('#to_date').val()),
                 };
-                var url = "{{URL::to('admin/mkt-report/collection-sheet/download')}}?" + $.param(query)
-                window.location = url;
+                const url = "{{ route('collection-sheet.download') }}?" + $.param(query);
+                window.location.href = url;
             });
             dataTables();
         });
@@ -127,8 +127,8 @@
                 },
                 columns: [
                     {
-                        data: 'ID',
-                        name: 'ID',
+                        data: 'LoanID',
+                        name: 'LoanID',
                         orderable: false,
                         searchable: false,
                     },
@@ -141,22 +141,31 @@
                     { 
                         data: 'Principal', 
                         name: 'Principal',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
                     },
                     { 
                         data: 'Interest', 
                         name: 'Interest',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
                     },
                     { 
                         data: 'Charge', 
                         name: 'Charge',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        }
                     },
                     { 
                         data: 'Branch', 
                         name: 'Branch',
                     },
                     { 
-                        data: 'Branch', 
-                        name: 'Branch',
+                        data: 'Currency', 
+                        name: 'Currency',
                     },
                 ],
             });

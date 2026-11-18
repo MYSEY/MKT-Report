@@ -2,7 +2,7 @@
 @section('content')
     <div class="row mb-2">
         <div class="col-md-6">
-            <h3 class="">Journal De Report</h3>
+            <h3 class="">Journal Detail Report</h3>
         </div>
     </div>
     <div class="card mb-2">
@@ -37,10 +37,10 @@
                             Search
                             <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                         </button>
-                        @if(Auth::user()->can('Loan Detail Export'))
+                        @if(Auth::user()->can('Journal Detail Export'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
-                                Excel
+                                Download
                                 <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                             </button>
                         @endif
@@ -53,7 +53,7 @@
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
             <h2>
-                Journal De Report
+                Journal Detail Report
             </h2>
         </div>
         <div class="panel-container show">
