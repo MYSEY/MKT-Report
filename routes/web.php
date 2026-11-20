@@ -27,6 +27,7 @@ use App\Http\Controllers\Admins\JournalDeController;
 use App\Http\Controllers\Admins\CollectionSheetController;
 use App\Http\Controllers\Admins\MKTTableSetupController;
 use App\Http\Controllers\Admins\PenaltyArrearsController;
+use App\Http\Controllers\Admins\PDDateController;
 
 
 /*
@@ -100,6 +101,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::get('journal-de/download',[JournalDeController::class,'download'])->name('journal-de.download');
         Route::get('collection-sheet',[CollectionSheetController::class,'index']);
         Route::get('collection-sheet/download',[CollectionSheetController::class,'download'])->name('collection-sheet.download');
+
+        Route::get('pd-date',[PDDateController::class,'index']);
+        Route::get('pd-date/download',[PDDateController::class,'download'])->name('admin/mkt-report/pd-date.download');
 
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);

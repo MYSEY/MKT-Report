@@ -233,6 +233,8 @@
                                             ||
                                             Request::is('admin/mkt-report/collection-sheet')
                                             ||
+                                            Request::is('admin/mkt-report/pd-date')
+                                            ||
                                             request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
                                             }}"
@@ -310,6 +312,11 @@
                                                 <li class="{{ Request::is('admin/mkt-report/collection-sheet') ? 'active' : '' }}">
                                                     <a href="{{ url('admin/mkt-report/collection-sheet') }}">
                                                         <span class="nav-link-text">Collection Sheet</span>
+                                                    </a>
+                                                </li>
+                                                <li class="{{ Request::is('admin/mkt-report/pd-date') ? 'active' : '' }}">
+                                                    <a href="{{ url('admin/mkt-report/pd-date') }}">
+                                                        <span class="nav-link-text">PD Date</span>
                                                     </a>
                                                 </li>
                                             </ul>

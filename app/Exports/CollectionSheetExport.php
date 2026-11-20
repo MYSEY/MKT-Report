@@ -23,7 +23,7 @@ class CollectionSheetExport implements FromQuery, WithHeadings, WithMapping, Wit
         return [
             'Loan ID',
             'Repayment Date',
-            'Principal', 
+            'Principal',
             'Interest',
             'Charge',
             'Branch',

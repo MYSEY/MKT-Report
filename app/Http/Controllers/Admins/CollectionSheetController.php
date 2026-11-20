@@ -38,7 +38,7 @@ class CollectionSheetController extends Controller
             }
 
             $limit = min($limit, 100);
-            $data = (clone $filteredQuery)->offset($start)->limit($limit)->get();
+            $data = (clone $filteredQuery)->offset($start)->limit($limit)->orderBy('RS.ID')->get();
             return response()->json([
                 'draw'            => (int) $request->input('draw'),
                 'recordsTotal'    => $recordsTotal,
