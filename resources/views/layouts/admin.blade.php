@@ -235,6 +235,8 @@
                                             ||
                                             Request::is('admin/mkt-report/pd-date')
                                             ||
+                                            Request::is('admin/mkt-report/loan-contract')
+                                            ||
                                             request()->routeIs('mkt.gl.balance', 'mkt.gl.detail')
                                             ? 'active open' : '' 
                                             }}"
@@ -304,21 +306,36 @@
                                                         </a>
                                                     </li>
                                                 @endif
-                                                <li class="{{ Request::is('admin/mkt-report/journal-de') ? 'active' : '' }}">
-                                                    <a href="{{ url('admin/mkt-report/journal-de') }}">
-                                                        <span class="nav-link-text">Journal Details</span>
-                                                    </a>
-                                                </li>
-                                                <li class="{{ Request::is('admin/mkt-report/collection-sheet') ? 'active' : '' }}">
-                                                    <a href="{{ url('admin/mkt-report/collection-sheet') }}">
-                                                        <span class="nav-link-text">Collection Sheet</span>
-                                                    </a>
-                                                </li>
-                                                <li class="{{ Request::is('admin/mkt-report/pd-date') ? 'active' : '' }}">
-                                                    <a href="{{ url('admin/mkt-report/pd-date') }}">
-                                                        <span class="nav-link-text">PD Date</span>
-                                                    </a>
-                                                </li>
+                                                @if(Auth::user()->can('Journal Detail View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/journal-de') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/journal-de') }}">
+                                                            <span class="nav-link-text">Journal Details</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+
+                                                @if(Auth::user()->can('Collection Sheet View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/collection-sheet') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/collection-sheet') }}">
+                                                            <span class="nav-link-text">Collection Sheet</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+
+                                                @if(Auth::user()->can('PD Date View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/pd-date') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/pd-date') }}">
+                                                            <span class="nav-link-text">PD Date</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                                @if(Auth::user()->can('Loan Contract View'))
+                                                    <li class="{{ Request::is('admin/mkt-report/loan-contract') ? 'active' : '' }}">
+                                                        <a href="{{ url('admin/mkt-report/loan-contract') }}">
+                                                            <span class="nav-link-text">Loan Contract</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
                                             </ul>
                                         </li>
                                     @endif

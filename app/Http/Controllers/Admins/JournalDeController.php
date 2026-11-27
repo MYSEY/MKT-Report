@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use App\Traits\HasRolePermission;
 
 class JournalDeController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Journal Detail');
+    }
     public function index(Request $request)
     {
         if ($request->ajax()) {

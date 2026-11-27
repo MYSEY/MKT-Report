@@ -37,13 +37,13 @@
                             Search
                             <span class="loading-icon" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                         </button>
-                        {{-- @if(Auth::user()->can('PD Date Export')) --}}
+                        @if(Auth::user()->can('PD Date Export'))
                             <button type="button" class="btn btn-sm btn-info waves-effect waves-themed btn_excel mr-1" id="icon-search-download-reload">
                                 <span class="btn-text-excel"><i class="fal fa-arrow-circle-down"></i></span>
                                 Download
                                 <span id="btn-text-loading-excel" style="display: none"><i class="fa fa-spinner fa-spin"></i></span>
                             </button>
-                        {{-- @endif --}}
+                        @endif
                     </div>
                 </div>
             </div>

@@ -8,9 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exports\CollectionSheetExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use App\Traits\HasRolePermission;
 class CollectionSheetController extends Controller
 {
+    use HasRolePermission;
+
+    public function __construct()
+    {
+        $this->applyRolePermissions('Collection Sheet');
+    }
     public function index(Request $request)
     {
         if ($request->ajax()) {

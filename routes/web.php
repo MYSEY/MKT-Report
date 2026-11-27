@@ -28,6 +28,7 @@ use App\Http\Controllers\Admins\CollectionSheetController;
 use App\Http\Controllers\Admins\MKTTableSetupController;
 use App\Http\Controllers\Admins\PenaltyArrearsController;
 use App\Http\Controllers\Admins\PDDateController;
+use App\Http\Controllers\Admins\LoanContractController;
 
 
 /*
@@ -104,6 +105,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
         Route::get('pd-date',[PDDateController::class,'index']);
         Route::get('pd-date/download',[PDDateController::class,'download'])->name('admin/mkt-report/pd-date.download');
+
+        Route::get('loan-contract',[LoanContractController::class,'index']);
+        Route::get('loan-contract/download',[LoanContractController::class,'download'])->name('admin/mkt-report/loan-contract.download');
 
         
         Route::get('veryfy/repayment/agent',[VeryfyRepaymentAgentController::class,'index']);
